@@ -1,0 +1,16 @@
+{
+  "slug": "gtnosoft",
+  "name": "gtnosoft",
+  "version": "2.0.0",
+  "license": "MIT",
+  "brand": "gtnosoft",
+  "author": "gotno",
+  "authorEmail": "floyd.will@gmail.com",
+  "authorUrl": "https://github.com/gotno/gtnosoft",
+  "pluginUrl": "https://github.com/gotno/gtnosoft",
+  "manualUrl": "",
+  "sourceUrl": "https://github.com/gotno/gtnosoft",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": []
+}
