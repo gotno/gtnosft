@@ -1,23 +1,33 @@
-# If RACK_DIR is not defined when calling the Makefile, default to two directories above
+SHELL:=/bin/bash -O extglob
+
 RACK_DIR ?= ../..
 
-# FLAGS will be passed to both the C and C++ compiler
-FLAGS +=
-CFLAGS +=
-CXXFLAGS +=
+#FLAGS += -w
+	
+# Add .cpp and .c files to the build
+SOURCES = \
+		$(wildcard dep/oscpack/ip/*.cpp) \
+		$(wildcard dep/oscpack/osc/*.cpp) \
+		$(wildcard src/*.cpp) \
+		$(wildcard src/*/*.cpp) \
 
-# Careful about linking to shared libraries, since you can't assume much about the user's environment and library search path.
-# Static libraries are fine, but they should be added to this plugin's build system.
-LDFLAGS +=
+# Careful about linking to libraries, since you can't assume much about the user's environment and library search path.
+# Static libraries are fine.
+include $(RACK_DIR)/arch.mk
 
-# Add .cpp files to the build
-SOURCES += $(wildcard src/*.cpp)
+MACHINE = $(shell $(CC) -dumpmachine)
+ifneq (, $(findstring mingw, $(MACHINE)))
+	SOURCES += $(wildcard dep/oscpack/ip/win32/*.cpp) 
+	LDFLAGS += -lws2_32 -lwinmm
+	LDFLAGS +=  -L$(RACK_DIR)/dep/lib
+else
+	SOURCES += $(wildcard dep/oscpack/ip/posix/*.cpp) 
+endif
 
-# Add files to the ZIP package when running `make dist`
-# The compiled plugin and "plugin.json" are automatically added.
-DISTRIBUTABLES += res
-DISTRIBUTABLES += $(wildcard LICENSE*)
-DISTRIBUTABLES += $(wildcard presets)
 
-# Include the Rack plugin Makefile framework
+DISTRIBUTABLES += $(wildcard LICENSE*) \
+ dep/oscpack/LICENSE \
+ $(wildcard res/*.svg) \
+ $(wildcard res/*/*.svg) 
+
 include $(RACK_DIR)/plugin.mk
