@@ -41,6 +41,7 @@
 #else
 //#include <alloca.h> // alloca on Linux (also OSX)
 #include <stdlib.h> // alloca on OSX and FreeBSD (and Linux?)
+#include <assert.h> // Assert on linux
 #endif
 
 #include <cassert>

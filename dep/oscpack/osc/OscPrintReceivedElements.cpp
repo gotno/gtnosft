@@ -36,6 +36,7 @@
 */
 #include "OscPrintReceivedElements.h"
 
+#include <assert.h> // Assert on linux
 #include <cstring>
 #include <ctime>
 #include <iostream>

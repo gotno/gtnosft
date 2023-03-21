@@ -54,7 +54,7 @@ public:
     Exception& operator=( const Exception& src ) throw()
         { what_ = src.what_; return *this; }
     virtual ~Exception() throw() {}
-    virtual const char* what() const throw() { return what_; }
+    virtual const char* what() const throw() override { return what_; }
 };
 
 } // namespace osc

@@ -64,11 +64,15 @@ static inline const char* FindStr4End( const char *p )
 // returns 0 if p == end or if the string is unterminated
 static inline const char* FindStr4End( const char *p, const char *end )
 {
-    if( p >= end )
+    if (p >= end)
+    {
         return 0;
+    }
 
-	if( p[0] == '\0' )    // special case for SuperCollider integer address pattern
-		return p + 4;
+    if (p[0] == '\0')    // special case for SuperCollider integer address pattern
+    {
+        return p + 4;
+    }
 
     p += 3;
     end -= 1;
@@ -218,6 +222,8 @@ bool ReceivedMessageArgument::AsBoolUnchecked() const
         throw MissingArgumentException();
 	else if( *typeTagPtr_ == TRUE_TYPE_TAG )
 		return true;
+	else if (*typeTagPtr_ == osc::TypeTagValues::FLOAT_TYPE_TAG) // Do conversion for touchOSC's limited values
+		return AsFloatUnchecked() > 0;
     else
 	    return false;
 }
@@ -225,10 +231,12 @@ bool ReceivedMessageArgument::AsBoolUnchecked() const
 
 int32 ReceivedMessageArgument::AsInt32() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
-	else if( *typeTagPtr_ == INT32_TYPE_TAG )
+	if (!typeTagPtr_)
+		throw MissingArgumentException();
+	else if (*typeTagPtr_ == INT32_TYPE_TAG)
 		return AsInt32Unchecked();
+	else if (*typeTagPtr_ == osc::TypeTagValues::FLOAT_TYPE_TAG) // Do conversion for touchOSC's limited values
+		return static_cast<osc::int32>(AsFloatUnchecked());
 	else
 		throw WrongArgumentTypeException();
 }
@@ -256,10 +264,16 @@ int32 ReceivedMessageArgument::AsInt32Unchecked() const
 
 float ReceivedMessageArgument::AsFloat() const
 {
-    if( !typeTagPtr_ )
-        throw MissingArgumentException();
-	else if( *typeTagPtr_ == FLOAT_TYPE_TAG )
+	if (!typeTagPtr_)
+		throw MissingArgumentException();
+	else if (*typeTagPtr_ == FLOAT_TYPE_TAG)
 		return AsFloatUnchecked();
+	else if (*typeTagPtr_ == TRUE_TYPE_TAG) // Allow conversion to other types
+		return 1.0f;
+	else if (*typeTagPtr_ == FALSE_TYPE_TAG)
+		return 0.0f;
+	else if (*typeTagPtr_ == INT32_TYPE_TAG)
+		return static_cast<float>(AsInt32Unchecked());
 	else
 		throw WrongArgumentTypeException();
 }
