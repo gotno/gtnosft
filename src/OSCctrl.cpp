@@ -1,4 +1,10 @@
-#include "OSC.hpp"
+#include "plugin.hpp"
+
+#include "OscRouter.hpp"
+#include "OscController.hpp"
+
+#include "../dep/oscpack/ip/UdpSocket.h"
+
 #include <thread>
 
 struct OSCctrl : Module {
@@ -22,7 +28,8 @@ struct OSCctrl : Module {
 	};
 	OSCAction oscCurrentAction = OSCAction::Enable;
 
-  OscDebugPacketListener listener;
+  OscRouter router;
+  OscController controller;
   UdpListeningReceiveSocket* RxSocket = NULL;
 	std::thread oscListenerThread;
 
@@ -35,11 +42,20 @@ struct OSCctrl : Module {
     cleanupListener();
 	}
 
+	/* void onDragStart(const DragStartEvent& e) override { */
+	/* 	if (e.button != GLFW_MOUSE_BUTTON_LEFT) return; */
+
+    /* syncRackModules(); */
+	/* } */
+
   void startListener() {
     DEBUG("OSCctrl startListener");
+
     if (RxSocket != NULL) return;
 
-		RxSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, 7000), &listener);
+    /* router.AddRoute("/module_received", UEModuleSynced); */
+
+		RxSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, 7000), &router);
 		oscListenerThread = std::thread(&UdpListeningReceiveSocket::Run, RxSocket);
 	}
 
@@ -49,7 +65,7 @@ struct OSCctrl : Module {
 
 		RxSocket->AsynchronousBreak();
 		oscListenerThread.join();
-		delete RxSocket;			
+		delete RxSocket;
 		RxSocket = NULL;
 	}
 
@@ -61,10 +77,18 @@ struct OSCctrl : Module {
         break;
       case OSCAction::Enable:
         DEBUG("enabling OSCctrl");
+        DEBUG("starting Rx listener");
 				startListener();
+
+        router.SetController(&controller);
+        router.AddRoute("/rx/*", &OscController::UERx);
+
+        controller.init();
+
         break;
       case OSCAction::None:
         /* DEBUG("OSCctrl doing nothing"); */
+        break;
       default:
         break;
 		}
@@ -84,6 +108,5 @@ struct OSCctrlWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 	}
 };
-
 
 Model* modelOSCctrl = createModel<OSCctrl, OSCctrlWidget>("OSCctrl");
