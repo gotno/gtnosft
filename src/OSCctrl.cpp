@@ -33,6 +33,8 @@ struct OSCctrl : Module {
   UdpListeningReceiveSocket* RxSocket = NULL;
 	std::thread oscListenerThread;
 
+  rack::dsp::ClockDivider fpsDivider;
+
 	OSCctrl() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 	}
@@ -93,6 +95,14 @@ struct OSCctrl : Module {
         break;
 		}
     this->oscCurrentAction = OSCAction::None;
+
+    if (fpsDivider.getDivision() == 1) {
+      fpsDivider.setDivision((uint32_t)(args.sampleRate / 30));
+    }
+
+    if (fpsDivider.process()) {
+      controller.sendLightUpdates();
+    }
 	}
 };
 

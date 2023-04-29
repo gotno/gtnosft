@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <cstring>
+#include <random>
 
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
@@ -15,7 +16,9 @@ OscController::~OscController() {
 
 void OscController::init() {
 	collectRackModules();
+  collectCables();
 	printRackModules();
+  printCables();
   syncAll();
 }
 
@@ -28,6 +31,38 @@ rack::math::Rect OscController::box2cm(rack::math::Rect pxBox) {
   cmBox.size.y = rack::window::px2cm(pxBox.size.y);
 
   return cmBox;
+}
+
+rack::math::Vec OscController::vec2cm(rack::math::Vec pxVec) {
+  rack::math::Vec cmVec = pxVec;
+
+  cmVec.x = rack::window::px2cm(pxVec.x);
+  cmVec.y = rack::window::px2cm(pxVec.y);
+
+  return cmVec;
+}
+
+int OscController::randomId() {
+	std::random_device dev;
+	std::mt19937 rng(dev());
+	std::uniform_int_distribution<std::mt19937::result_type> dist(10000, 30000);
+
+  return dist(rng);
+}
+
+bool OscController::isRectangleLight(rack::app::MultiLightWidget* light) {
+  using namespace rack::componentlibrary;
+
+  if (dynamic_cast<VCVSliderLight<GrayModuleLightWidget>*>(light) ||
+    dynamic_cast<VCVSliderLight<WhiteLight>*>(light) ||
+    dynamic_cast<VCVSliderLight<RedLight>*>(light) ||
+    dynamic_cast<VCVSliderLight<GreenLight>*>(light) ||
+    dynamic_cast<VCVSliderLight<BlueLight>*>(light) ||
+    dynamic_cast<VCVSliderLight<YellowLight>*>(light) ||
+    dynamic_cast<VCVSliderLight<GreenRedLight>*>(light) ||
+    dynamic_cast<VCVSliderLight<RedGreenBlueLight>*>(light)) return true;
+
+  return false;
 }
 
 void OscController::collectRackModules() {
@@ -48,6 +83,18 @@ void OscController::collectRackModules() {
     for (rack::widget::Widget* mw_child : mw->children) {
       if (rack::app::LedDisplay* display = dynamic_cast<rack::app::LedDisplay*>(mw_child)) {
         RackModules[moduleId].Displays.emplace_back(box2cm(display->getBox()));
+      } else if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(mw_child)) {
+        int lightId = randomId();
+
+        RackModules[moduleId].Lights[lightId] = VCVLight(
+          lightId,
+          moduleId,
+          box2cm(light->getBox()),
+          LightShape::Round, // fixme
+          light->color,
+          light->bgColor,
+          light
+        );
       }
     }
 
@@ -65,6 +112,27 @@ void OscController::collectRackModules() {
         pq->getValue()
       );
 
+			for (rack::widget::Widget* & pw_child : pw->children) {
+				if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(pw_child)) {
+          int lightId = randomId();
+          LightShape lightShape = isRectangleLight(light) ? LightShape::Rectangle : LightShape::Round;
+
+          RackModules[moduleId].Params[pq->paramId].Lights[lightId] = VCVLight(
+            lightId,
+            moduleId,
+            pq->paramId,
+            box2cm(light->getBox()),
+            lightShape,
+            light->color,
+            light->bgColor,
+            light
+          );
+
+          RackModules[moduleId].ParamLights[lightId] = 
+            &RackModules[moduleId].Params[pq->paramId].Lights[lightId];
+				}
+			}
+
       RackModules[moduleId].Params[pq->paramId].snap = pq->snapEnabled;
 
       // Knob
@@ -81,8 +149,8 @@ void OscController::collectRackModules() {
         RackModules[moduleId].Params[pq->paramId].box = box2cm(p_slider->getBox());
         RackModules[moduleId].Params[pq->paramId].horizontal = p_slider->horizontal;
         RackModules[moduleId].Params[pq->paramId].speed = p_slider->speed;
-        RackModules[moduleId].Params[pq->paramId].minHandlePos = p_slider->minHandlePos;
-        RackModules[moduleId].Params[pq->paramId].maxHandlePos = p_slider->maxHandlePos;
+        RackModules[moduleId].Params[pq->paramId].minHandlePos = vec2cm(p_slider->minHandlePos);
+        RackModules[moduleId].Params[pq->paramId].maxHandlePos = vec2cm(p_slider->maxHandlePos);
         RackModules[moduleId].Params[pq->paramId].handleBox = box2cm(p_slider->handle->getBox());
       }
 
@@ -132,9 +200,12 @@ void OscController::printRackModules() {
   for (std::pair<int64_t, VCVModule> module_pair : RackModules) {
     // module id, name
     if (module_pair.second.Displays.size() > 0) {
-      DEBUG("%lld %s (has %lld LED displays)", module_pair.first, module_pair.second.name.c_str(), module_pair.second.Displays.size());
+      DEBUG("\n %lld %s (has %lld LED displays)", module_pair.first, module_pair.second.name.c_str(), module_pair.second.Displays.size());
     } else {
-      DEBUG("%lld %s", module_pair.first, module_pair.second.name.c_str());
+      DEBUG("\n %lld %s", module_pair.first, module_pair.second.name.c_str());
+    }
+    if (module_pair.second.Lights.size() > 0) {
+      DEBUG("        (has %lld lights)", module_pair.second.Lights.size());
     }
     DEBUG("  pos: %fx/%fy, size: %fx/%fy", module_pair.second.box.pos.x, module_pair.second.box.pos.y, module_pair.second.box.size.x, module_pair.second.box.size.y);
 
@@ -162,6 +233,9 @@ void OscController::printRackModules() {
 
         // param id, type, name, unit
         DEBUG("    %d (%s): %s%s", param_pair.second.id, type.c_str(), param_pair.second.name.c_str(), param_pair.second.unit.c_str());
+        if (param_pair.second.Lights.size() > 0) {
+          DEBUG("      (has %lld lights)", param_pair.second.Lights.size());
+        }
 
         if (type == "Knob") {
           DEBUG("      min/default/max %f/%f/%f (snap: %s)", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue, param_pair.second.snap ? "true" : "false");
@@ -183,14 +257,14 @@ void OscController::printRackModules() {
       DEBUG("  Inputs:");
 
       for (std::pair<int, VCVPort> input_pair : module_pair.second.Inputs) {
-          DEBUG("      %d %s %s", input_pair.second.id, input_pair.second.name.c_str(), input_pair.second.description.c_str());
+        DEBUG("      %d %s %s", input_pair.second.id, input_pair.second.name.c_str(), input_pair.second.description.c_str());
       }
     }
     if (module_pair.second.Outputs.size() > 0) {
       DEBUG("  Outputs:");
 
       for (std::pair<int, VCVPort> output_pair : module_pair.second.Outputs) {
-          DEBUG("      %d %s %s", output_pair.second.id, output_pair.second.name.c_str(), output_pair.second.description.c_str());
+        DEBUG("      %d %s %s", output_pair.second.id, output_pair.second.name.c_str(), output_pair.second.description.c_str());
       }
     }
   }
@@ -208,6 +282,22 @@ void OscController::collectCables() {
       cable->outputId
 		);
 	}
+}
+
+void OscController::printCables() {
+  for (std::pair<int64_t, VCVCable> cable_pair : Cables) {
+    VCVModule* inputModule = &RackModules[cable_pair.second.inputModuleId];
+    VCVModule* outputModule = &RackModules[cable_pair.second.outputModuleId];
+    VCVCable* cable = &cable_pair.second;
+
+    DEBUG("cable %lld connects %s:output %d to %s:input %d",
+      cable->id,
+      outputModule->name.c_str(),
+      cable->outputPortId,
+      inputModule->name.c_str(),
+      cable->inputPortId
+    );
+  }
 }
 
 void OscController::syncModuleParam(int64_t moduleId, VCVParam* param) {
@@ -253,6 +343,50 @@ void OscController::syncModuleParam(int64_t moduleId, VCVParam* param) {
 void OscController::syncModuleParams(int64_t moduleId) {
   for (std::pair<int, VCVParam> param_pair : RackModules[moduleId].Params) {
     syncModuleParam(moduleId, &param_pair.second);
+  }
+}
+
+void OscController::syncModuleLight(int64_t moduleId, VCVLight* light, int paramId) {
+  if (light->synced) return;
+
+  /* if (paramId != -1) { */
+  /*   DEBUG("syncing light (param) %lld:%d:%d", moduleId, paramId, light->id); */
+  /* } else { */
+  /*   DEBUG("syncing light %lld:%d", moduleId, light->id); */
+  /* } */
+
+  char buffer[512];
+  osc::OutboundPacketStream PacketStream(buffer, 512);
+
+  PacketStream << osc::BeginMessage("/modules/light/add")
+    << moduleId
+    << paramId
+    << light->id
+    << light->box.pos.x
+    << light->box.pos.y
+    << light->box.size.x
+    << light->box.size.y
+    << light->color.r
+    << light->color.g
+    << light->color.b
+    << light->color.a
+    << light->bgColor.r
+    << light->bgColor.g
+    << light->bgColor.b
+    << light->bgColor.a
+    << light->shape
+    << osc::EndMessage;
+
+  sendMessage(PacketStream);
+}
+void OscController::syncModuleLights(int64_t moduleId) {
+  for (std::pair<int, VCVLight> light_pair : RackModules[moduleId].Lights) {
+    syncModuleLight(moduleId, &light_pair.second);
+  }
+}
+void OscController::syncParamLights(int64_t moduleId, VCVParam* param) {
+  for (std::pair<int, VCVLight> light_pair : param->Lights) {
+    syncModuleLight(moduleId, &light_pair.second, param->id);
   }
 }
 
@@ -331,7 +465,7 @@ void OscController::syncModuleDisplays(int64_t moduleId) {
 void OscController::syncRackModule(VCVModule* module) {
   if (module->synced) return;
 
-  DEBUG("syncing module %lld\t %s", module->id, module->name.c_str());
+  /* DEBUG("syncing module %lld\t %s", module->id, module->name.c_str()); */
 
   char buffer[512];
   osc::OutboundPacketStream PacketStream(buffer, 512);
@@ -384,6 +518,10 @@ bool OscController::isSynced() {
 
     for (std::pair<int, VCVParam> p_param : p_module.second.Params) {
       if (!p_param.second.synced) return false;
+
+      for (std::pair<int, VCVLight> p_light : p_param.second.Lights) {
+        if (!p_light.second.synced) return false;
+      }
     }
 
     for (std::pair<int, VCVPort> p_input : p_module.second.Inputs) {
@@ -394,7 +532,12 @@ bool OscController::isSynced() {
       if (!p_output.second.synced) return false;
     }
 
+    for (std::pair<int, VCVLight> p_light : p_module.second.Lights) {
+      if (!p_light.second.synced) return false;
+    }
+
     // how, for multiple?
+    // generate id like for Lights
     for (VCVDisplay& display : p_module.second.Displays) {
       if (!display.synced) return false;
     }
@@ -404,8 +547,9 @@ bool OscController::isSynced() {
 }
 
 void OscController::syncRackModuleComponents(int64_t moduleId) {
-  DEBUG("syncing components for %lld", moduleId);
+  /* DEBUG("syncing components for %lld", moduleId); */
   syncModuleParams(moduleId);
+  syncModuleLights(moduleId);
   syncModuleInputs(moduleId);
   syncModuleOutputs(moduleId);
   syncModuleDisplays(moduleId);
@@ -413,6 +557,8 @@ void OscController::syncRackModuleComponents(int64_t moduleId) {
 
 void OscController::syncCable(VCVCable* cable) {
   if (cable->synced) return;
+
+  /* DEBUG("syncing cable %lld", cable->id); */
 
   char buffer[512];
   osc::OutboundPacketStream PacketStream(buffer, 512);
@@ -432,6 +578,53 @@ void OscController::syncCables() {
   for (std::pair<int64_t, VCVCable> pair : Cables) {
     syncCable(&pair.second);
 	}
+}
+
+void OscController::sendLightUpdates() {
+  /* DEBUG("calling send light updates"); */
+  for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) {
+    for (std::pair<int, VCVLight*> light_pair : module_pair.second) {
+      VCVLight* light = light_pair.second;
+      
+      // unreal emissive colors ignore alpha and obscure the background color,
+      // so screen the light color over the background color and
+      // apply the alpha to the rgb values before sending.
+      NVGcolor lightColor = rack::color::screen(light->widget->bgColor, light->widget->color);
+      lightColor = rack::color::mult(light->widget->color, light->widget->color.a);
+
+      // TODO: this doesn't work for the initial update of static lights
+      /* if (!rack::color::isEqual(light->color, lightColor)) { */
+      /*   light->color = lightColor; */
+        sendLightUpdate(module_pair.first, light_pair.first, lightColor);
+      /* } */
+    }
+  }
+}
+void OscController::sendLightUpdate(int64_t moduleId, int lightId, NVGcolor color) {
+  /* if (RackModules[moduleId].Lights.count(lightId) > 0) { */
+  /*   DEBUG("sending module light update for %s:%d", RackModules[moduleId].name.c_str(), lightId); */ 
+  /* } else { */
+  /*   DEBUG("sending param light update for %s:%d", RackModules[moduleId].name.c_str(), lightId); */ 
+  /* } */
+
+  char buffer[512]; // 32?
+  osc::OutboundPacketStream PacketStream(buffer, 512);
+
+  PacketStream << osc::BeginMessage("/modules/light/update")
+    << moduleId // 8
+    << lightId // 4
+    << color.r // 4
+    << color.g // 4
+    << color.b // 4
+    << color.a // 4
+    << osc::EndMessage; // 28
+
+  sendMessage(PacketStream);
+}
+
+void OscController::registerLightReference(int64_t moduleId, VCVLight* light) {
+  /* DEBUG("registering light %d", light->id); */
+  LightReferences[moduleId][light->id] = light;
 }
 
 void OscController::sendInitialSyncComplete() {
@@ -455,16 +648,37 @@ void OscController::UERx(const char* path, int64_t outerId, int innerId) {
     syncRackModuleComponents(outerId);
   } else if (std::strcmp(path, "/rx/param") == 0) {
     /* DEBUG("/rx/param %lld:%d", outerId, innerId); */
-    RackModules[outerId].Params[innerId].synced = true;
+    VCVParam* param = &RackModules[outerId].Params[innerId];
+    param->synced = true;
+    syncParamLights(outerId, param);
   } else if (std::strcmp(path, "/rx/input") == 0) {
     /* DEBUG("/rx/input %lld:%d", outerId, innerId); */
     RackModules[outerId].Inputs[innerId].synced = true;
   } else if (std::strcmp(path, "/rx/output") == 0) {
     /* DEBUG("/rx/output %lld:%d", outerId, innerId); */
     RackModules[outerId].Outputs[innerId].synced = true;
+  } else if (std::strcmp(path, "/rx/module_light") == 0) {
+    VCVLight* light = nullptr;
+
+    if (RackModules[outerId].Lights.count(innerId) > 0) {
+      /* DEBUG("/rx/module_light %lld:%d", outerId, innerId); */
+      light = &RackModules[outerId].Lights[innerId];
+    } else if (RackModules[outerId].ParamLights.count(innerId) > 0) {
+      /* DEBUG("/rx/module_light (param) %lld:%d", outerId, innerId); */
+      light = RackModules[outerId].ParamLights[innerId];
+    }
+
+    if (!light) {
+      DEBUG("no module or param light found on /rx/module_light");
+      return;
+    }
+
+    light->synced = true;
+    registerLightReference(outerId, light);
   } else if (std::strcmp(path, "/rx/display") == 0) {
     /* DEBUG("/rx/display %lld:%d", outerId, innerId); */
     // how, for multiple?
+    // generate id like for Lights
     RackModules[outerId].Displays[0].synced = true;
   } else if (std::strcmp(path, "/rx/cable") == 0) {
     /* DEBUG("/rx/cable %lld", outerId); */

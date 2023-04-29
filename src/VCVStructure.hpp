@@ -7,6 +7,30 @@
 #include <unordered_map>
 #include <vector>
 
+enum LightShape {
+  Round,
+  Rectangle
+};
+struct VCVLight {
+  int id;
+  int64_t moduleId;
+  int paramId = -1;
+  rack::math::Rect box;
+  LightShape shape;
+  NVGcolor color;
+  NVGcolor bgColor;
+
+  rack::app::MultiLightWidget* widget;
+
+  bool synced = false;
+
+  VCVLight() {}
+  VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
+    : id(_id), moduleId(_moduleId), box(_box), shape(_shape), color(_color), bgColor(_bgColor), widget(_widget) {}
+  VCVLight(int _id, int64_t _moduleId, int _paramId, rack::math::Rect _box, LightShape _shape, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
+    : id(_id), moduleId(_moduleId), paramId(_paramId), box(_box), shape(_shape), color(_color), bgColor(_bgColor), widget(_widget) {}
+};
+
 enum ParamType {
   Knob, Slider, Button, Switch
 };
@@ -50,6 +74,8 @@ struct VCVParam {
 
   bool synced = false;
 
+  std::map<int, VCVLight> Lights;
+
   VCVParam() {}
   VCVParam(int paramId, std::string paramName, std::string paramUnit, std::string paramDescription, float paramMinValue, float paramMaxValue, float paramDefaultValue, float paramValue)
     : id(paramId), name(paramName), unit(paramUnit), description(paramDescription),
@@ -91,7 +117,8 @@ struct VCVModule {
   std::map<int, VCVParam> Params;
   std::map<int, VCVPort> Inputs;
   std::map<int, VCVPort> Outputs;
-  /* std::unordered_map<int, VCVLight> Lights; */
+  std::map<int, VCVLight> Lights;
+  std::map<int, VCVLight*> ParamLights;
 
   std::vector<VCVDisplay> Displays;
 
