@@ -28,6 +28,7 @@ struct OscController {
 
   void init();
 
+  rack::math::Vec ueCorrectPos(rack::math::Vec parentSize, rack::math::Vec pos, rack::math::Vec size);
   rack::math::Rect box2cm(rack::math::Rect pxBox);
   rack::math::Vec vec2cm(rack::math::Vec pxVec);
   int randomId();

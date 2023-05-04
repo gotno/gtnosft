@@ -21,6 +21,13 @@ void OscController::init() {
   printCables();
   syncAll();
 }
+ 
+rack::math::Vec OscController::ueCorrectPos(rack::math::Vec parentSize, rack::math::Vec pos, rack::math::Vec size) {
+  pos.x = (pos.x - (parentSize.x * 0.5f)) + (size.x * 0.5f);
+  pos.y = (pos.y - (parentSize.y * 0.5f)) + (size.y * 0.5f);
+  pos.y = -pos.y;
+  return pos;
+}
 
 rack::math::Rect OscController::box2cm(rack::math::Rect pxBox) {
   rack::math::Rect cmBox = pxBox;
@@ -73,23 +80,30 @@ void OscController::collectRackModules() {
 
     if (mod->getModel()->name == "OSCctrl") continue;
 
+    rack::math::Rect panelBox = box2cm(mw->getPanel()->getBox());
+
     RackModules[moduleId] = VCVModule(
       moduleId,
       mod->getModel()->name,
       mod->getModel()->description,
-      box2cm(mw->getPanel()->getBox())
+      panelBox
     );
 
     for (rack::widget::Widget* mw_child : mw->children) {
       if (rack::app::LedDisplay* display = dynamic_cast<rack::app::LedDisplay*>(mw_child)) {
-        RackModules[moduleId].Displays.emplace_back(box2cm(display->getBox()));
+        rack::math::Rect box = box2cm(display->getBox());
+        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+        RackModules[moduleId].Displays.emplace_back(box);
       } else if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(mw_child)) {
         int lightId = randomId();
+
+        rack::math::Rect box = box2cm(light->getBox());
+        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
 
         RackModules[moduleId].Lights[lightId] = VCVLight(
           lightId,
           moduleId,
-          box2cm(light->getBox()),
+          box,
           LightShape::Round, // fixme
           light->color,
           light->bgColor,
@@ -117,11 +131,14 @@ void OscController::collectRackModules() {
           int lightId = randomId();
           LightShape lightShape = isRectangleLight(light) ? LightShape::Rectangle : LightShape::Round;
 
+          rack::math::Rect box = box2cm(light->getBox());
+          box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
           RackModules[moduleId].Params[pq->paramId].Lights[lightId] = VCVLight(
             lightId,
             moduleId,
             pq->paramId,
-            box2cm(light->getBox()),
+            box,
             lightShape,
             light->color,
             light->bgColor,
@@ -138,7 +155,11 @@ void OscController::collectRackModules() {
       // Knob
       if (rack::app::SvgKnob* p_knob = dynamic_cast<rack::app::SvgKnob*>(pw)) {
         RackModules[moduleId].Params[pq->paramId].type = ParamType::Knob;
-        RackModules[moduleId].Params[pq->paramId].box = box2cm(p_knob->getBox());
+
+        rack::math::Rect box = box2cm(p_knob->getBox());
+        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
+        RackModules[moduleId].Params[pq->paramId].box = box;
         RackModules[moduleId].Params[pq->paramId].minAngle = p_knob->minAngle;
         RackModules[moduleId].Params[pq->paramId].maxAngle = p_knob->maxAngle;
       }
@@ -146,12 +167,25 @@ void OscController::collectRackModules() {
       // Slider
       if (rack::app::SvgSlider* p_slider = dynamic_cast<rack::app::SvgSlider*>(pw)) {
         RackModules[moduleId].Params[pq->paramId].type = ParamType::Slider;
-        RackModules[moduleId].Params[pq->paramId].box = box2cm(p_slider->getBox());
+
+        rack::math::Rect sliderBox = box2cm(p_slider->getBox());
+        sliderBox.pos = ueCorrectPos(panelBox.size, sliderBox.pos, sliderBox.size);
+
+        rack::math::Rect handleBox = box2cm(p_slider->handle->getBox());
+        handleBox.pos = ueCorrectPos(sliderBox.size, handleBox.pos, handleBox.size);
+
+        rack::math::Vec minHandlePos = vec2cm(p_slider->minHandlePos);
+        minHandlePos = ueCorrectPos(sliderBox.size, minHandlePos, handleBox.size);
+
+        rack::math::Vec maxHandlePos = vec2cm(p_slider->maxHandlePos);
+        maxHandlePos = ueCorrectPos(sliderBox.size, maxHandlePos, handleBox.size);
+
+        RackModules[moduleId].Params[pq->paramId].box = sliderBox;
         RackModules[moduleId].Params[pq->paramId].horizontal = p_slider->horizontal;
         RackModules[moduleId].Params[pq->paramId].speed = p_slider->speed;
-        RackModules[moduleId].Params[pq->paramId].minHandlePos = vec2cm(p_slider->minHandlePos);
-        RackModules[moduleId].Params[pq->paramId].maxHandlePos = vec2cm(p_slider->maxHandlePos);
-        RackModules[moduleId].Params[pq->paramId].handleBox = box2cm(p_slider->handle->getBox());
+        RackModules[moduleId].Params[pq->paramId].minHandlePos = minHandlePos;
+        RackModules[moduleId].Params[pq->paramId].maxHandlePos = maxHandlePos;
+        RackModules[moduleId].Params[pq->paramId].handleBox = handleBox;
       }
 
       // Switch
@@ -159,7 +193,11 @@ void OscController::collectRackModules() {
       // ag addFrame
       if (rack::app::SvgSwitch* p_switch = dynamic_cast<rack::app::SvgSwitch*>(pw)) {
         RackModules[moduleId].Params[pq->paramId].type = ParamType::Switch;
-        RackModules[moduleId].Params[pq->paramId].box = box2cm(p_switch->getBox());
+
+        rack::math::Rect box = box2cm(p_switch->getBox());
+        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
+        RackModules[moduleId].Params[pq->paramId].box = box;
         RackModules[moduleId].Params[pq->paramId].latch = p_switch->latch;
         RackModules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
       }
@@ -167,12 +205,20 @@ void OscController::collectRackModules() {
       // Button
       if (rack::app::SvgButton* p_button = dynamic_cast<rack::app::SvgButton*>(pw)) {
         RackModules[moduleId].Params[pq->paramId].type = ParamType::Button;
-        RackModules[moduleId].Params[pq->paramId].box = box2cm(p_button->getBox());
+
+        rack::math::Rect box = box2cm(p_button->getBox());
+        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
+        RackModules[moduleId].Params[pq->paramId].box = box;
       }
     }
 
     for (rack::app::PortWidget* portWidget : mw->getPorts()) {
       PortType type = portWidget->type == rack::engine::Port::INPUT ? PortType::Input : PortType::Output;
+
+      rack::math::Rect box = box2cm(portWidget->getBox());
+      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
 
       if (type == PortType::Input) {
         RackModules[moduleId].Inputs[portWidget->portId] = VCVPort(
@@ -180,7 +226,7 @@ void OscController::collectRackModules() {
           type,
           portWidget->getPortInfo()->name,
           portWidget->getPortInfo()->description,
-          box2cm(portWidget->getBox())
+          box
         );
       } else {
         RackModules[moduleId].Outputs[portWidget->portId] = VCVPort(
@@ -188,7 +234,7 @@ void OscController::collectRackModules() {
           type,
           portWidget->getPortInfo()->name,
           portWidget->getPortInfo()->description,
-          box2cm(portWidget->getBox())
+          box
         );
       }
     }
