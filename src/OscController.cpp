@@ -593,10 +593,11 @@ void OscController::sendLightUpdates() {
       lightColor = rack::color::mult(light->widget->color, light->widget->color.a);
 
       // TODO: this doesn't work for the initial update of static lights
-      /* if (!rack::color::isEqual(light->color, lightColor)) { */
-      /*   light->color = lightColor; */
-        sendLightUpdate(module_pair.first, light_pair.first, lightColor);
-      /* } */
+      if (!rack::color::isEqual(light->color, lightColor) || !light->hadFirstUpdate) {
+        light->hadFirstUpdate = true;
+        light->color = lightColor;
+        sendLightUpdate(module_pair.first, light_pair.first, light->color);
+      }
     }
   }
 }

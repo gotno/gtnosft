@@ -23,6 +23,7 @@ struct VCVLight {
   rack::app::MultiLightWidget* widget;
 
   bool synced = false;
+  bool hadFirstUpdate = false;
 
   VCVLight() {}
   VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
