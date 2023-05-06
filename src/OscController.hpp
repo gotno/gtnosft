@@ -8,8 +8,36 @@
 #include <unordered_map>
 #include <vector>
 #include <thread>
+#include <queue>
 
 #define OSC_BUFFER_SIZE (1024 * 16)
+
+//  Q:
+enum CommandType {
+  SyncModule,
+  SyncParam,
+  SyncInput,
+  SyncOutput,
+  SyncPort,
+  SyncDisplay,
+  SyncLight,
+  SyncParamLight,
+  CheckModuleSync,
+  FinalizeModule,
+  SyncCable,
+  UpdateLight,
+  UpdateDisplay
+};
+struct Payload {
+  int64_t pid;
+  int cid, gcid;
+  float when;
+
+  // requeue?
+  int retries, limit;
+};
+typedef std::pair<CommandType, Payload> command;
+
 
 typedef std::unordered_map<int, VCVLight*> LightReferenceMap;
 
@@ -22,6 +50,11 @@ struct OscController {
   char* oscBuffer = new char[OSC_BUFFER_SIZE];
 
   std::thread syncworker;
+  //  Q:
+  std::thread queueWorker;
+  bool queueWorkerRunning = false;
+  std::queue<command> commandQueue;
+
   bool isSynced();
   void ensureSynced();
 

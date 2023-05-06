@@ -486,18 +486,24 @@ void OscController::syncModule(VCVModule* module) {
 }
 
 void OscController::syncAll() {
+  // Q: add sync commands for each module and cable
   syncModules();
   syncCables();
 
+  // Q: replace with generic queue worker
   syncworker = std::thread(OscController::ensureSynced, this);
 }
 
+// Q: unneeded
 void OscController::syncModules() {
   for (std::pair<int64_t, VCVModule> pair : RackModules) {
     syncModule(&pair.second);
 	}
 }
 
+// Q: this becomes a command
+// checks sync and requeues if necesary
+// attempts resync after set number of checks
 void OscController::ensureSynced() {
   while(syncCheckCount < 5 && !isSynced()) {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -514,6 +520,7 @@ void OscController::ensureSynced() {
   }
 }
 
+// Q: the command's check, for a single module
 bool OscController::isSynced() {
   for (std::pair<int64_t, VCVModule> p_module : RackModules) {
     if (!p_module.second.synced) return false;
@@ -564,12 +571,14 @@ void OscController::syncCable(VCVCable* cable) {
   sendMessage(buffer);
 }
 
+// Q: unneeded
 void OscController::syncCables() {
   for (std::pair<int64_t, VCVCable> pair : Cables) {
     syncCable(&pair.second);
 	}
 }
 
+// Q: insert a command for each light update
 void OscController::sendLightUpdates() {
   /* DEBUG("calling send light updates"); */
   osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
@@ -614,6 +623,7 @@ void OscController::registerLightReference(int64_t moduleId, VCVLight* light) {
   LightReferences[moduleId][light->id] = light;
 }
 
+// Q: this sends a modulelId
 void OscController::sendInitialSyncComplete() {
   osc::OutboundPacketStream message(oscBuffer, OSC_BUFFER_SIZE);
 
@@ -628,6 +638,8 @@ void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
 
 // UE callbacks
 
+// Q:? this should become moduleId, childId, grandchildId
+// address lights directly
 void OscController::UERx(const char* path, int64_t outerId, int innerId) {
   if (std::strcmp(path, "/rx/module") == 0) {
     /* DEBUG("/rx/module %lld", outerId); */
