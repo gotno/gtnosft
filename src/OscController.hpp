@@ -46,33 +46,19 @@ struct OscController {
   void printCables();
 
   void bundleLight(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVLight* light, int paramId = -1);
-  void syncModuleLight(int64_t moduleId, VCVLight* light, int paramId = -1);
-  void syncModuleLights(int64_t moduleId);
-  void syncParamLights(int64_t moduleId, VCVParam* param);
-
   void bundleParam(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVParam* param);
-  void syncModuleParam(int64_t moduleId, VCVParam* param);
-  void syncModuleParams(int64_t moduleId);
-
   void bundleInput(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVPort* input);
-  void syncModuleInput(int64_t moduleId, VCVPort* input);
-  void syncModuleInputs(int64_t moduleId);
-
   void bundleOutput(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVPort* output);
-  void syncModuleOutput(int64_t moduleId, VCVPort* output);
-  void syncModuleOutputs(int64_t moduleId);
-
+  void bundlePort(osc::OutboundPacketStream& bundle, VCVPort* port);
   void bundleDisplay(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVDisplay* display);
-  void syncModuleDisplay(int64_t moduleId, VCVDisplay* display);
-  void syncModuleDisplays(int64_t moduleId);
-
   void bundleModule(osc::OutboundPacketStream& bundle, VCVModule* module);
+
   void syncModule(VCVModule* module);
-  void syncRackModule(VCVModule* module);
-  void syncRackModuleComponents(int64_t moduleId);
-  void syncRackModules();
+  void syncModules();
+
   void syncCable(VCVCable* cable);
   void syncCables();
+
   void syncAll();
 
   void sendInitialSyncComplete();
@@ -82,7 +68,6 @@ struct OscController {
   void sendMessage(osc::OutboundPacketStream packetStream);
   void sendLightUpdates();
   void bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color);
-  void sendLightUpdate(int64_t moduleId, int lightId, NVGcolor color);
 
   // UE callbacks
 	void UERx(const char* path, int64_t outerId, int innerId);

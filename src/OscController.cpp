@@ -381,52 +381,6 @@ void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t modul
     << osc::EndMessage;
 }
 
-void OscController::syncModuleParam(int64_t moduleId, VCVParam* param) {
-  if (param->synced) return;
-
-  char buffer[512];
-  osc::OutboundPacketStream PacketStream(buffer, 512);
-
-  PacketStream << osc::BeginMessage("/modules/param/add")
-    << moduleId
-    << param->id
-    << param->type
-    << param->name.c_str()
-    << param->unit.c_str()
-    << param->description.c_str()
-    << param->box.pos.x
-    << param->box.pos.y
-    << param->box.size.x
-    << param->box.size.y
-    << param->minValue
-    << param->maxValue
-    << param->defaultValue
-    << param->value
-    << param->snap
-    << param->minAngle
-    << param->maxAngle
-    << param->minHandlePos.x
-    << param->minHandlePos.y
-    << param->maxHandlePos.x
-    << param->maxHandlePos.y
-    << param->handleBox.pos.x
-    << param->handleBox.pos.y
-    << param->handleBox.size.x
-    << param->handleBox.size.y
-    << param->horizontal
-    << param->speed
-    << param->latch
-    << param->momentary
-    << osc::EndMessage;
-
-  sendMessage(PacketStream);
-}
-void OscController::syncModuleParams(int64_t moduleId) {
-  for (std::pair<int, VCVParam> param_pair : RackModules[moduleId].Params) {
-    syncModuleParam(moduleId, &param_pair.second);
-  }
-}
-
 void OscController::bundleLight(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVLight* light, int paramId) {
   bundle << osc::BeginMessage("/modules/light/add")
     << moduleId
@@ -448,124 +402,25 @@ void OscController::bundleLight(osc::OutboundPacketStream& bundle, int64_t modul
     << osc::EndMessage;
 }
 
-void OscController::syncModuleLight(int64_t moduleId, VCVLight* light, int paramId) {
-  if (light->synced) return;
-
-  /* if (paramId != -1) { */
-  /*   DEBUG("syncing light (param) %lld:%d:%d", moduleId, paramId, light->id); */
-  /* } else { */
-  /*   DEBUG("syncing light %lld:%d", moduleId, light->id); */
-  /* } */
-
-  char buffer[512];
-  osc::OutboundPacketStream PacketStream(buffer, 512);
-
-  PacketStream << osc::BeginMessage("/modules/light/add")
-    << moduleId
-    << paramId
-    << light->id
-    << light->box.pos.x
-    << light->box.pos.y
-    << light->box.size.x
-    << light->box.size.y
-    << light->color.r
-    << light->color.g
-    << light->color.b
-    << light->color.a
-    << light->bgColor.r
-    << light->bgColor.g
-    << light->bgColor.b
-    << light->bgColor.a
-    << light->shape
-    << osc::EndMessage;
-
-  sendMessage(PacketStream);
-}
-void OscController::syncModuleLights(int64_t moduleId) {
-  for (std::pair<int, VCVLight> light_pair : RackModules[moduleId].Lights) {
-    syncModuleLight(moduleId, &light_pair.second);
-  }
-}
-void OscController::syncParamLights(int64_t moduleId, VCVParam* param) {
-  for (std::pair<int, VCVLight> light_pair : param->Lights) {
-    syncModuleLight(moduleId, &light_pair.second, param->id);
-  }
-}
-
 void OscController::bundleInput(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVPort* input) {
-  bundle << osc::BeginMessage("/modules/input/add")
-    << moduleId
-    << input->id
-    << input->name.c_str()
-    << input->description.c_str()
-    << input->box.pos.x
-    << input->box.pos.y
-    << input->box.size.x
-    << input->box.size.y
-    << osc::EndMessage;
-}
-
-void OscController::syncModuleInput(int64_t moduleId, VCVPort* input) {
-  if (input->synced) return;
-
-  char buffer[512];
-  osc::OutboundPacketStream PacketStream(buffer, 512);
-
-  PacketStream << osc::BeginMessage("/modules/input/add")
-    << moduleId
-    << input->id
-    << input->name.c_str()
-    << input->description.c_str()
-    << input->box.pos.x
-    << input->box.pos.y
-    << input->box.size.x
-    << input->box.size.y
-    << osc::EndMessage;
-
-  sendMessage(PacketStream);
-}
-void OscController::syncModuleInputs(int64_t moduleId) {
-  for (std::pair<int, VCVPort> pair : RackModules[moduleId].Inputs) {
-    syncModuleInput(moduleId, &pair.second);
-  }
+  bundle << osc::BeginMessage("/modules/input/add") << moduleId;
+  bundlePort(bundle, input);
 }
 
 void OscController::bundleOutput(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVPort* output) {
-  bundle << osc::BeginMessage("/modules/output/add")
-    << moduleId
-    << output->id
-    << output->name.c_str()
-    << output->description.c_str()
-    << output->box.pos.x
-    << output->box.pos.y
-    << output->box.size.x
-    << output->box.size.y
-    << osc::EndMessage;
+  bundle << osc::BeginMessage("/modules/output/add") << moduleId;
+  bundlePort(bundle, output);
 }
 
-void OscController::syncModuleOutput(int64_t moduleId, VCVPort* output) {
-  if (output->synced) return;
-
-  char buffer[512];
-  osc::OutboundPacketStream PacketStream(buffer, 512);
-
-  PacketStream << osc::BeginMessage("/modules/output/add")
-    << moduleId
-    << output->id
-    << output->name.c_str()
-    << output->description.c_str()
-    << output->box.pos.x
-    << output->box.pos.y
-    << output->box.size.x
-    << output->box.size.y
+void OscController::bundlePort(osc::OutboundPacketStream& bundle, VCVPort* port) {
+  bundle << port->id
+    << port->name.c_str()
+    << port->description.c_str()
+    << port->box.pos.x
+    << port->box.pos.y
+    << port->box.size.x
+    << port->box.size.y
     << osc::EndMessage;
-
-  sendMessage(PacketStream);
-}
-void OscController::syncModuleOutputs(int64_t moduleId) {
-  for (std::pair<int, VCVPort> pair : RackModules[moduleId].Outputs) {
-    syncModuleOutput(moduleId, &pair.second);
-  }
 }
 
 void OscController::bundleDisplay(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVDisplay* display) {
@@ -576,28 +431,6 @@ void OscController::bundleDisplay(osc::OutboundPacketStream& bundle, int64_t mod
     << display->box.size.x
     << display->box.size.y
     << osc::EndMessage;
-}
-
-void OscController::syncModuleDisplay(int64_t moduleId, VCVDisplay* display) {
-  if (display->synced) return;
-
-  char buffer[512];
-  osc::OutboundPacketStream PacketStream(buffer, 512);
-
-  PacketStream << osc::BeginMessage("/modules/display/add")
-    << moduleId
-    << display->box.pos.x
-    << display->box.pos.y
-    << display->box.size.x
-    << display->box.size.y
-    << osc::EndMessage;
-
-  sendMessage(PacketStream);
-}
-void OscController::syncModuleDisplays(int64_t moduleId) {
-  for (VCVDisplay display : RackModules[moduleId].Displays) {
-    syncModuleDisplay(moduleId, &display);
-  }
 }
 
 void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* module) {
@@ -612,6 +445,7 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
     << module->box.size.y
     << osc::EndMessage;
 }
+
 void OscController::syncModule(VCVModule* module) {
   osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
 
@@ -651,39 +485,16 @@ void OscController::syncModule(VCVModule* module) {
   sendMessage(bundle);
 }
 
-
-void OscController::syncRackModule(VCVModule* module) {
-  if (module->synced) return;
-
-  /* DEBUG("syncing module %lld\t %s", module->id, module->name.c_str()); */
-
-  char buffer[512];
-  osc::OutboundPacketStream PacketStream(buffer, 512);
-
-  PacketStream << osc::BeginMessage("/modules/add")
-    << module->id
-    << module->name.c_str()
-    << module->description.c_str()
-    << module->box.pos.x
-    << module->box.pos.y
-    << module->box.size.x
-    << module->box.size.y
-    << osc::EndMessage;
-
-  sendMessage(PacketStream);
-}
-
 void OscController::syncAll() {
-  syncRackModules();
+  syncModules();
   syncCables();
 
   syncworker = std::thread(OscController::ensureSynced, this);
 }
 
-void OscController::syncRackModules() {
+void OscController::syncModules() {
   for (std::pair<int64_t, VCVModule> pair : RackModules) {
     syncModule(&pair.second);
-    /* syncRackModule(&pair.second); */
 	}
 }
 
@@ -737,15 +548,6 @@ bool OscController::isSynced() {
   return true;
 }
 
-void OscController::syncRackModuleComponents(int64_t moduleId) {
-  /* DEBUG("syncing components for %lld", moduleId); */
-  /* syncModuleParams(moduleId); */
-  /* syncModuleLights(moduleId); */
-  /* syncModuleInputs(moduleId); */
-  /* syncModuleOutputs(moduleId); */
-  /* syncModuleDisplays(moduleId); */
-}
-
 void OscController::syncCable(VCVCable* cable) {
   /* DEBUG("syncing cable %lld", cable->id); */
 
@@ -795,27 +597,6 @@ void OscController::sendLightUpdates() {
   bundle << osc::EndBundle;
   sendMessage(bundle);
 }
-/* void OscController::sendLightUpdates() { */
-/*   /1* DEBUG("calling send light updates"); *1/ */
-/*   for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) { */
-/*     for (std::pair<int, VCVLight*> light_pair : module_pair.second) { */
-/*       VCVLight* light = light_pair.second; */
-      
-/*       // unreal emissive colors ignore alpha and obscure the background color, */
-/*       // so screen the light color over the background color and */
-/*       // apply the alpha to the rgb values before sending. */
-/*       NVGcolor lightColor = rack::color::screen(light->widget->bgColor, light->widget->color); */
-/*       lightColor = rack::color::mult(light->widget->color, light->widget->color.a); */
-
-/*       // TODO: this doesn't work for the initial update of static lights */
-/*       if (!rack::color::isEqual(light->color, lightColor) || !light->hadFirstUpdate) { */
-/*         light->hadFirstUpdate = true; */
-/*         light->color = lightColor; */
-/*         sendLightUpdate(module_pair.first, light_pair.first, light->color); */
-/*       } */
-/*     } */
-/*   } */
-/* } */
 
 void OscController::bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color) {
   bundle << osc::BeginMessage("/modules/light/update")
@@ -828,39 +609,17 @@ void OscController::bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t
     << osc::EndMessage; // 28
 }
 
-void OscController::sendLightUpdate(int64_t moduleId, int lightId, NVGcolor color) {
-  /* if (RackModules[moduleId].Lights.count(lightId) > 0) { */
-  /*   DEBUG("sending module light update for %s:%d", RackModules[moduleId].name.c_str(), lightId); */ 
-  /* } else { */
-  /*   DEBUG("sending param light update for %s:%d", RackModules[moduleId].name.c_str(), lightId); */ 
-  /* } */
-
-  char buffer[512]; // 32?
-  osc::OutboundPacketStream PacketStream(buffer, 512);
-
-  PacketStream << osc::BeginMessage("/modules/light/update")
-    << moduleId // 8
-    << lightId // 4
-    << color.r // 4
-    << color.g // 4
-    << color.b // 4
-    << color.a // 4
-    << osc::EndMessage; // 28
-
-  sendMessage(PacketStream);
-}
-
 void OscController::registerLightReference(int64_t moduleId, VCVLight* light) {
   /* DEBUG("registering light %d", light->id); */
   LightReferences[moduleId][light->id] = light;
 }
 
 void OscController::sendInitialSyncComplete() {
-  char buffer[512];
-  osc::OutboundPacketStream PacketStream(buffer, 512);
+  osc::OutboundPacketStream message(oscBuffer, OSC_BUFFER_SIZE);
 
-  PacketStream << osc::BeginMessage("/initial_sync_complete") << osc::EndMessage;
-  sendMessage(PacketStream);
+  message << osc::BeginMessage("/initial_sync_complete") << osc::EndMessage;
+
+  sendMessage(message);
 }
 
 void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
@@ -873,12 +632,10 @@ void OscController::UERx(const char* path, int64_t outerId, int innerId) {
   if (std::strcmp(path, "/rx/module") == 0) {
     /* DEBUG("/rx/module %lld", outerId); */
     RackModules[outerId].synced = true;
-    /* syncRackModuleComponents(outerId); */
   } else if (std::strcmp(path, "/rx/param") == 0) {
     /* DEBUG("/rx/param %lld:%d", outerId, innerId); */
     VCVParam* param = &RackModules[outerId].Params[innerId];
     param->synced = true;
-    /* syncParamLights(outerId, param); */
   } else if (std::strcmp(path, "/rx/input") == 0) {
     /* DEBUG("/rx/input %lld:%d", outerId, innerId); */
     RackModules[outerId].Inputs[innerId].synced = true;
