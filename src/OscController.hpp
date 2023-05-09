@@ -9,35 +9,39 @@
 #include <vector>
 #include <thread>
 #include <queue>
+#include <chrono>
+#include <condition_variable>
+
+using Time = std::chrono::steady_clock;
+using float_sec = std::chrono::duration<float>;
+using float_time_point = std::chrono::time_point<Time, float_sec>;
+using ms = std::chrono::milliseconds;
 
 #define OSC_BUFFER_SIZE (1024 * 16)
 
 //  Q:
 enum CommandType {
-  SyncModule,
-  SyncParam,
-  SyncInput,
-  SyncOutput,
-  SyncPort,
-  SyncDisplay,
-  SyncLight,
-  SyncParamLight,
-  CheckModuleSync,
-  FinalizeModule,
-  SyncCable,
-  UpdateLight,
-  UpdateDisplay
+  /* SyncCable, */
+  /* SyncModule, */
+  /* CheckModuleSync, */
+  /* FinalizeModule, */
+  /* UpdateLights, */
+  /* UpdateDisplays, */
+
+  TestCheck,
+  Noop
 };
 struct Payload {
   int64_t pid;
   int cid, gcid;
-  float when;
 
-  // requeue?
-  int retries, limit;
+  float_time_point lastCheck;
+  float wait;
+
+  int retries = 0;
+  int limit = 10;
 };
-typedef std::pair<CommandType, Payload> command;
-
+typedef std::pair<CommandType, Payload> Command;
 
 typedef std::unordered_map<int, VCVLight*> LightReferenceMap;
 
@@ -49,14 +53,18 @@ struct OscController {
 
   char* oscBuffer = new char[OSC_BUFFER_SIZE];
 
-  std::thread syncworker;
+  /* std::thread syncworker; */
   //  Q:
   std::thread queueWorker;
-  bool queueWorkerRunning = false;
-  std::queue<command> commandQueue;
+  std::atomic<bool> queueWorkerRunning;
+  std::queue<Command> commandQueue;
+  std::mutex qmutex;
+  std::condition_variable queueLockCondition;
+  float_time_point getCurrentTime();
 
   bool isSynced();
   void ensureSynced();
+  void processQueue();
 
   int syncCheckCount = 0;
 

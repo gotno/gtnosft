@@ -11,16 +11,87 @@ OscController::OscController() {
 }
 
 OscController::~OscController() {
-  if (syncworker.joinable()) syncworker.join();
+  queueWorkerRunning = false;
+
+  // give the queue a reason to spin around one more time to exit
+  Command command;
+  command.first = CommandType::Noop;
+  std::unique_lock<std::mutex> locker(qmutex);
+  commandQueue.push(command);
+  locker.unlock();
+  queueLockCondition.notify_one();
+
+  if (queueWorker.joinable()) queueWorker.join();
+
+  /* if (syncworker.joinable()) syncworker.join(); */
   delete[] oscBuffer;
+}
+
+float_time_point OscController::getCurrentTime() {
+  return Time::now();
 }
 
 void OscController::init() {
 	collectRackModules();
   collectCables();
-	printRackModules();
-  printCables();
-  syncAll();
+	/* printRackModules(); */
+  /* printCables(); */
+  /* syncAll(); */
+
+  Command command;
+  command.first = CommandType::TestCheck;
+  command.second.wait = 0.2f;
+  command.second.lastCheck = getCurrentTime();
+
+  std::unique_lock<std::mutex> locker(qmutex);
+  commandQueue.push(command);
+  locker.unlock();
+  queueLockCondition.notify_one();
+
+  queueWorker = std::thread(OscController::processQueue, this);
+}
+
+void OscController::processQueue() {
+  /* auto startTime = getCurrentTime(); */
+  queueWorkerRunning = true;
+
+  while (queueWorkerRunning) {
+    /* DEBUG("queue running"); */
+
+    std::unique_lock<std::mutex> locker(qmutex);
+    queueLockCondition.wait(locker, [this](){ return !commandQueue.empty(); });
+
+    Command command = commandQueue.front();
+    commandQueue.pop();
+
+    locker.unlock();
+
+    auto now = getCurrentTime();
+
+    switch (command.first) {
+      case CommandType::TestCheck:
+        /* DEBUG("Q:TESTCHECK"); */
+        if ((now - command.second.lastCheck).count() > command.second.wait) {
+          DEBUG("doing check, try %d", command.second.retries);
+          if (++command.second.retries >= command.second.limit) {
+            DEBUG("abandoning command");
+          } else {
+            DEBUG("check failed, requeueing command");
+            command.second.lastCheck = now;
+            commandQueue.push(command);
+          }
+        } else {
+          /* DEBUG("delaying check"); */
+          commandQueue.push(command);
+        }
+        break;
+      case CommandType::Noop:
+        DEBUG("Q:NOCOMMAND");
+        break;
+      default:
+        break;
+    }
+  }
 }
  
 rack::math::Vec OscController::ueCorrectPos(rack::math::Vec parentSize, rack::math::Vec pos, rack::math::Vec size) {
@@ -491,7 +562,7 @@ void OscController::syncAll() {
   syncCables();
 
   // Q: replace with generic queue worker
-  syncworker = std::thread(OscController::ensureSynced, this);
+  /* syncworker = std::thread(OscController::ensureSynced, this); */
 }
 
 // Q: unneeded
