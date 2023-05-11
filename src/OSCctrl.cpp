@@ -101,7 +101,7 @@ struct OSCctrl : Module {
     }
 
     if (fpsDivider.process()) {
-      controller.sendLightUpdates();
+      controller.enqueueLightUpdates();
     }
 	}
 };

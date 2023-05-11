@@ -32,32 +32,35 @@ float_time_point OscController::getCurrentTime() {
 }
 
 void OscController::init() {
-	collectRackModules();
+	collectModules();
+  printModules();
   collectCables();
-	/* printRackModules(); */
-  /* printCables(); */
-  /* syncAll(); */
+  printCables();
 
-  Command command;
-  command.first = CommandType::TestCheck;
-  command.second.wait = 0.2f;
-  command.second.lastCheck = getCurrentTime();
+  // enqueue module syncs
+  for (std::pair<int64_t, VCVModule> pair : Modules) {
+    enqueueSyncModule(pair.first);
+	}
 
-  std::unique_lock<std::mutex> locker(qmutex);
-  commandQueue.push(command);
-  locker.unlock();
-  queueLockCondition.notify_one();
+  // enqueue cable syncs
+  for (std::pair<int64_t, VCVCable> pair : Cables) {
+    enqueueSyncCable(pair.first);
+  }
 
   queueWorker = std::thread(OscController::processQueue, this);
 }
 
+void OscController::enqueueCommand(Command command) {
+  std::unique_lock<std::mutex> locker(qmutex);
+  commandQueue.push(command);
+  locker.unlock();
+  queueLockCondition.notify_one();
+}
+
 void OscController::processQueue() {
-  /* auto startTime = getCurrentTime(); */
   queueWorkerRunning = true;
 
   while (queueWorkerRunning) {
-    /* DEBUG("queue running"); */
-
     std::unique_lock<std::mutex> locker(qmutex);
     queueLockCondition.wait(locker, [this](){ return !commandQueue.empty(); });
 
@@ -69,21 +72,40 @@ void OscController::processQueue() {
     auto now = getCurrentTime();
 
     switch (command.first) {
-      case CommandType::TestCheck:
-        /* DEBUG("Q:TESTCHECK"); */
-        if ((now - command.second.lastCheck).count() > command.second.wait) {
-          DEBUG("doing check, try %d", command.second.retries);
-          if (++command.second.retries >= command.second.limit) {
-            DEBUG("abandoning command");
-          } else {
-            DEBUG("check failed, requeueing command");
-            command.second.lastCheck = now;
-            commandQueue.push(command);
-          }
-        } else {
-          /* DEBUG("delaying check"); */
+      case CommandType::UpdateLights:
+        sendLightUpdates();
+        break;
+      case CommandType::SyncModule:
+        /* DEBUG("SyncModule %lld", command.second.pid); */
+        syncModule(&Modules[command.second.pid]);
+        break;
+      case CommandType::CheckModuleSync:
+        // not time to check yet, requeue to check again later
+        if ((now - command.second.lastCheck).count() <= command.second.wait) {
           commandQueue.push(command);
+          continue;
         }
+
+        // out of retries, abandon
+        if (++command.second.retries >= command.second.limit) {
+          DEBUG("abandoning %lld", command.second.pid);
+          continue;
+        }
+
+        // check failed, requeue command
+        if (!isModuleSynced(command.second.pid)) {
+          command.second.lastCheck = now;
+          commandQueue.push(command);
+          continue;
+        }
+
+        // tx /module_sync_complete
+        DEBUG("tx /module_sync_complete %lld", command.second.pid);
+        sendModuleSyncComplete(command.second.pid);
+        break;
+      case CommandType::SyncCable:
+        DEBUG("tx /cable/add %lld: %lld:%lld", command.second.pid, Cables[command.second.pid].inputModuleId, Cables[command.second.pid].outputModuleId);
+        syncCable(&Cables[command.second.pid]);
         break;
       case CommandType::Noop:
         DEBUG("Q:NOCOMMAND");
@@ -144,178 +166,182 @@ bool OscController::isRectangleLight(rack::app::MultiLightWidget* light) {
   return false;
 }
 
-void OscController::collectRackModules() {
-  DEBUG("collecting modules");
+void OscController::collectModules() {
+  DEBUG("collecting %lld modules", APP->engine->getModuleIds().size() - 1);
   for (int64_t& moduleId: APP->engine->getModuleIds()) {
-    rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
-    rack::engine::Module* mod = mw->getModule();
+    collectModule(moduleId);
+  }
+  DEBUG("collected %lld modules", Modules.size());
+}
 
-    if (mod->getModel()->name == "OSCctrl") continue;
+void OscController::collectModule(int64_t moduleId) {
+  rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
+  rack::engine::Module* mod = mw->getModule();
 
-    rack::math::Rect panelBox = box2cm(mw->getPanel()->getBox());
+  if (mod->getModel()->name == "OSCctrl") return;
 
-    RackModules[moduleId] = VCVModule(
-      moduleId,
-      mod->getModel()->name,
-      mod->getModel()->description,
-      panelBox
+  rack::math::Rect panelBox = box2cm(mw->getPanel()->getBox());
+
+  Modules[moduleId] = VCVModule(
+    moduleId,
+    mod->getModel()->name,
+    mod->getModel()->description,
+    panelBox
+  );
+
+  for (rack::widget::Widget* mw_child : mw->children) {
+    if (rack::app::LedDisplay* display = dynamic_cast<rack::app::LedDisplay*>(mw_child)) {
+      rack::math::Rect box = box2cm(display->getBox());
+      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+      Modules[moduleId].Displays.emplace_back(box);
+    } else if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(mw_child)) {
+      int lightId = randomId();
+
+      rack::math::Rect box = box2cm(light->getBox());
+      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
+      Modules[moduleId].Lights[lightId] = VCVLight(
+        lightId,
+        moduleId,
+        box,
+        LightShape::Round, // fixme
+        light->color,
+        light->bgColor,
+        light
+      );
+    }
+  }
+
+  for (rack::app::ParamWidget* & pw : mw->getParams()) {
+    rack::engine::ParamQuantity* pq = pw->getParamQuantity();
+
+    Modules[moduleId].Params[pq->paramId] = VCVParam(
+      pq->paramId,
+      pq->getLabel(),
+      pq->getUnit(),
+      pq->getDescription(),
+      pq->getMinValue(),
+      pq->getMaxValue(),
+      pq->getDefaultValue(),
+      pq->getValue()
     );
 
-    for (rack::widget::Widget* mw_child : mw->children) {
-      if (rack::app::LedDisplay* display = dynamic_cast<rack::app::LedDisplay*>(mw_child)) {
-        rack::math::Rect box = box2cm(display->getBox());
-        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
-        RackModules[moduleId].Displays.emplace_back(box);
-      } else if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(mw_child)) {
+    for (rack::widget::Widget* & pw_child : pw->children) {
+      if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(pw_child)) {
         int lightId = randomId();
+        LightShape lightShape = isRectangleLight(light) ? LightShape::Rectangle : LightShape::Round;
 
         rack::math::Rect box = box2cm(light->getBox());
         box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
 
-        RackModules[moduleId].Lights[lightId] = VCVLight(
+        Modules[moduleId].Params[pq->paramId].Lights[lightId] = VCVLight(
           lightId,
           moduleId,
+          pq->paramId,
           box,
-          LightShape::Round, // fixme
+          lightShape,
           light->color,
           light->bgColor,
           light
         );
+
+        Modules[moduleId].ParamLights[lightId] = 
+          &Modules[moduleId].Params[pq->paramId].Lights[lightId];
       }
     }
 
-    for (rack::app::ParamWidget* & pw : mw->getParams()) {
-      rack::engine::ParamQuantity* pq = pw->getParamQuantity();
+    Modules[moduleId].Params[pq->paramId].snap = pq->snapEnabled;
 
-      RackModules[moduleId].Params[pq->paramId] = VCVParam(
-        pq->paramId,
-        pq->getLabel(),
-        pq->getUnit(),
-        pq->getDescription(),
-        pq->getMinValue(),
-        pq->getMaxValue(),
-        pq->getDefaultValue(),
-        pq->getValue()
-      );
+    // Knob
+    if (rack::app::SvgKnob* p_knob = dynamic_cast<rack::app::SvgKnob*>(pw)) {
+      Modules[moduleId].Params[pq->paramId].type = ParamType::Knob;
 
-			for (rack::widget::Widget* & pw_child : pw->children) {
-				if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(pw_child)) {
-          int lightId = randomId();
-          LightShape lightShape = isRectangleLight(light) ? LightShape::Rectangle : LightShape::Round;
-
-          rack::math::Rect box = box2cm(light->getBox());
-          box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
-
-          RackModules[moduleId].Params[pq->paramId].Lights[lightId] = VCVLight(
-            lightId,
-            moduleId,
-            pq->paramId,
-            box,
-            lightShape,
-            light->color,
-            light->bgColor,
-            light
-          );
-
-          RackModules[moduleId].ParamLights[lightId] = 
-            &RackModules[moduleId].Params[pq->paramId].Lights[lightId];
-				}
-			}
-
-      RackModules[moduleId].Params[pq->paramId].snap = pq->snapEnabled;
-
-      // Knob
-      if (rack::app::SvgKnob* p_knob = dynamic_cast<rack::app::SvgKnob*>(pw)) {
-        RackModules[moduleId].Params[pq->paramId].type = ParamType::Knob;
-
-        rack::math::Rect box = box2cm(p_knob->getBox());
-        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
-
-        RackModules[moduleId].Params[pq->paramId].box = box;
-        RackModules[moduleId].Params[pq->paramId].minAngle = p_knob->minAngle;
-        RackModules[moduleId].Params[pq->paramId].maxAngle = p_knob->maxAngle;
-      }
-
-      // Slider
-      if (rack::app::SvgSlider* p_slider = dynamic_cast<rack::app::SvgSlider*>(pw)) {
-        RackModules[moduleId].Params[pq->paramId].type = ParamType::Slider;
-
-        rack::math::Rect sliderBox = box2cm(p_slider->getBox());
-        sliderBox.pos = ueCorrectPos(panelBox.size, sliderBox.pos, sliderBox.size);
-
-        rack::math::Rect handleBox = box2cm(p_slider->handle->getBox());
-        handleBox.pos = ueCorrectPos(sliderBox.size, handleBox.pos, handleBox.size);
-
-        rack::math::Vec minHandlePos = vec2cm(p_slider->minHandlePos);
-        minHandlePos = ueCorrectPos(sliderBox.size, minHandlePos, handleBox.size);
-
-        rack::math::Vec maxHandlePos = vec2cm(p_slider->maxHandlePos);
-        maxHandlePos = ueCorrectPos(sliderBox.size, maxHandlePos, handleBox.size);
-
-        RackModules[moduleId].Params[pq->paramId].box = sliderBox;
-        RackModules[moduleId].Params[pq->paramId].horizontal = p_slider->horizontal;
-        RackModules[moduleId].Params[pq->paramId].speed = p_slider->speed;
-        RackModules[moduleId].Params[pq->paramId].minHandlePos = minHandlePos;
-        RackModules[moduleId].Params[pq->paramId].maxHandlePos = maxHandlePos;
-        RackModules[moduleId].Params[pq->paramId].handleBox = handleBox;
-      }
-
-      // Switch
-      // ?? 1-4/4-1, 3-position switch
-      // ag addFrame
-      if (rack::app::SvgSwitch* p_switch = dynamic_cast<rack::app::SvgSwitch*>(pw)) {
-        RackModules[moduleId].Params[pq->paramId].type = ParamType::Switch;
-
-        rack::math::Rect box = box2cm(p_switch->getBox());
-        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
-
-        RackModules[moduleId].Params[pq->paramId].box = box;
-        RackModules[moduleId].Params[pq->paramId].latch = p_switch->latch;
-        RackModules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
-      }
-
-      // Button
-      if (rack::app::SvgButton* p_button = dynamic_cast<rack::app::SvgButton*>(pw)) {
-        RackModules[moduleId].Params[pq->paramId].type = ParamType::Button;
-
-        rack::math::Rect box = box2cm(p_button->getBox());
-        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
-
-        RackModules[moduleId].Params[pq->paramId].box = box;
-      }
-    }
-
-    for (rack::app::PortWidget* portWidget : mw->getPorts()) {
-      PortType type = portWidget->type == rack::engine::Port::INPUT ? PortType::Input : PortType::Output;
-
-      rack::math::Rect box = box2cm(portWidget->getBox());
+      rack::math::Rect box = box2cm(p_knob->getBox());
       box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
 
+      Modules[moduleId].Params[pq->paramId].box = box;
+      Modules[moduleId].Params[pq->paramId].minAngle = p_knob->minAngle;
+      Modules[moduleId].Params[pq->paramId].maxAngle = p_knob->maxAngle;
+    }
 
-      if (type == PortType::Input) {
-        RackModules[moduleId].Inputs[portWidget->portId] = VCVPort(
-          portWidget->portId,
-          type,
-          portWidget->getPortInfo()->name,
-          portWidget->getPortInfo()->description,
-          box
-        );
-      } else {
-        RackModules[moduleId].Outputs[portWidget->portId] = VCVPort(
-          portWidget->portId,
-          type,
-          portWidget->getPortInfo()->name,
-          portWidget->getPortInfo()->description,
-          box
-        );
-      }
+    // Slider
+    if (rack::app::SvgSlider* p_slider = dynamic_cast<rack::app::SvgSlider*>(pw)) {
+      Modules[moduleId].Params[pq->paramId].type = ParamType::Slider;
+
+      rack::math::Rect sliderBox = box2cm(p_slider->getBox());
+      sliderBox.pos = ueCorrectPos(panelBox.size, sliderBox.pos, sliderBox.size);
+
+      rack::math::Rect handleBox = box2cm(p_slider->handle->getBox());
+      handleBox.pos = ueCorrectPos(sliderBox.size, handleBox.pos, handleBox.size);
+
+      rack::math::Vec minHandlePos = vec2cm(p_slider->minHandlePos);
+      minHandlePos = ueCorrectPos(sliderBox.size, minHandlePos, handleBox.size);
+
+      rack::math::Vec maxHandlePos = vec2cm(p_slider->maxHandlePos);
+      maxHandlePos = ueCorrectPos(sliderBox.size, maxHandlePos, handleBox.size);
+
+      Modules[moduleId].Params[pq->paramId].box = sliderBox;
+      Modules[moduleId].Params[pq->paramId].horizontal = p_slider->horizontal;
+      Modules[moduleId].Params[pq->paramId].speed = p_slider->speed;
+      Modules[moduleId].Params[pq->paramId].minHandlePos = minHandlePos;
+      Modules[moduleId].Params[pq->paramId].maxHandlePos = maxHandlePos;
+      Modules[moduleId].Params[pq->paramId].handleBox = handleBox;
+    }
+
+    // Switch
+    // ?? 1-4/4-1, 3-position switch
+    // ag addFrame
+    if (rack::app::SvgSwitch* p_switch = dynamic_cast<rack::app::SvgSwitch*>(pw)) {
+      Modules[moduleId].Params[pq->paramId].type = ParamType::Switch;
+
+      rack::math::Rect box = box2cm(p_switch->getBox());
+      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
+      Modules[moduleId].Params[pq->paramId].box = box;
+      Modules[moduleId].Params[pq->paramId].latch = p_switch->latch;
+      Modules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
+    }
+
+    // Button
+    if (rack::app::SvgButton* p_button = dynamic_cast<rack::app::SvgButton*>(pw)) {
+      Modules[moduleId].Params[pq->paramId].type = ParamType::Button;
+
+      rack::math::Rect box = box2cm(p_button->getBox());
+      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
+      Modules[moduleId].Params[pq->paramId].box = box;
     }
   }
-  DEBUG("collected %lld modules", RackModules.size());
+
+  for (rack::app::PortWidget* portWidget : mw->getPorts()) {
+    PortType type = portWidget->type == rack::engine::Port::INPUT ? PortType::Input : PortType::Output;
+
+    rack::math::Rect box = box2cm(portWidget->getBox());
+    box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
+
+    if (type == PortType::Input) {
+      Modules[moduleId].Inputs[portWidget->portId] = VCVPort(
+        portWidget->portId,
+        type,
+        portWidget->getPortInfo()->name,
+        portWidget->getPortInfo()->description,
+        box
+      );
+    } else {
+      Modules[moduleId].Outputs[portWidget->portId] = VCVPort(
+        portWidget->portId,
+        type,
+        portWidget->getPortInfo()->name,
+        portWidget->getPortInfo()->description,
+        box
+      );
+    }
+  }
 }
 
-void OscController::printRackModules() {
-  for (std::pair<int64_t, VCVModule> module_pair : RackModules) {
+void OscController::printModules() {
+  for (std::pair<int64_t, VCVModule> module_pair : Modules) {
     // module id, name
     if (module_pair.second.Displays.size() > 0) {
       DEBUG("\n %lld %s (has %lld LED displays)", module_pair.first, module_pair.second.name.c_str(), module_pair.second.Displays.size());
@@ -388,24 +414,28 @@ void OscController::printRackModules() {
   }
 }
 
+void OscController::collectCable(int64_t cableId) {
+  rack::engine::Cable* cable = APP->engine->getCable(cableId);
+
+  Cables[cableId] = VCVCable(
+    cable->id,
+    cable->inputModule->getId(),
+    cable->outputModule->getId(),
+    cable->inputId,
+    cable->outputId
+  );
+}
+
 void OscController::collectCables() {
 	for (int64_t& cableId: APP->engine->getCableIds()) {
-		rack::engine::Cable* cable = APP->engine->getCable(cableId);
-
-    Cables[cableId] = VCVCable(
-      cable->id,
-      cable->inputModule->getId(),
-      cable->outputModule->getId(),
-      cable->inputId,
-      cable->outputId
-		);
+    collectCable(cableId);
 	}
 }
 
 void OscController::printCables() {
   for (std::pair<int64_t, VCVCable> cable_pair : Cables) {
-    VCVModule* inputModule = &RackModules[cable_pair.second.inputModuleId];
-    VCVModule* outputModule = &RackModules[cable_pair.second.outputModuleId];
+    VCVModule* inputModule = &Modules[cable_pair.second.inputModuleId];
+    VCVModule* outputModule = &Modules[cable_pair.second.outputModuleId];
     VCVCable* cable = &cable_pair.second;
 
     DEBUG("cable %lld connects %s:output %d to %s:input %d",
@@ -516,6 +546,14 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
     << module->box.size.y
     << osc::EndMessage;
 }
+ 
+void OscController::enqueueSyncModule(int64_t moduleId) {
+  enqueueCommand(Command(CommandType::SyncModule, Payload(moduleId)));
+  enqueueCommand(Command(
+    CommandType::CheckModuleSync,
+    Payload(moduleId, getCurrentTime(), 0.002f)
+  ));
+}
 
 void OscController::syncModule(VCVModule* module) {
   osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
@@ -556,74 +594,42 @@ void OscController::syncModule(VCVModule* module) {
   sendMessage(bundle);
 }
 
-void OscController::syncAll() {
-  // Q: add sync commands for each module and cable
-  syncModules();
-  syncCables();
+bool OscController::isModuleSynced(int64_t moduleId) {
+  VCVModule& module = Modules[moduleId];
 
-  // Q: replace with generic queue worker
-  /* syncworker = std::thread(OscController::ensureSynced, this); */
-}
+  if (!module.synced) return false;
 
-// Q: unneeded
-void OscController::syncModules() {
-  for (std::pair<int64_t, VCVModule> pair : RackModules) {
-    syncModule(&pair.second);
-	}
-}
+  for (std::pair<int, VCVParam> p_param : module.Params) {
+    if (!p_param.second.synced) return false;
 
-// Q: this becomes a command
-// checks sync and requeues if necesary
-// attempts resync after set number of checks
-void OscController::ensureSynced() {
-  while(syncCheckCount < 5 && !isSynced()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    syncCheckCount++;
-    DEBUG("not synced yet");
-  }
-
-  if (!isSynced()) {
-    DEBUG("couldn't sync");
-  } else {
-    DEBUG("initial sync complete");
-    sendInitialSyncComplete();
-  }
-}
-
-// Q: the command's check, for a single module
-bool OscController::isSynced() {
-  for (std::pair<int64_t, VCVModule> p_module : RackModules) {
-    if (!p_module.second.synced) return false;
-
-    for (std::pair<int, VCVParam> p_param : p_module.second.Params) {
-      if (!p_param.second.synced) return false;
-
-      for (std::pair<int, VCVLight> p_light : p_param.second.Lights) {
-        if (!p_light.second.synced) return false;
-      }
-    }
-
-    for (std::pair<int, VCVPort> p_input : p_module.second.Inputs) {
-      if (!p_input.second.synced) return false;
-    }
-
-    for (std::pair<int, VCVPort> p_output : p_module.second.Outputs) {
-      if (!p_output.second.synced) return false;
-    }
-
-    for (std::pair<int, VCVLight> p_light : p_module.second.Lights) {
+    for (std::pair<int, VCVLight> p_light : p_param.second.Lights) {
       if (!p_light.second.synced) return false;
     }
+  }
 
-    // how, for multiple?
-    // generate id like for Lights
-    for (VCVDisplay& display : p_module.second.Displays) {
-      if (!display.synced) return false;
-    }
-	}
+  for (std::pair<int, VCVPort> p_input : module.Inputs) {
+    if (!p_input.second.synced) return false;
+  }
+
+  for (std::pair<int, VCVPort> p_output : module.Outputs) {
+    if (!p_output.second.synced) return false;
+  }
+
+  for (std::pair<int, VCVLight> p_light : module.Lights) {
+    if (!p_light.second.synced) return false;
+  }
+
+  // how, for multiple?
+  // generate id like for Lights
+  for (VCVDisplay& display : module.Displays) {
+    if (!display.synced) return false;
+  }
 
   return true;
+}
+
+void OscController::enqueueSyncCable(int64_t cableId) {
+  enqueueCommand(Command(CommandType::SyncCable, Payload(cableId)));
 }
 
 void OscController::syncCable(VCVCable* cable) {
@@ -642,19 +648,16 @@ void OscController::syncCable(VCVCable* cable) {
   sendMessage(buffer);
 }
 
-// Q: unneeded
-void OscController::syncCables() {
-  for (std::pair<int64_t, VCVCable> pair : Cables) {
-    syncCable(&pair.second);
-	}
+void OscController::enqueueLightUpdates() {
+  enqueueCommand(Command(CommandType::UpdateLights, Payload()));
 }
 
-// Q: insert a command for each light update
 void OscController::sendLightUpdates() {
   /* DEBUG("calling send light updates"); */
   osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
   bundle << osc::BeginBundleImmediate;
 
+  std::lock_guard<std::mutex> lock(lmutex);
   for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) {
     for (std::pair<int, VCVLight*> light_pair : module_pair.second) {
       VCVLight* light = light_pair.second;
@@ -691,14 +694,16 @@ void OscController::bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t
 
 void OscController::registerLightReference(int64_t moduleId, VCVLight* light) {
   /* DEBUG("registering light %d", light->id); */
+  std::lock_guard<std::mutex> lock(lmutex);
   LightReferences[moduleId][light->id] = light;
 }
 
-// Q: this sends a modulelId
-void OscController::sendInitialSyncComplete() {
+void OscController::sendModuleSyncComplete(int64_t moduleId) {
   osc::OutboundPacketStream message(oscBuffer, OSC_BUFFER_SIZE);
 
-  message << osc::BeginMessage("/initial_sync_complete") << osc::EndMessage;
+  message << osc::BeginMessage("/module_sync_complete")
+    << moduleId
+    << osc::EndMessage;
 
   sendMessage(message);
 }
@@ -708,32 +713,29 @@ void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
 }
 
 // UE callbacks
-
-// Q:? this should become moduleId, childId, grandchildId
-// address lights directly
 void OscController::UERx(const char* path, int64_t outerId, int innerId) {
   if (std::strcmp(path, "/rx/module") == 0) {
     /* DEBUG("/rx/module %lld", outerId); */
-    RackModules[outerId].synced = true;
+    Modules[outerId].synced = true;
   } else if (std::strcmp(path, "/rx/param") == 0) {
     /* DEBUG("/rx/param %lld:%d", outerId, innerId); */
-    VCVParam* param = &RackModules[outerId].Params[innerId];
+    VCVParam* param = &Modules[outerId].Params[innerId];
     param->synced = true;
   } else if (std::strcmp(path, "/rx/input") == 0) {
     /* DEBUG("/rx/input %lld:%d", outerId, innerId); */
-    RackModules[outerId].Inputs[innerId].synced = true;
+    Modules[outerId].Inputs[innerId].synced = true;
   } else if (std::strcmp(path, "/rx/output") == 0) {
     /* DEBUG("/rx/output %lld:%d", outerId, innerId); */
-    RackModules[outerId].Outputs[innerId].synced = true;
+    Modules[outerId].Outputs[innerId].synced = true;
   } else if (std::strcmp(path, "/rx/module_light") == 0) {
     VCVLight* light = nullptr;
 
-    if (RackModules[outerId].Lights.count(innerId) > 0) {
+    if (Modules[outerId].Lights.count(innerId) > 0) {
       /* DEBUG("/rx/module_light %lld:%d", outerId, innerId); */
-      light = &RackModules[outerId].Lights[innerId];
-    } else if (RackModules[outerId].ParamLights.count(innerId) > 0) {
+      light = &Modules[outerId].Lights[innerId];
+    } else if (Modules[outerId].ParamLights.count(innerId) > 0) {
       /* DEBUG("/rx/module_light (param) %lld:%d", outerId, innerId); */
-      light = RackModules[outerId].ParamLights[innerId];
+      light = Modules[outerId].ParamLights[innerId];
     }
 
     if (!light) {
@@ -747,9 +749,9 @@ void OscController::UERx(const char* path, int64_t outerId, int innerId) {
     /* DEBUG("/rx/display %lld:%d", outerId, innerId); */
     // how, for multiple?
     // generate id like for Lights
-    RackModules[outerId].Displays[0].synced = true;
+    Modules[outerId].Displays[0].synced = true;
   } else if (std::strcmp(path, "/rx/cable") == 0) {
-    /* DEBUG("/rx/cable %lld", outerId); */
+    DEBUG("/rx/cable %lld", outerId);
     Cables[outerId].synced = true;
   } else {
     DEBUG("no known /rx/* path for %s", path);

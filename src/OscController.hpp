@@ -12,23 +12,18 @@
 #include <chrono>
 #include <condition_variable>
 
+#define OSC_BUFFER_SIZE (1024 * 16)
+
 using Time = std::chrono::steady_clock;
 using float_sec = std::chrono::duration<float>;
 using float_time_point = std::chrono::time_point<Time, float_sec>;
-using ms = std::chrono::milliseconds;
 
-#define OSC_BUFFER_SIZE (1024 * 16)
-
-//  Q:
 enum CommandType {
-  /* SyncCable, */
-  /* SyncModule, */
-  /* CheckModuleSync, */
-  /* FinalizeModule, */
-  /* UpdateLights, */
+  SyncCable,
+  SyncModule,
+  CheckModuleSync,
+  UpdateLights,
   /* UpdateDisplays, */
-
-  TestCheck,
   Noop
 };
 struct Payload {
@@ -40,6 +35,10 @@ struct Payload {
 
   int retries = 0;
   int limit = 10;
+
+  Payload() {}
+  Payload(int64_t _pid) : pid(_pid) {} 
+  Payload(int64_t _pid, float_time_point _lastCheck, float _wait) : pid(_pid), lastCheck(_lastCheck), wait(_wait) {} 
 };
 typedef std::pair<CommandType, Payload> Command;
 
@@ -52,24 +51,24 @@ struct OscController {
   IpEndpointName endpoint;
 
   char* oscBuffer = new char[OSC_BUFFER_SIZE];
+  void sendMessage(osc::OutboundPacketStream packetStream);
 
-  /* std::thread syncworker; */
-  //  Q:
   std::thread queueWorker;
   std::atomic<bool> queueWorkerRunning;
   std::queue<Command> commandQueue;
   std::mutex qmutex;
   std::condition_variable queueLockCondition;
   float_time_point getCurrentTime();
-
-  bool isSynced();
-  void ensureSynced();
+  void enqueueCommand(Command command);
   void processQueue();
 
-  int syncCheckCount = 0;
 
-  std::unordered_map<int64_t, VCVModule> RackModules;
+  bool isModuleSynced(int64_t moduleId);
+
+  std::unordered_map<int64_t, VCVModule> Modules;
   std::unordered_map<int64_t, VCVCable> Cables;
+
+  std::mutex lmutex;
   std::unordered_map<int64_t, LightReferenceMap> LightReferences;
 
   void init();
@@ -80,9 +79,11 @@ struct OscController {
   int randomId();
   bool isRectangleLight(rack::app::MultiLightWidget* light);
 
-  void collectRackModules();
-	void printRackModules();
+  void collectModule(int64_t moduleId);
+  void collectModules();
+	void printModules();
 
+  void collectCable(int64_t cableId);
   void collectCables();
   void printCables();
 
@@ -94,20 +95,19 @@ struct OscController {
   void bundleDisplay(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVDisplay* display);
   void bundleModule(osc::OutboundPacketStream& bundle, VCVModule* module);
 
+  void enqueueSyncModule(int64_t moduleId);
   void syncModule(VCVModule* module);
-  void syncModules();
 
+  void enqueueSyncCable(int64_t cableId);
   void syncCable(VCVCable* cable);
-  void syncCables();
-
-  void syncAll();
 
   void sendInitialSyncComplete();
+  void sendModuleSyncComplete(int64_t moduleId);
 
   void registerLightReference(int64_t moduleId, VCVLight* light);
 
-  void sendMessage(osc::OutboundPacketStream packetStream);
   void sendLightUpdates();
+  void enqueueLightUpdates();
   void bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color);
 
   // UE callbacks
