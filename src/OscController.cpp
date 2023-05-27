@@ -69,8 +69,6 @@ void OscController::processQueue() {
 
     locker.unlock();
 
-    auto now = getCurrentTime();
-
     switch (command.first) {
       case CommandType::UpdateLights:
         sendLightUpdates();
@@ -80,6 +78,8 @@ void OscController::processQueue() {
         syncModule(&Modules[command.second.pid]);
         break;
       case CommandType::CheckModuleSync:
+        auto now = getCurrentTime();
+
         // not time to check yet, requeue to check again later
         if ((now - command.second.lastCheck).count() <= command.second.wait) {
           commandQueue.push(command);
