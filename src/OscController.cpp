@@ -551,7 +551,7 @@ void OscController::enqueueSyncModule(int64_t moduleId) {
   enqueueCommand(Command(CommandType::SyncModule, Payload(moduleId)));
   enqueueCommand(Command(
     CommandType::CheckModuleSync,
-    Payload(moduleId, getCurrentTime(), 0.002f)
+    Payload(moduleId, getCurrentTime(), 0.003f)
   ));
 }
 
