@@ -87,7 +87,7 @@ void OscController::processQueue() {
         }
 
         // out of retries, abandon
-        if (++command.second.retries >= command.second.limit) {
+        if (++command.second.retried >= command.second.retryLimit) {
           DEBUG("abandoning %lld", command.second.pid);
           continue;
         }
