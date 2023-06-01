@@ -34,7 +34,7 @@ struct Payload {
   float wait;
 
   int retried = 0;
-  int retryLimit = 10;
+  int retryLimit = 20;
 
   Payload() {}
   Payload(int64_t _pid) : pid(_pid) {} 
