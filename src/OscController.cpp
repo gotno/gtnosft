@@ -342,9 +342,9 @@ void OscController::printModules() {
   for (std::pair<int64_t, VCVModule> module_pair : Modules) {
     // module id, name
     if (module_pair.second.Displays.size() > 0) {
-      DEBUG("\n %lld %s (has %lld LED displays)", module_pair.first, module_pair.second.name.c_str(), module_pair.second.Displays.size());
+      DEBUG("%lld %s (has %lld LED displays)", module_pair.first, module_pair.second.name.c_str(), module_pair.second.Displays.size());
     } else {
-      DEBUG("\n %lld %s", module_pair.first, module_pair.second.name.c_str());
+      DEBUG("%lld %s", module_pair.first, module_pair.second.name.c_str());
     }
     if (module_pair.second.Lights.size() > 0) {
       DEBUG("        (has %lld lights)", module_pair.second.Lights.size());
@@ -375,6 +375,7 @@ void OscController::printModules() {
 
         // param id, type, name, unit
         DEBUG("    %d (%s): %s%s", param_pair.second.id, type.c_str(), param_pair.second.name.c_str(), param_pair.second.unit.c_str());
+        DEBUG("    value: %f", param_pair.second.value);
         if (param_pair.second.Lights.size() > 0) {
           DEBUG("      (has %lld lights)", param_pair.second.Lights.size());
         }
