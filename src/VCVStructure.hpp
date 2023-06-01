@@ -65,6 +65,8 @@ struct VCVParam {
   bool latch = false;
   bool momentary = false;
   // frames?
+  // replace with vector of svg paths?
+  int frameCount = 0;
 
   // Button?
 

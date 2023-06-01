@@ -298,6 +298,7 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].box = box;
       Modules[moduleId].Params[pq->paramId].latch = p_switch->latch;
       Modules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
+      Modules[moduleId].Params[pq->paramId].frameCount = p_switch->frames.size();
     }
 
     // Button
@@ -393,6 +394,8 @@ void OscController::printModules() {
         if (type == "Switch") {
           DEBUG("      (latch: %s)", param_pair.second.latch ? "true" : "false");
           DEBUG("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
+          DEBUG("      (%d frames)", param_pair.second.frameCount);
+
         }
       }
     }
