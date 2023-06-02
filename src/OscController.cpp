@@ -179,12 +179,14 @@ void OscController::collectModule(int64_t moduleId) {
   if (mod->getModel()->name == "OSCctrl") return;
 
   rack::math::Rect panelBox = box2cm(mw->getPanel()->getBox());
+  rack::app::SvgPanel* panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw->getPanel());
 
   Modules[moduleId] = VCVModule(
     moduleId,
     mod->getModel()->name,
     mod->getModel()->description,
-    panelBox
+    panelBox,
+    panelWidget->svg->path
   );
 
   for (rack::widget::Widget* mw_child : mw->children) {
@@ -298,7 +300,10 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].box = box;
       Modules[moduleId].Params[pq->paramId].latch = p_switch->latch;
       Modules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
-      Modules[moduleId].Params[pq->paramId].frameCount = p_switch->frames.size();
+
+      for (std::shared_ptr<rack::window::Svg> svg : p_switch->frames) {
+        Modules[moduleId].Params[pq->paramId].frames.push_back(svg->path);
+      }
     }
 
     // Button
@@ -350,6 +355,7 @@ void OscController::printModules() {
     if (module_pair.second.Lights.size() > 0) {
       DEBUG("        (has %lld lights)", module_pair.second.Lights.size());
     }
+    DEBUG("        panel svg path: %s", module_pair.second.panelSvgPath.c_str());
     DEBUG("  pos: %fx/%fy, size: %fx/%fy", module_pair.second.box.pos.x, module_pair.second.box.pos.y, module_pair.second.box.size.x, module_pair.second.box.size.y);
 
     if (module_pair.second.Params.size() > 0) {
@@ -394,8 +400,11 @@ void OscController::printModules() {
         if (type == "Switch") {
           DEBUG("      (latch: %s)", param_pair.second.latch ? "true" : "false");
           DEBUG("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
-          DEBUG("      (%d frames)", param_pair.second.frameCount);
 
+          DEBUG("      has %lld frames", param_pair.second.frames.size());
+          for (std::string& path : param_pair.second.frames) {
+            DEBUG("        frame svg: %s", path.c_str());
+          }
         }
       }
     }

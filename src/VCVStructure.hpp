@@ -64,9 +64,7 @@ struct VCVParam {
   // Switch
   bool latch = false;
   bool momentary = false;
-  // frames?
-  // replace with vector of svg paths?
-  int frameCount = 0;
+  std::vector<std::string> frames; // svg paths
 
   // Button?
 
@@ -116,6 +114,7 @@ struct VCVModule {
   std::string name;
   std::string description;
   rack::math::Rect box;
+  std::string panelSvgPath;
 
   std::map<int, VCVParam> Params;
   std::map<int, VCVPort> Inputs;
@@ -130,8 +129,8 @@ struct VCVModule {
   VCVModule() {}
   VCVModule(int64_t moduleId, std::string moduleName)
     : id(moduleId), name(moduleName) {}
-  VCVModule(int64_t moduleId, std::string moduleName, std::string modelDescription, rack::math::Rect panelBox)
-    : id(moduleId), name(moduleName), description(modelDescription), box(panelBox) {}
+  VCVModule(int64_t moduleId, std::string moduleName, std::string modelDescription, rack::math::Rect panelBox, std::string panelPath)
+    : id(moduleId), name(moduleName), description(modelDescription), box(panelBox), panelSvgPath(panelPath) {}
 };
 
 struct VCVCable {
