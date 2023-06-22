@@ -320,12 +320,8 @@ void OscController::collectModule(int64_t moduleId) {
         Modules[moduleId].Params[pq->paramId].sliderLabels = sq->labels;
     }
 
-    // Switch
-    // ?? 1-4/4-1, 3-position switch
-    // ag addFrame
+    // Switch/Button
     if (rack::app::SvgSwitch* p_switch = dynamic_cast<rack::app::SvgSwitch*>(pw)) {
-      Modules[moduleId].Params[pq->paramId].type = ParamType::Switch;
-
       rack::math::Rect box = box2cm(p_switch->getBox());
       box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
 
@@ -333,20 +329,29 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].latch = p_switch->latch;
       Modules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
 
-      for (std::shared_ptr<rack::window::Svg> svg : p_switch->frames) {
-        Modules[moduleId].Params[pq->paramId].frames.push_back(svg->path);
+      // buttons have either momentary or latch, switches have neither
+      if (p_switch->momentary || p_switch->latch) {
+        Modules[moduleId].Params[pq->paramId].type = ParamType::Button;
+      } else {
+        Modules[moduleId].Params[pq->paramId].type = ParamType::Switch;
+        Modules[moduleId].Params[pq->paramId].horizontal = box.size.x > box.size.y;
+
+        for (std::shared_ptr<rack::window::Svg> svg : p_switch->frames) {
+          Modules[moduleId].Params[pq->paramId].frames.push_back(svg->path);
+        }
       }
     }
 
     // Button
-    if (rack::app::SvgButton* p_button = dynamic_cast<rack::app::SvgButton*>(pw)) {
-      Modules[moduleId].Params[pq->paramId].type = ParamType::Button;
+    // yet to see an actual instance of SvgButton in the wild
+    /* if (rack::app::SvgButton* p_button = dynamic_cast<rack::app::SvgButton*>(pw)) { */
+    /*   Modules[moduleId].Params[pq->paramId].type = ParamType::Button; */
 
-      rack::math::Rect box = box2cm(p_button->getBox());
-      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+    /*   rack::math::Rect box = box2cm(p_button->getBox()); */
+    /*   box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
 
-      Modules[moduleId].Params[pq->paramId].box = box;
-    }
+    /*   Modules[moduleId].Params[pq->paramId].box = box; */
+    /* } */
   }
 
   for (rack::app::PortWidget* portWidget : mw->getPorts()) {
@@ -424,14 +429,17 @@ void OscController::printModules() {
           DEBUG("      minAngle/maxAngle %f/%f", param_pair.second.minAngle, param_pair.second.maxAngle);
         }
         if (type == "Slider") {
-          DEBUG("      speed %f (horizontal: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false");
+          DEBUG("      speed %f (horizontal: %s, snap: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false", param_pair.second.snap ? "true" : "false");
+          for (std::string& label : param_pair.second.sliderLabels) {
+            DEBUG("      label: %s", label.c_str());
+          }
+
         }
         if (type == "Button") {
-          DEBUG("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
+          DEBUG("      (momentary: %s, latch: %s)", param_pair.second.momentary ? "true" : "false", param_pair.second.latch ? "true" : "false");
         }
         if (type == "Switch") {
-          DEBUG("      (latch: %s)", param_pair.second.latch ? "true" : "false");
-          DEBUG("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
+          DEBUG("      (horizontal: %s)", param_pair.second.horizontal ? "true" : "false");
 
           DEBUG("      has %lld frames", param_pair.second.frames.size());
           for (std::string& path : param_pair.second.frames) {

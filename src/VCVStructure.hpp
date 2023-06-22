@@ -67,14 +67,14 @@ struct VCVParam {
   float speed = 0.f;
   std::vector<std::string> sliderLabels;
 
-  // Switch
+  // Switch/Button
+  // "button" will have one of latch or momentary, "switch" will have neither
+  // (both are SvgSwitch under the hood)
   bool latch = false;
   bool momentary = false;
   std::vector<std::string> frames; // svg paths
 
-  // Button?
-
-  // internal operations not useful?
+  // internal operations, not useful?
   // float displayBase;
   // float displayMultiplier;
   // float displayOffset;
