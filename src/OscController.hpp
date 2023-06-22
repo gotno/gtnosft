@@ -111,5 +111,12 @@ struct OscController {
   void bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color);
 
   // UE callbacks
-	void UERx(const char* path, int64_t outerId, int innerId);
+	void rxModule(std::string path, int64_t outerId, int innerId);
+	void rxParam(std::string path, int64_t outerId, int innerId);
+	void rxInput(std::string path, int64_t outerId, int innerId);
+	void rxOutput(std::string path, int64_t outerId, int innerId);
+	void rxModuleLight(std::string path, int64_t outerId, int innerId);
+	void rxDisplay(std::string path, int64_t outerId, int innerId);
+	void rxCable(std::string path, int64_t outerId, int innerId);
+	void resync(std::string path, int64_t outerId, int innerId);
 };

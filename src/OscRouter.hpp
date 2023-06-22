@@ -9,7 +9,7 @@
 
 struct OscController;
   
-typedef void(OscController::*RouteAction)(const char*, int64_t, int);
+typedef void(OscController::*RouteAction)(std::string, int64_t, int);
 typedef std::unordered_map<std::string, RouteAction> RouteMap;
 
 class OscRouter : public osc::OscPacketListener {

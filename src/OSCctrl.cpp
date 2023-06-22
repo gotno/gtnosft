@@ -83,7 +83,14 @@ struct OSCctrl : Module {
 				startListener();
 
         router.SetController(&controller);
-        router.AddRoute("/rx/*", &OscController::UERx);
+        router.AddRoute("/rx/module", &OscController::rxModule);
+        router.AddRoute("/rx/param", &OscController::rxParam);
+        router.AddRoute("/rx/input", &OscController::rxInput);
+        router.AddRoute("/rx/output", &OscController::rxOutput);
+        router.AddRoute("/rx/module_light", &OscController::rxModuleLight);
+        router.AddRoute("/rx/display", &OscController::rxDisplay);
+        router.AddRoute("/rx/cable", &OscController::rxCable);
+        router.AddRoute("/resync", &OscController::resync);
 
         controller.init();
 

@@ -724,47 +724,82 @@ void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
 }
 
 // UE callbacks
-void OscController::UERx(const char* path, int64_t outerId, int innerId) {
-  if (std::strcmp(path, "/rx/module") == 0) {
-    /* DEBUG("/rx/module %lld", outerId); */
-    Modules[outerId].synced = true;
-  } else if (std::strcmp(path, "/rx/param") == 0) {
-    /* DEBUG("/rx/param %lld:%d", outerId, innerId); */
-    VCVParam* param = &Modules[outerId].Params[innerId];
-    param->synced = true;
-  } else if (std::strcmp(path, "/rx/input") == 0) {
-    /* DEBUG("/rx/input %lld:%d", outerId, innerId); */
-    Modules[outerId].Inputs[innerId].synced = true;
-  } else if (std::strcmp(path, "/rx/output") == 0) {
-    /* DEBUG("/rx/output %lld:%d", outerId, innerId); */
-    Modules[outerId].Outputs[innerId].synced = true;
-  } else if (std::strcmp(path, "/rx/module_light") == 0) {
-    VCVLight* light = nullptr;
 
-    if (Modules[outerId].Lights.count(innerId) > 0) {
-      /* DEBUG("/rx/module_light %lld:%d", outerId, innerId); */
-      light = &Modules[outerId].Lights[innerId];
-    } else if (Modules[outerId].ParamLights.count(innerId) > 0) {
-      /* DEBUG("/rx/module_light (param) %lld:%d", outerId, innerId); */
-      light = Modules[outerId].ParamLights[innerId];
+void OscController::rxModule(std::string path, int64_t outerId, int innerId) {
+  Modules[outerId].synced = true;
+}
+
+void OscController::rxParam(std::string path, int64_t outerId, int innerId) {
+  Modules[outerId].Params[innerId].synced = true;
+}
+
+void OscController::rxInput(std::string path, int64_t outerId, int innerId) {
+  Modules[outerId].Inputs[innerId].synced = true;
+}
+
+void OscController::rxOutput(std::string path, int64_t outerId, int innerId) {
+  Modules[outerId].Outputs[innerId].synced = true;
+}
+
+void OscController::rxModuleLight(std::string path, int64_t outerId, int innerId) {
+  VCVLight* light = nullptr;
+
+  if (Modules[outerId].Lights.count(innerId) > 0) {
+    /* DEBUG("/rx/module_light %lld:%d", outerId, innerId); */
+    light = &Modules[outerId].Lights[innerId];
+  } else if (Modules[outerId].ParamLights.count(innerId) > 0) {
+    /* DEBUG("/rx/module_light (param) %lld:%d", outerId, innerId); */
+    light = Modules[outerId].ParamLights[innerId];
+  }
+
+  if (!light) {
+    DEBUG("no module or param light found on /rx/module_light");
+    return;
+  }
+
+  light->synced = true;
+  registerLightReference(outerId, light);
+}
+
+void OscController::rxDisplay(std::string path, int64_t outerId, int innerId) {
+  /* DEBUG("/rx/display %lld:%d", outerId, innerId); */
+  // how, for multiple?
+  // generate id like for Lights
+  Modules[outerId].Displays[0].synced = true;
+}
+
+void OscController::rxCable(std::string path, int64_t outerId, int innerId) {
+  Cables[outerId].synced = true;
+}
+
+// this fails.
+// Assertion failed: threadContext, file src/context.cpp, line 51
+void OscController::resync(std::string path, int64_t outerId, int innerId) {
+  for (std::pair<int64_t, VCVModule> pair : Modules) {
+    pair.second.synced = false;
+    for (std::pair<int, VCVParam> p_pair : pair.second.Params) {
+      p_pair.second.synced = false;
+    }
+    for (std::pair<int, VCVPort> i_pair : pair.second.Inputs) {
+      i_pair.second.synced = false;
+    }
+    for (std::pair<int, VCVPort> o_pair : pair.second.Outputs) {
+      o_pair.second.synced = false;
+    }
+    for (VCVDisplay& display : pair.second.Displays) {
+      display.synced = false;
+    }
+		for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) {
+			for (std::pair<int, VCVLight*> light_pair : module_pair.second) {
+        light_pair.second->synced = false;
+      }
     }
 
-    if (!light) {
-      DEBUG("no module or param light found on /rx/module_light");
-      return;
-    }
+    enqueueSyncModule(pair.first);
+  }
 
-    light->synced = true;
-    registerLightReference(outerId, light);
-  } else if (std::strcmp(path, "/rx/display") == 0) {
-    /* DEBUG("/rx/display %lld:%d", outerId, innerId); */
-    // how, for multiple?
-    // generate id like for Lights
-    Modules[outerId].Displays[0].synced = true;
-  } else if (std::strcmp(path, "/rx/cable") == 0) {
-    DEBUG("/rx/cable %lld", outerId);
-    Cables[outerId].synced = true;
-  } else {
-    DEBUG("no known /rx/* path for %s", path);
+  for (std::pair<int64_t, VCVCable> pair : Cables) {
+    pair.second.synced = false;
+    enqueueSyncCable(pair.first);
   }
 }
