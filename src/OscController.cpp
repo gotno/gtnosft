@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cstring>
 #include <random>
+#include <sys/stat.h>
 
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
@@ -263,6 +264,30 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].box = box;
       Modules[moduleId].Params[pq->paramId].minAngle = p_knob->minAngle;
       Modules[moduleId].Params[pq->paramId].maxAngle = p_knob->maxAngle;
+
+      std::string path = p_knob->sw->svg->path;
+      Modules[moduleId].Params[pq->paramId].svgPath = path;
+
+      std::string basename = path.substr(0, path.find(".svg")); 
+
+      {
+        struct stat buffer;   
+        std::string bgpath(basename + std::string("_bg.svg"));
+        /* DEBUG("bg path: %s", bgpath.c_str()); */
+        if (stat(bgpath.c_str(), &buffer) == 0) { 
+          DEBUG("bg found: %s", bgpath.c_str());
+          /* Modules[moduleId].Params[pq->paramId].backgroundSvgPath = bgpath; */
+        }
+      }
+      {
+        struct stat buffer;   
+        std::string fgpath(basename + std::string("_fg.svg"));
+        /* DEBUG("fg path: %s", fgpath.c_str()); */
+        if (stat(fgpath.c_str(), &buffer) == 0) { 
+          DEBUG("fg found: %s", fgpath.c_str());
+          /* Modules[moduleId].Params[pq->paramId].foregroundSvgPath = fgpath; */
+        }
+      }
     }
 
     // Slider
@@ -287,6 +312,12 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].minHandlePos = minHandlePos;
       Modules[moduleId].Params[pq->paramId].maxHandlePos = maxHandlePos;
       Modules[moduleId].Params[pq->paramId].handleBox = handleBox;
+
+      Modules[moduleId].Params[pq->paramId].backgroundSvgPath = p_slider->background->svg->path;
+      Modules[moduleId].Params[pq->paramId].handleSvgPath = p_slider->handle->svg->path;
+
+      if (rack::engine::SwitchQuantity* sq = dynamic_cast<rack::engine::SwitchQuantity*>(pq))
+        Modules[moduleId].Params[pq->paramId].sliderLabels = sq->labels;
     }
 
     // Switch

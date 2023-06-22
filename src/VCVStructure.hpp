@@ -50,6 +50,11 @@ struct VCVParam {
 
   bool snap;
 
+  std::string svgPath;
+  std::string handleSvgPath;
+  std::string backgroundSvgPath;
+  std::string foregroundSvgPath;
+
   // Knob
   float minAngle = 0.f;
   float maxAngle = 0.f;
@@ -60,6 +65,7 @@ struct VCVParam {
   rack::math::Vec maxHandlePos = rack::math::Vec(0.f, 0.f);
   bool horizontal = false;
   float speed = 0.f;
+  std::vector<std::string> sliderLabels;
 
   // Switch
   bool latch = false;
