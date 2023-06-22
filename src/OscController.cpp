@@ -92,6 +92,7 @@ void OscController::processQueue() {
 
         // check failed, requeue command
         if (!isModuleSynced(command.second.pid)) {
+          /* DEBUG("check failed, requeue %lld #%d", command.second.pid, command.second.retried); */
           command.second.lastCheck = now;
           commandQueue.push(command);
           continue;
