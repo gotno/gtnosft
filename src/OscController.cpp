@@ -180,8 +180,19 @@ void OscController::collectModule(int64_t moduleId) {
 
   if (mod->getModel()->name == "OSCctrl") return;
 
-  rack::math::Rect panelBox = box2cm(mw->getPanel()->getBox());
-  rack::app::SvgPanel* panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw->getPanel());
+  // some modules (looking at you, BogAudio), define their own module widget with no `getPanel`
+  rack::app::SvgPanel* panelWidget;
+  for (rack::widget::Widget* mw_child : mw->children) {
+    if ((panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw_child))) {
+      break;
+    }
+  }
+  if (!panelWidget) {
+    WARN("no panel widget found for %lld:%s", moduleId, mod->getModel()->name.c_str());
+    return;
+  }
+
+  rack::math::Rect panelBox = box2cm(panelWidget->getBox());
 
   Modules[moduleId] = VCVModule(
     moduleId,
