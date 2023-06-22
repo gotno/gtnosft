@@ -102,7 +102,7 @@ struct OSCctrl : Module {
     this->oscCurrentAction = OSCAction::None;
 
     if (fpsDivider.getDivision() == 1) {
-      fpsDivider.setDivision((uint32_t)(args.sampleRate / 30));
+      fpsDivider.setDivision((uint32_t)(args.sampleRate / 60));
     }
 
     if (fpsDivider.process()) {
