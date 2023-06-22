@@ -541,6 +541,7 @@ void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t modul
     << param->speed
     << param->latch
     << param->momentary
+    << (osc::int32)param->frames.size()
     << osc::EndMessage;
 }
 
