@@ -55,8 +55,6 @@ struct OSCctrl : Module {
 
     if (RxSocket != NULL) return;
 
-    /* router.AddRoute("/module_received", UEModuleSynced); */
-
 		RxSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, 7000), &router);
 		oscListenerThread = std::thread(&UdpListeningReceiveSocket::Run, RxSocket);
 	}
