@@ -824,8 +824,6 @@ void OscController::rxCable(std::string path, int64_t outerId, int innerId) {
   Cables[outerId].synced = true;
 }
 
-// this fails.
-// Assertion failed: threadContext, file src/context.cpp, line 51
 void OscController::resync(std::string path, int64_t outerId, int innerId) {
   for (std::pair<int64_t, VCVModule> pair : Modules) {
     pair.second.synced = false;
