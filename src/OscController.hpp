@@ -111,15 +111,15 @@ struct OscController {
   void bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color);
 
   // UE callbacks
-	void resync(std::string path, int64_t outerId, int innerId);
+	void resync(int64_t outerId, int innerId, float value);
 
-	void rxModule(std::string path, int64_t outerId, int innerId);
-	void rxParam(std::string path, int64_t outerId, int innerId);
-	void rxInput(std::string path, int64_t outerId, int innerId);
-	void rxOutput(std::string path, int64_t outerId, int innerId);
-	void rxModuleLight(std::string path, int64_t outerId, int innerId);
-	void rxDisplay(std::string path, int64_t outerId, int innerId);
-	void rxCable(std::string path, int64_t outerId, int innerId);
+	void rxModule(int64_t outerId, int innerId, float value);
+	void rxParam(int64_t outerId, int innerId, float value);
+	void rxInput(int64_t outerId, int innerId, float value);
+	void rxOutput(int64_t outerId, int innerId, float value);
+	void rxModuleLight(int64_t outerId, int innerId, float value);
+	void rxDisplay(int64_t outerId, int innerId, float value);
+	void rxCable(int64_t outerId, int innerId, float value);
 
-	void updateParam(std::string path, int64_t outerId, int innerId);
+	void updateParam(int64_t outerId, int innerId, float value);
 };

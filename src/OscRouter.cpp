@@ -30,11 +30,15 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     if (arg != message.ArgumentsEnd()) {
       innerId = (arg++)->AsInt32();
     }
+    float value = -1;
+    if (arg != message.ArgumentsEnd()) {
+      value = (arg++)->AsFloat();
+    }
 
     if (arg != message.ArgumentsEnd()) throw osc::ExcessArgumentException();
 
     RouteAction action = routes[path];
-    (controller->*action)(path, outerId, innerId);
+    (controller->*action)(outerId, innerId, value);
   } catch(osc::Exception& e) {
     DEBUG("Error parsing OSC message %s: %s", message.AddressPattern(), e.what());
   }

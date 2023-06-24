@@ -776,7 +776,7 @@ void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
 }
 
 // UE callbacks
-void OscController::resync(std::string path, int64_t outerId, int innerId) {
+void OscController::resync(int64_t outerId, int innerId, float value) {
   for (std::pair<int64_t, VCVModule> pair : Modules) {
     pair.second.synced = false;
     for (std::pair<int, VCVParam> p_pair : pair.second.Params) {
@@ -806,23 +806,23 @@ void OscController::resync(std::string path, int64_t outerId, int innerId) {
   }
 }
 
-void OscController::rxModule(std::string path, int64_t outerId, int innerId) {
+void OscController::rxModule(int64_t outerId, int innerId, float value) {
   Modules[outerId].synced = true;
 }
 
-void OscController::rxParam(std::string path, int64_t outerId, int innerId) {
+void OscController::rxParam(int64_t outerId, int innerId, float value) {
   Modules[outerId].Params[innerId].synced = true;
 }
 
-void OscController::rxInput(std::string path, int64_t outerId, int innerId) {
+void OscController::rxInput(int64_t outerId, int innerId, float value) {
   Modules[outerId].Inputs[innerId].synced = true;
 }
 
-void OscController::rxOutput(std::string path, int64_t outerId, int innerId) {
+void OscController::rxOutput(int64_t outerId, int innerId, float value) {
   Modules[outerId].Outputs[innerId].synced = true;
 }
 
-void OscController::rxModuleLight(std::string path, int64_t outerId, int innerId) {
+void OscController::rxModuleLight(int64_t outerId, int innerId, float value) {
   VCVLight* light = nullptr;
 
   if (Modules[outerId].Lights.count(innerId) > 0) {
@@ -842,16 +842,19 @@ void OscController::rxModuleLight(std::string path, int64_t outerId, int innerId
   registerLightReference(outerId, light);
 }
 
-void OscController::rxDisplay(std::string path, int64_t outerId, int innerId) {
+void OscController::rxDisplay(int64_t outerId, int innerId, float value) {
   /* DEBUG("/rx/display %lld:%d", outerId, innerId); */
   // how, for multiple?
   // generate id like for Lights
   Modules[outerId].Displays[0].synced = true;
 }
 
-void OscController::rxCable(std::string path, int64_t outerId, int innerId) {
+void OscController::rxCable(int64_t outerId, int innerId, float value) {
   Cables[outerId].synced = true;
 }
 
-void OscController::updateParam(std::string path, int64_t outerId, int innerId) {
+void OscController::updateParam(int64_t outerId, int innerId, float value) {
+  rack::app::ModuleWidget* module = APP->scene->rack->getModule(outerId);
+  rack::engine::ParamQuantity* pq = module->getParams()[innerId]->getParamQuantity();
+  pq->setValue(1.f/* */);
 }
