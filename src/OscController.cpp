@@ -856,5 +856,5 @@ void OscController::rxCable(int64_t outerId, int innerId, float value) {
 void OscController::updateParam(int64_t outerId, int innerId, float value) {
   rack::app::ModuleWidget* module = APP->scene->rack->getModule(outerId);
   rack::engine::ParamQuantity* pq = module->getParams()[innerId]->getParamQuantity();
-  pq->setValue(1.f/* */);
+  pq->setValue(value);
 }
