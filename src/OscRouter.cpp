@@ -35,7 +35,7 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
       value = (arg++)->AsFloat();
     }
 
-    if (arg != message.ArgumentsEnd()) throw osc::ExcessArgumentException();
+    /* if (arg != message.ArgumentsEnd()) throw osc::ExcessArgumentException(); */
 
     RouteAction action = routes[path];
     (controller->*action)(outerId, innerId, value);
