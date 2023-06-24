@@ -81,6 +81,9 @@ struct OSCctrl : Module {
 				startListener();
 
         router.SetController(&controller);
+
+        router.AddRoute("/resync", &OscController::resync);
+
         router.AddRoute("/rx/module", &OscController::rxModule);
         router.AddRoute("/rx/param", &OscController::rxParam);
         router.AddRoute("/rx/input", &OscController::rxInput);
@@ -88,7 +91,8 @@ struct OSCctrl : Module {
         router.AddRoute("/rx/module_light", &OscController::rxModuleLight);
         router.AddRoute("/rx/display", &OscController::rxDisplay);
         router.AddRoute("/rx/cable", &OscController::rxCable);
-        router.AddRoute("/resync", &OscController::resync);
+
+        router.AddRoute("/update/param", &OscController::updateParam);
 
         controller.init();
 

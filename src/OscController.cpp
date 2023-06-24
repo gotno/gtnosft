@@ -776,6 +776,35 @@ void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
 }
 
 // UE callbacks
+void OscController::resync(std::string path, int64_t outerId, int innerId) {
+  for (std::pair<int64_t, VCVModule> pair : Modules) {
+    pair.second.synced = false;
+    for (std::pair<int, VCVParam> p_pair : pair.second.Params) {
+      p_pair.second.synced = false;
+    }
+    for (std::pair<int, VCVPort> i_pair : pair.second.Inputs) {
+      i_pair.second.synced = false;
+    }
+    for (std::pair<int, VCVPort> o_pair : pair.second.Outputs) {
+      o_pair.second.synced = false;
+    }
+    for (VCVDisplay& display : pair.second.Displays) {
+      display.synced = false;
+    }
+		for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) {
+			for (std::pair<int, VCVLight*> light_pair : module_pair.second) {
+        light_pair.second->synced = false;
+      }
+    }
+
+    enqueueSyncModule(pair.first);
+  }
+
+  for (std::pair<int64_t, VCVCable> pair : Cables) {
+    pair.second.synced = false;
+    enqueueSyncCable(pair.first);
+  }
+}
 
 void OscController::rxModule(std::string path, int64_t outerId, int innerId) {
   Modules[outerId].synced = true;
@@ -824,32 +853,5 @@ void OscController::rxCable(std::string path, int64_t outerId, int innerId) {
   Cables[outerId].synced = true;
 }
 
-void OscController::resync(std::string path, int64_t outerId, int innerId) {
-  for (std::pair<int64_t, VCVModule> pair : Modules) {
-    pair.second.synced = false;
-    for (std::pair<int, VCVParam> p_pair : pair.second.Params) {
-      p_pair.second.synced = false;
-    }
-    for (std::pair<int, VCVPort> i_pair : pair.second.Inputs) {
-      i_pair.second.synced = false;
-    }
-    for (std::pair<int, VCVPort> o_pair : pair.second.Outputs) {
-      o_pair.second.synced = false;
-    }
-    for (VCVDisplay& display : pair.second.Displays) {
-      display.synced = false;
-    }
-		for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) {
-			for (std::pair<int, VCVLight*> light_pair : module_pair.second) {
-        light_pair.second->synced = false;
-      }
-    }
-
-    enqueueSyncModule(pair.first);
-  }
-
-  for (std::pair<int64_t, VCVCable> pair : Cables) {
-    pair.second.synced = false;
-    enqueueSyncCable(pair.first);
-  }
+void OscController::updateParam(std::string path, int64_t outerId, int innerId) {
 }
