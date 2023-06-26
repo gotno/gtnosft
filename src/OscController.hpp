@@ -11,6 +11,7 @@
 #include <queue>
 #include <chrono>
 #include <condition_variable>
+#include <set>
 
 #define OSC_BUFFER_SIZE (1024 * 16)
 
@@ -62,6 +63,9 @@ struct OscController {
   void enqueueCommand(Command command);
   void processQueue();
 
+  std::mutex pumutex;
+  std::set<std::pair<int64_t, int>> pendingParamUpdates;
+  void processParamUpdates();
 
   bool isModuleSynced(int64_t moduleId);
 

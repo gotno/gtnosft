@@ -854,7 +854,24 @@ void OscController::rxCable(int64_t outerId, int innerId, float value) {
 }
 
 void OscController::updateParam(int64_t outerId, int innerId, float value) {
-  rack::app::ModuleWidget* module = APP->scene->rack->getModule(outerId);
-  rack::engine::ParamQuantity* pq = module->getParams()[innerId]->getParamQuantity();
-  pq->setValue(value);
+  std::lock_guard<std::mutex> lock(pumutex);
+  Modules[outerId].Params[innerId].value = value;
+  pendingParamUpdates.emplace(outerId, innerId);
+}
+
+void OscController::processParamUpdates() {
+  if (pendingParamUpdates.empty()) return;
+
+  std::set<std::pair<int64_t, int>> paramUpdates;
+  std::unique_lock<std::mutex> locker(pumutex);
+  paramUpdates.swap(pendingParamUpdates);
+  locker.unlock();
+
+  for (const std::pair<int64_t, int>& pair : paramUpdates) {
+    const int64_t& moduleId = pair.first;
+    const int& paramId = pair.second;
+    const float& value = Modules[moduleId].Params[paramId].value;
+
+    APP->engine->setParamValue(APP->engine->getModule(moduleId), paramId, value);
+  }
 }

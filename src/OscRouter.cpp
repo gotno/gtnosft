@@ -30,7 +30,7 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     if (arg != message.ArgumentsEnd()) {
       innerId = (arg++)->AsInt32();
     }
-    float value = -1;
+    float value = -1.f;
     if (arg != message.ArgumentsEnd()) {
       value = (arg++)->AsFloat();
     }
