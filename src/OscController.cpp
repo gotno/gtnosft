@@ -441,6 +441,7 @@ void OscController::printModules() {
         }
         if (type == "Slider") {
           DEBUG("      speed %f (horizontal: %s, snap: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false", param_pair.second.snap ? "true" : "false");
+          DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
           for (std::string& label : param_pair.second.sliderLabels) {
             DEBUG("      label: %s", label.c_str());
           }
@@ -453,6 +454,7 @@ void OscController::printModules() {
           DEBUG("      (horizontal: %s)", param_pair.second.horizontal ? "true" : "false");
 
           DEBUG("      has %lld frames", param_pair.second.frames.size());
+          DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
           for (std::string& path : param_pair.second.frames) {
             DEBUG("        frame svg: %s", path.c_str());
           }
