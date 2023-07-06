@@ -67,34 +67,35 @@ struct OscController {
   std::set<std::pair<int64_t, int>> pendingParamUpdates;
   void processParamUpdates();
 
-  std::mutex cableMutex;
+  std::mutex cablemutex;
   std::vector<VCVCable> cablesToAdd;
   std::vector<int64_t> cablesToDestroy;
 	void processCableUpdates();
 
-  bool isModuleSynced(int64_t moduleId);
+  std::mutex syncmutex;
+  bool needsSync = false;
+  void collectAndSync();
 
   std::unordered_map<int64_t, VCVModule> Modules;
+  void collectModules(bool printResults = false);
+  void collectModule(int64_t moduleId);
+	void printModules();
+
   std::unordered_map<int64_t, VCVCable> Cables;
+  void collectCables(bool printResults = false);
+  void collectCable(int64_t cableId);
+  void printCables();
+
+  bool isModuleSynced(int64_t moduleId);
 
   std::mutex lmutex;
   std::unordered_map<int64_t, LightReferenceMap> LightReferences;
-
-  void init();
 
   rack::math::Vec ueCorrectPos(rack::math::Vec parentSize, rack::math::Vec pos, rack::math::Vec size);
   rack::math::Rect box2cm(rack::math::Rect pxBox);
   rack::math::Vec vec2cm(rack::math::Vec pxVec);
   int randomId();
   bool isRectangleLight(rack::app::MultiLightWidget* light);
-
-  void collectModule(int64_t moduleId);
-  void collectModules();
-	void printModules();
-
-  void collectCable(int64_t cableId);
-  void collectCables();
-  void printCables();
 
   void bundleLight(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVLight* light, int paramId = -1);
   void bundleParam(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVParam* param);
@@ -120,8 +121,6 @@ struct OscController {
   void bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color);
 
   // UE callbacks
-	void resync(int64_t outerId, int innerId, float value);
-
 	void rxModule(int64_t outerId, int innerId, float value);
 	void rxParam(int64_t outerId, int innerId, float value);
 	void rxInput(int64_t outerId, int innerId, float value);

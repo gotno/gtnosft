@@ -9,6 +9,7 @@
 
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
+  queueWorker = std::thread(OscController::processQueue, this);
 }
 
 OscController::~OscController() {
@@ -24,7 +25,6 @@ OscController::~OscController() {
 
   if (queueWorker.joinable()) queueWorker.join();
 
-  /* if (syncworker.joinable()) syncworker.join(); */
   delete[] oscBuffer;
 }
 
@@ -32,23 +32,34 @@ float_time_point OscController::getCurrentTime() {
   return Time::now();
 }
 
-void OscController::init() {
-	collectModules();
-  printModules();
-  collectCables();
-  printCables();
+void OscController::collectAndSync() {
+  std::unique_lock<std::mutex> qlocker(qmutex);
+  while (!commandQueue.empty()) commandQueue.pop();
+  qlocker.unlock();
 
-  // enqueue module syncs
-  for (std::pair<int64_t, VCVModule> pair : Modules) {
-    enqueueSyncModule(pair.first);
-	}
+  std::unique_lock<std::mutex> pulocker(pumutex);
+  pendingParamUpdates.clear();
+  pulocker.unlock();
 
-  // enqueue cable syncs
-  for (std::pair<int64_t, VCVCable> pair : Cables) {
-    enqueueSyncCable(pair.first);
-  }
+  std::unique_lock<std::mutex> llocker(lmutex);
+  LightReferences.clear();
+  llocker.unlock();
 
-  queueWorker = std::thread(OscController::processQueue, this);
+  std::unique_lock<std::mutex> cablelocker(cablemutex);
+  cablesToAdd.clear();
+  cablesToDestroy.clear();
+  cablelocker.unlock();
+
+  Modules.clear();
+	collectModules(true);
+
+  Cables.clear();
+  collectCables(true);
+
+  for (auto& pair : Modules) enqueueSyncModule(pair.first);
+  for (auto& pair : Cables) enqueueSyncCable(pair.first);
+
+  needsSync = false;
 }
 
 void OscController::enqueueCommand(Command command) {
@@ -75,7 +86,6 @@ void OscController::processQueue() {
         sendLightUpdates();
         break;
       case CommandType::SyncModule:
-        /* DEBUG("SyncModule %lld", command.second.pid); */
         syncModule(&Modules[command.second.pid]);
         break;
       case CommandType::CheckModuleSync:
@@ -87,13 +97,12 @@ void OscController::processQueue() {
 
         // out of retries, abandon
         if (++command.second.retried >= command.second.retryLimit) {
-          DEBUG("abandoning %lld", command.second.pid);
+          DEBUG("abandoning module sync %lld", command.second.pid);
           continue;
         }
 
         // check failed, requeue command
         if (!isModuleSynced(command.second.pid)) {
-          /* DEBUG("check failed, requeue %lld #%d", command.second.pid, command.second.retried); */
           command.second.lastCheck = now;
           commandQueue.push(command);
           continue;
@@ -166,12 +175,14 @@ bool OscController::isRectangleLight(rack::app::MultiLightWidget* light) {
   return false;
 }
 
-void OscController::collectModules() {
+void OscController::collectModules(bool printResults) {
   DEBUG("collecting %lld modules", APP->engine->getModuleIds().size() - 1);
   for (int64_t& moduleId: APP->engine->getModuleIds()) {
     collectModule(moduleId);
   }
   DEBUG("collected %lld modules", Modules.size());
+
+  if (printResults) printModules();
 }
 
 void OscController::collectModule(int64_t moduleId) {
@@ -286,7 +297,7 @@ void OscController::collectModule(int64_t moduleId) {
         std::string bgpath(basename + std::string("_bg.svg"));
         /* DEBUG("bg path: %s", bgpath.c_str()); */
         if (stat(bgpath.c_str(), &buffer) == 0) { 
-          DEBUG("bg found: %s", bgpath.c_str());
+          /* DEBUG("bg found: %s", bgpath.c_str()); */
           /* Modules[moduleId].Params[pq->paramId].backgroundSvgPath = bgpath; */
         }
       }
@@ -490,10 +501,14 @@ void OscController::collectCable(int64_t cableId) {
   );
 }
 
-void OscController::collectCables() {
+void OscController::collectCables(bool printResults) {
+  DEBUG("collecting %lld cables", APP->engine->getCableIds().size());
 	for (int64_t& cableId: APP->engine->getCableIds()) {
     collectCable(cableId);
 	}
+  DEBUG("collected %lld cables", Cables.size());
+
+  if (printResults) printCables();
 }
 
 void OscController::printCables() {
@@ -664,23 +679,23 @@ bool OscController::isModuleSynced(int64_t moduleId) {
 
   if (!module.synced) return false;
 
-  for (std::pair<int, VCVParam> p_param : module.Params) {
+  for (auto& p_param : module.Params) {
     if (!p_param.second.synced) return false;
 
-    for (std::pair<int, VCVLight> p_light : p_param.second.Lights) {
+    for (auto& p_light : p_param.second.Lights) {
       if (!p_light.second.synced) return false;
     }
   }
 
-  for (std::pair<int, VCVPort> p_input : module.Inputs) {
+  for (auto& p_input : module.Inputs) {
     if (!p_input.second.synced) return false;
   }
 
-  for (std::pair<int, VCVPort> p_output : module.Outputs) {
+  for (auto& p_output : module.Outputs) {
     if (!p_output.second.synced) return false;
   }
 
-  for (std::pair<int, VCVLight> p_light : module.Lights) {
+  for (auto& p_light : module.Lights) {
     if (!p_light.second.synced) return false;
   }
 
@@ -778,36 +793,6 @@ void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
 }
 
 // UE callbacks
-void OscController::resync(int64_t outerId, int innerId, float value) {
-  for (std::pair<int64_t, VCVModule> pair : Modules) {
-    pair.second.synced = false;
-    for (std::pair<int, VCVParam> p_pair : pair.second.Params) {
-      p_pair.second.synced = false;
-    }
-    for (std::pair<int, VCVPort> i_pair : pair.second.Inputs) {
-      i_pair.second.synced = false;
-    }
-    for (std::pair<int, VCVPort> o_pair : pair.second.Outputs) {
-      o_pair.second.synced = false;
-    }
-    for (VCVDisplay& display : pair.second.Displays) {
-      display.synced = false;
-    }
-		for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) {
-			for (std::pair<int, VCVLight*> light_pair : module_pair.second) {
-        light_pair.second->synced = false;
-      }
-    }
-
-    enqueueSyncModule(pair.first);
-  }
-
-  for (std::pair<int64_t, VCVCable> pair : Cables) {
-    pair.second.synced = false;
-    enqueueSyncCable(pair.first);
-  }
-}
-
 void OscController::rxModule(int64_t outerId, int innerId, float value) {
   Modules[outerId].synced = true;
 }
@@ -856,7 +841,7 @@ void OscController::rxCable(int64_t outerId, int innerId, float value) {
 }
 
 void OscController::addCable(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId) {
-  std::lock_guard<std::mutex> lock(cableMutex);
+  std::lock_guard<std::mutex> lock(cablemutex);
   DEBUG("adding cable create to queue");
   cablesToAdd.push_back(VCVCable(inputModuleId, outputModuleId, inputPortId, outputPortId));
 }
@@ -866,7 +851,7 @@ void OscController::destroyCable(int64_t cableId) {
 }
 
 void OscController::processCableUpdates() {
-  std::lock_guard<std::mutex> lock(cableMutex);
+  std::lock_guard<std::mutex> lock(cablemutex);
   for (VCVCable cable_model : cablesToAdd) {
     rack::engine::Cable* cable = new rack::engine::Cable;
     cable->id = cable_model.id;

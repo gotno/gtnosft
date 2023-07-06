@@ -13,7 +13,6 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
   std::string path(message.AddressPattern());
   if (path.compare(std::string("/create/cable")) == 0) {
-    DEBUG("got add cable message");
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
     osc::uint64 inputModuleId, outputModuleId;
     osc::uint32 inputPortId, outputPortId;
@@ -24,11 +23,13 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     controller->addCable(inputModuleId, outputModuleId, inputPortId, outputPortId);
     return;
   } else if (path.compare(std::string("/destroy/cable")) == 0) {
-    DEBUG("got destroy cable message");
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
     osc::uint64 cableId;
     cableId = (arg++)->AsInt64();
     controller->destroyCable(cableId);
+    return;
+  } else if (path.compare(std::string("/sync")) == 0) {
+    controller->needsSync = true;
     return;
   } else if (routes.find(path) == routes.end()) {
     DEBUG("no route for %s", path.c_str());

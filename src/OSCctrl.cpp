@@ -21,12 +21,6 @@ struct OSCctrl : Module {
 		LIGHTS_LEN
 	};
 
-	enum OSCAction {
-		None,
-		Disable,
-		Enable
-	};
-	OSCAction oscCurrentAction = OSCAction::Enable;
 
   OscRouter router;
   OscController controller;
@@ -39,20 +33,31 @@ struct OSCctrl : Module {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 	}
 
+  void onAdd(const AddEvent& e) override {
+    DEBUG("enabling OSCctrl");
+    DEBUG("starting Rx listener");
+    startListener();
+
+    router.SetController(&controller);
+
+    router.AddRoute("/rx/module", &OscController::rxModule);
+    router.AddRoute("/rx/param", &OscController::rxParam);
+    router.AddRoute("/rx/input", &OscController::rxInput);
+    router.AddRoute("/rx/output", &OscController::rxOutput);
+    router.AddRoute("/rx/module_light", &OscController::rxModuleLight);
+    router.AddRoute("/rx/display", &OscController::rxDisplay);
+    router.AddRoute("/rx/cable", &OscController::rxCable);
+
+    router.AddRoute("/update/param", &OscController::updateParam);
+  }
+
   void onRemove(const RemoveEvent& e) override {
     DEBUG("OSCctrl onRemove");
     cleanupListener();
 	}
 
-	/* void onDragStart(const DragStartEvent& e) override { */
-	/* 	if (e.button != GLFW_MOUSE_BUTTON_LEFT) return; */
-
-    /* syncRackModules(); */
-	/* } */
-
   void startListener() {
     DEBUG("OSCctrl startListener");
-
     if (RxSocket != NULL) return;
 
 		RxSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, 7000), &router);
@@ -70,46 +75,13 @@ struct OSCctrl : Module {
 	}
 
 	void process(const ProcessArgs& args) override {
-
     if (fpsDivider.getDivision() == 1) {
-      fpsDivider.setDivision((uint32_t)(args.sampleRate / 2));
+      fpsDivider.setDivision((uint32_t)(args.sampleRate / 60));
     }
 
-    if (fpsDivider.process()) {
-      switch(this->oscCurrentAction) {
-        case OSCAction::Disable:
-          DEBUG("disabling OSCctrl");
-          cleanupListener();
-          break;
-        case OSCAction::Enable:
-          DEBUG("enabling OSCctrl");
-          DEBUG("starting Rx listener");
-          startListener();
-
-          router.SetController(&controller);
-
-          router.AddRoute("/resync", &OscController::resync);
-
-          router.AddRoute("/rx/module", &OscController::rxModule);
-          router.AddRoute("/rx/param", &OscController::rxParam);
-          router.AddRoute("/rx/input", &OscController::rxInput);
-          router.AddRoute("/rx/output", &OscController::rxOutput);
-          router.AddRoute("/rx/module_light", &OscController::rxModuleLight);
-          router.AddRoute("/rx/display", &OscController::rxDisplay);
-          router.AddRoute("/rx/cable", &OscController::rxCable);
-
-          router.AddRoute("/update/param", &OscController::updateParam);
-
-          controller.init();
-
-          break;
-        case OSCAction::None:
-          /* DEBUG("OSCctrl doing nothing"); */
-          break;
-        default:
-          break;
-      }
-      this->oscCurrentAction = OSCAction::None;
+    if (fpsDivider.process() && !controller.needsSync) {
+      controller.enqueueLightUpdates();
+      controller.processParamUpdates();
     }
 	}
 };
@@ -130,9 +102,10 @@ struct OSCctrlWidget : ModuleWidget {
     ModuleWidget::step();
     if (!getModule()) return;
 
-    dynamic_cast<OSCctrl*>(getModule())->controller.enqueueLightUpdates();
-    dynamic_cast<OSCctrl*>(getModule())->controller.processParamUpdates();
-    dynamic_cast<OSCctrl*>(getModule())->controller.processCableUpdates();
+    OscController& ctrl = dynamic_cast<OSCctrl*>(getModule())->controller;
+
+    if (ctrl.needsSync) ctrl.collectAndSync();
+    ctrl.processCableUpdates();
   }
 };
 
