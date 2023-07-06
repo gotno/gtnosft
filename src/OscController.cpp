@@ -855,6 +855,44 @@ void OscController::rxCable(int64_t outerId, int innerId, float value) {
   Cables[outerId].synced = true;
 }
 
+void OscController::addCable(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId) {
+  std::lock_guard<std::mutex> lock(cableMutex);
+  DEBUG("adding cable create to queue");
+  cablesToAdd.push_back(VCVCable(inputModuleId, outputModuleId, inputPortId, outputPortId));
+}
+
+void OscController::destroyCable(int64_t cableId) {
+  cablesToDestroy.push_back(cableId);
+}
+
+void OscController::processCableUpdates() {
+  std::lock_guard<std::mutex> lock(cableMutex);
+  for (VCVCable cable_model : cablesToAdd) {
+    rack::engine::Cable* cable = new rack::engine::Cable;
+    cable->id = cable_model.id;
+    cable->inputModule = APP->engine->getModule(cable_model.inputModuleId);
+    cable->inputId = cable_model.inputPortId;
+    cable->outputModule = APP->engine->getModule(cable_model.outputModuleId);
+    cable->outputId = cable_model.outputPortId;
+    APP->engine->addCable(cable);
+
+    rack::app::CableWidget* cableWidget = new rack::app::CableWidget;
+		cableWidget->setCable(cable);
+		cableWidget->color = rack::settings::cableColors[0];
+		APP->scene->rack->addCable(cableWidget);
+
+    collectCable(cable->id);
+    enqueueSyncCable(cable->id);
+  }
+  cablesToAdd.clear();
+
+  for (int64_t cableId : cablesToDestroy) {
+    APP->engine->removeCable(APP->engine->getCable(cableId));
+    APP->scene->rack->removeCable(APP->scene->rack->getCable(cableId));
+  }
+  cablesToDestroy.clear();
+}
+
 void OscController::updateParam(int64_t outerId, int innerId, float value) {
   std::lock_guard<std::mutex> lock(pumutex);
   Modules[outerId].Params[innerId].value = value;

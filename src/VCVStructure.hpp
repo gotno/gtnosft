@@ -140,7 +140,7 @@ struct VCVModule {
 };
 
 struct VCVCable {
-  int64_t id, inputModuleId, outputModuleId;
+  int64_t id = -1, inputModuleId, outputModuleId;
   int inputPortId, outputPortId;
 
   bool synced = false;
@@ -148,4 +148,6 @@ struct VCVCable {
   VCVCable() {}
   VCVCable(int64_t _id, int64_t _inputModuleId, int64_t _outputModuleId, int _inputPortId, int _outputPortId)
     : id(_id), inputModuleId(_inputModuleId), outputModuleId(_outputModuleId), inputPortId(_inputPortId), outputPortId(_outputPortId) {}
+  VCVCable(int64_t _inputModuleId, int64_t _outputModuleId, int _inputPortId, int _outputPortId)
+    : inputModuleId(_inputModuleId), outputModuleId(_outputModuleId), inputPortId(_inputPortId), outputPortId(_outputPortId) {}
 };

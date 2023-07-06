@@ -67,6 +67,11 @@ struct OscController {
   std::set<std::pair<int64_t, int>> pendingParamUpdates;
   void processParamUpdates();
 
+  std::mutex cableMutex;
+  std::vector<VCVCable> cablesToAdd;
+  std::vector<int64_t> cablesToDestroy;
+	void processCableUpdates();
+
   bool isModuleSynced(int64_t moduleId);
 
   std::unordered_map<int64_t, VCVModule> Modules;
@@ -126,4 +131,7 @@ struct OscController {
 	void rxCable(int64_t outerId, int innerId, float value);
 
 	void updateParam(int64_t outerId, int innerId, float value);
+
+	void addCable(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId);
+	void destroyCable(int64_t cableId);
 };

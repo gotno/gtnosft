@@ -9,6 +9,9 @@
 
 struct OscController;
   
+typedef void(OscController::*CableAction)(int64_t, int64_t, int, int);
+typedef std::unordered_map<std::string, CableAction> CableActionMap;
+
 typedef void(OscController::*RouteAction)(int64_t, int, float);
 typedef std::unordered_map<std::string, RouteAction> RouteMap;
 
