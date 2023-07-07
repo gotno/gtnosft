@@ -132,13 +132,17 @@ rack::math::Vec OscController::ueCorrectPos(rack::math::Vec parentSize, rack::ma
   return pos;
 }
 
+float OscController::px2cm(float px) {
+  return (px / (rack::window::SVG_DPI / rack::window::MM_PER_IN)) / 10.f;
+}
+
 rack::math::Rect OscController::box2cm(rack::math::Rect pxBox) {
   rack::math::Rect cmBox = pxBox;
 
-  cmBox.pos.x = rack::window::px2cm(pxBox.pos.x);
-  cmBox.pos.y = rack::window::px2cm(pxBox.pos.y);
-  cmBox.size.x = rack::window::px2cm(pxBox.size.x);
-  cmBox.size.y = rack::window::px2cm(pxBox.size.y);
+  cmBox.pos.x = px2cm(pxBox.pos.x);
+  cmBox.pos.y = px2cm(pxBox.pos.y);
+  cmBox.size.x = px2cm(pxBox.size.x);
+  cmBox.size.y = px2cm(pxBox.size.y);
 
   return cmBox;
 }
@@ -146,8 +150,8 @@ rack::math::Rect OscController::box2cm(rack::math::Rect pxBox) {
 rack::math::Vec OscController::vec2cm(rack::math::Vec pxVec) {
   rack::math::Vec cmVec = pxVec;
 
-  cmVec.x = rack::window::px2cm(pxVec.x);
-  cmVec.y = rack::window::px2cm(pxVec.y);
+  cmVec.x = px2cm(pxVec.x);
+  cmVec.y = px2cm(pxVec.y);
 
   return cmVec;
 }
@@ -212,6 +216,10 @@ void OscController::collectModule(int64_t moduleId) {
   }
 
   rack::math::Rect panelBox = box2cm(panelWidget->getBox());
+  // this almost works to get the actual rack position transferred over
+  /* rack::math::Rect panelBox = panelWidget->getBox(); */
+  /* panelBox.pos = mw->getPosition() - rack::app::RACK_OFFSET; */
+  /* panelBox = box2cm(panelBox); */
 
   Modules[moduleId] = VCVModule(
     moduleId,
