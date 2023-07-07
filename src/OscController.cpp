@@ -764,9 +764,11 @@ void OscController::sendLightUpdates() {
       }
     }
   }
-
   bundle << osc::EndBundle;
-  sendMessage(bundle);
+
+  // 16 bytes is the size of an *empty* bundle
+  /* DEBUG("light update bundle size: %lld", bundle.Size()); */
+  if(bundle.Size() > 16) sendMessage(bundle);
 }
 
 void OscController::bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color) {
@@ -797,6 +799,8 @@ void OscController::sendModuleSyncComplete(int64_t moduleId) {
 }
 
 void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
+  // this _looks like_ it only sends the data present and not the whole buffer? good.
+  /* DEBUG("data: %s, size: %lld", packetStream.Data(), packetStream.Size()); */
   UdpTransmitSocket(endpoint).Send(packetStream.Data(), packetStream.Size());
 }
 
