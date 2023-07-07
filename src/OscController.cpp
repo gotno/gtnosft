@@ -192,11 +192,19 @@ void OscController::collectModule(int64_t moduleId) {
   if (mod->getModel()->name == "OSCctrl") return;
 
   // some modules (looking at you, BogAudio), define their own module widget with no `getPanel`
-  rack::app::SvgPanel* panelWidget;
+  rack::app::SvgPanel* panelWidget{nullptr};
   for (rack::widget::Widget* mw_child : mw->children) {
     if ((panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw_child))) {
+      DEBUG("found panel in children for %lld:%s", moduleId, mod->getModel()->name.c_str());
       break;
     }
+    for (rack::widget::Widget* mw_grandchild : mw_child->children) {
+      if ((panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw_grandchild))) {
+        DEBUG("found panel in grandchildren for %lld:%s", moduleId, mod->getModel()->name.c_str());
+        break;
+      }
+    }
+    if (panelWidget) break;
   }
   if (!panelWidget) {
     WARN("no panel widget found for %lld:%s", moduleId, mod->getModel()->name.c_str());
