@@ -13,7 +13,7 @@
 #include <condition_variable>
 #include <set>
 
-#define OSC_BUFFER_SIZE (1024 * 16)
+#define OSC_BUFFER_SIZE (1024 * 64)
 
 using Time = std::chrono::steady_clock;
 using float_sec = std::chrono::duration<float>;
