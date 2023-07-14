@@ -640,6 +640,7 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
     << module->box.pos.y
     << module->box.size.x
     << module->box.size.y
+    << module->panelSvgPath.c_str()
     << osc::EndMessage;
 }
  
