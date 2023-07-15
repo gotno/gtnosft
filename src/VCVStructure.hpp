@@ -99,12 +99,13 @@ struct VCVPort {
   std::string name;
   std::string description;
   rack::math::Rect box;
+  std::string svgPath;
 
   bool synced = false;
 
   VCVPort() {}
-  VCVPort(int portId, PortType portType, std::string portName, std::string portDescription, rack::math::Rect portBox)
-    : id(portId), type(portType), name(portName), description(portDescription), box(portBox) {}
+  VCVPort(int portId, PortType portType, std::string portName, std::string portDescription, rack::math::Rect portBox, std::string portSvgPath)
+    : id(portId), type(portType), name(portName), description(portDescription), box(portBox), svgPath(portSvgPath) {}
 };
 
 struct VCVDisplay {

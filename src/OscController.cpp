@@ -313,7 +313,7 @@ void OscController::collectModule(int64_t moduleId) {
         std::string bgpath(basename + std::string("_bg.svg"));
         /* DEBUG("bg path: %s", bgpath.c_str()); */
         if (stat(bgpath.c_str(), &buffer) == 0) { 
-          /* DEBUG("bg found: %s", bgpath.c_str()); */
+          DEBUG("bg found: %s", bgpath.c_str());
           /* Modules[moduleId].Params[pq->paramId].backgroundSvgPath = bgpath; */
         }
       }
@@ -398,23 +398,19 @@ void OscController::collectModule(int64_t moduleId) {
     rack::math::Rect box = box2cm(portWidget->getBox());
     box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
 
+    VCVPort port = VCVPort(
+      portWidget->portId,
+      type,
+      portWidget->getPortInfo()->name,
+      portWidget->getPortInfo()->description,
+      box,
+      dynamic_cast<rack::app::SvgPort*>(portWidget)->sw->svg->path
+    );
 
     if (type == PortType::Input) {
-      Modules[moduleId].Inputs[portWidget->portId] = VCVPort(
-        portWidget->portId,
-        type,
-        portWidget->getPortInfo()->name,
-        portWidget->getPortInfo()->description,
-        box
-      );
+      Modules[moduleId].Inputs[portWidget->portId] = port;
     } else {
-      Modules[moduleId].Outputs[portWidget->portId] = VCVPort(
-        portWidget->portId,
-        type,
-        portWidget->getPortInfo()->name,
-        portWidget->getPortInfo()->description,
-        box
-      );
+      Modules[moduleId].Outputs[portWidget->portId] = port;
     }
   }
 }
@@ -493,6 +489,7 @@ void OscController::printModules() {
 
       for (std::pair<int, VCVPort> input_pair : module_pair.second.Inputs) {
         DEBUG("      %d %s %s", input_pair.second.id, input_pair.second.name.c_str(), input_pair.second.description.c_str());
+        DEBUG("        %s", input_pair.second.svgPath.c_str());
       }
     }
     if (module_pair.second.Outputs.size() > 0) {
@@ -500,6 +497,7 @@ void OscController::printModules() {
 
       for (std::pair<int, VCVPort> output_pair : module_pair.second.Outputs) {
         DEBUG("      %d %s %s", output_pair.second.id, output_pair.second.name.c_str(), output_pair.second.description.c_str());
+        DEBUG("        %s", output_pair.second.svgPath.c_str());
       }
     }
   }
@@ -617,6 +615,7 @@ void OscController::bundlePort(osc::OutboundPacketStream& bundle, VCVPort* port)
     << port->box.pos.y
     << port->box.size.x
     << port->box.size.y
+    << port->svgPath.c_str()
     << osc::EndMessage;
 }
 
