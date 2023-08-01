@@ -49,10 +49,15 @@ struct VCVParam {
   float value;
 
   bool snap;
+  bool visible{true};
 
+  // slider base, knob base
   std::string svgPath;
+  // slider handle
   std::string handleSvgPath;
+  // knob background
   std::string backgroundSvgPath;
+  // knob foreground
   std::string foregroundSvgPath;
 
   // Knob

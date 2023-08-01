@@ -265,6 +265,7 @@ void OscController::collectModule(int64_t moduleId) {
       pq->getDefaultValue(),
       pq->getValue()
     );
+    Modules[moduleId].Params[pq->paramId].visible = pw->isVisible();
 
     for (rack::widget::Widget* & pw_child : pw->children) {
       if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(pw_child)) {
@@ -303,27 +304,18 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].minAngle = p_knob->minAngle;
       Modules[moduleId].Params[pq->paramId].maxAngle = p_knob->maxAngle;
 
-      std::string path = p_knob->sw->svg->path;
-      Modules[moduleId].Params[pq->paramId].svgPath = path;
+      Modules[moduleId].Params[pq->paramId].svgPath = p_knob->sw->svg->path;
 
-      std::string basename = path.substr(0, path.find(".svg")); 
+      for (rack::widget::Widget* & fb_child : p_knob->fb->children) {
+        if (rack::widget::SvgWidget* svg_widget = dynamic_cast<rack::widget::SvgWidget*>(fb_child)) {
+          if (!svg_widget->svg) continue;
 
-      {
-        struct stat buffer;   
-        std::string bgpath(basename + std::string("_bg.svg"));
-        /* DEBUG("bg path: %s", bgpath.c_str()); */
-        if (stat(bgpath.c_str(), &buffer) == 0) { 
-          DEBUG("bg found: %s", bgpath.c_str());
-          /* Modules[moduleId].Params[pq->paramId].backgroundSvgPath = bgpath; */
-        }
-      }
-      {
-        struct stat buffer;   
-        std::string fgpath(basename + std::string("_fg.svg"));
-        /* DEBUG("fg path: %s", fgpath.c_str()); */
-        if (stat(fgpath.c_str(), &buffer) == 0) { 
-          DEBUG("fg found: %s", fgpath.c_str());
-          /* Modules[moduleId].Params[pq->paramId].foregroundSvgPath = fgpath; */
+          std::string& path = svg_widget->svg->path;
+          if (path.find("_bg") != std::string::npos || path.find("-bg") != std::string::npos) {
+            Modules[moduleId].Params[pq->paramId].backgroundSvgPath = path;
+          } else if (path.find("_fg") != std::string::npos || path.find("-fg") != std::string::npos) {
+            Modules[moduleId].Params[pq->paramId].foregroundSvgPath = path;
+          }
         }
       }
     }
@@ -351,7 +343,7 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].maxHandlePos = maxHandlePos;
       Modules[moduleId].Params[pq->paramId].handleBox = handleBox;
 
-      Modules[moduleId].Params[pq->paramId].backgroundSvgPath = p_slider->background->svg->path;
+      Modules[moduleId].Params[pq->paramId].svgPath = p_slider->background->svg->path;
       Modules[moduleId].Params[pq->paramId].handleSvgPath = p_slider->handle->svg->path;
 
       if (rack::engine::SwitchQuantity* sq = dynamic_cast<rack::engine::SwitchQuantity*>(pq))
@@ -368,15 +360,16 @@ void OscController::collectModule(int64_t moduleId) {
       Modules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
 
       // buttons have either momentary or latch, switches have neither
+      // TODO: befaco muxslicer "play switch"-- 3 frames, momentary switch
       if (p_switch->momentary || p_switch->latch) {
         Modules[moduleId].Params[pq->paramId].type = ParamType::Button;
       } else {
         Modules[moduleId].Params[pq->paramId].type = ParamType::Switch;
         Modules[moduleId].Params[pq->paramId].horizontal = box.size.x > box.size.y;
+      }
 
-        for (std::shared_ptr<rack::window::Svg> svg : p_switch->frames) {
-          Modules[moduleId].Params[pq->paramId].frames.push_back(svg->path);
-        }
+      for (std::shared_ptr<rack::window::Svg> svg : p_switch->frames) {
+        Modules[moduleId].Params[pq->paramId].frames.push_back(svg->path);
       }
     }
 
@@ -472,12 +465,16 @@ void OscController::printModules() {
         }
         if (type == "Button") {
           DEBUG("      (momentary: %s, latch: %s)", param_pair.second.momentary ? "true" : "false", param_pair.second.latch ? "true" : "false");
+          DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+          DEBUG("      has %lld frames", param_pair.second.frames.size());
+          for (std::string& path : param_pair.second.frames) {
+            DEBUG("        frame svg: %s", path.c_str());
+          }
         }
         if (type == "Switch") {
           DEBUG("      (horizontal: %s)", param_pair.second.horizontal ? "true" : "false");
-
-          DEBUG("      has %lld frames", param_pair.second.frames.size());
           DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+          DEBUG("      has %lld frames", param_pair.second.frames.size());
           for (std::string& path : param_pair.second.frames) {
             DEBUG("        frame svg: %s", path.c_str());
           }
@@ -572,7 +569,12 @@ void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t modul
     << param->speed
     << param->latch
     << param->momentary
+    << param->svgPath.c_str()
+    << param->handleSvgPath.c_str()
+    << param->backgroundSvgPath.c_str()
+    << param->foregroundSvgPath.c_str()
     << (osc::int32)param->frames.size()
+    << param->visible
     << osc::EndMessage;
 }
 
