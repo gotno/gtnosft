@@ -51,15 +51,6 @@ struct VCVParam {
   bool snap;
   bool visible{true};
 
-  // slider base, knob base
-  std::string svgPath;
-  // slider handle
-  std::string handleSvgPath;
-  // knob background
-  std::string backgroundSvgPath;
-  // knob foreground
-  std::string foregroundSvgPath;
-
   // Knob
   float minAngle = 0.f;
   float maxAngle = 0.f;
@@ -70,6 +61,7 @@ struct VCVParam {
   rack::math::Vec maxHandlePos = rack::math::Vec(0.f, 0.f);
   bool horizontal = false;
   float speed = 0.f;
+  // TODO
   std::vector<std::string> sliderLabels;
 
   // Switch/Button
@@ -77,7 +69,13 @@ struct VCVParam {
   // (both are SvgSwitch under the hood)
   bool latch = false;
   bool momentary = false;
-  std::vector<std::string> frames; // svg paths
+
+  // 0- knob bg, slider base, switch/button frame 0
+  // 1- knob mg, slider handle, switch/button frame 1
+  // 2- knob fg, switch/button frame 2
+  // 3- switch/button frame 3
+  // 4- switch/button frame 4
+  std::vector<std::string> svgPaths;
 
   // internal operations, not useful?
   // float displayBase;
@@ -92,7 +90,9 @@ struct VCVParam {
   VCVParam(int paramId, std::string paramName, std::string paramUnit, std::string paramDescription, float paramMinValue, float paramMaxValue, float paramDefaultValue, float paramValue)
     : id(paramId), name(paramName), unit(paramUnit), description(paramDescription),
       minValue(paramMinValue), maxValue(paramMaxValue), defaultValue(paramDefaultValue),
-      value(paramValue) {}
+      value(paramValue) {
+    svgPaths.reserve(5);
+  }
 };
 
 enum PortType {
