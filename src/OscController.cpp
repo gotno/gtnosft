@@ -223,6 +223,7 @@ void OscController::collectModule(int64_t moduleId) {
 
   Modules[moduleId] = VCVModule(
     moduleId,
+    mod->getModel()->plugin->brand,
     mod->getModel()->name,
     mod->getModel()->description,
     panelBox,
@@ -425,9 +426,9 @@ void OscController::printModules() {
   for (std::pair<int64_t, VCVModule> module_pair : Modules) {
     // module id, name
     if (module_pair.second.Displays.size() > 0) {
-      DEBUG("%lld %s (has %lld LED displays)", module_pair.first, module_pair.second.name.c_str(), module_pair.second.Displays.size());
+      DEBUG("%lld %s:%s (has %lld LED displays)", module_pair.first, module_pair.second.brand.c_str(), module_pair.second.name.c_str(), module_pair.second.Displays.size());
     } else {
-      DEBUG("%lld %s", module_pair.first, module_pair.second.name.c_str());
+      DEBUG("%lld %s:%s", module_pair.first, module_pair.second.brand.c_str(), module_pair.second.name.c_str());
     }
     if (module_pair.second.Lights.size() > 0) {
       DEBUG("        (has %lld lights)", module_pair.second.Lights.size());
@@ -648,6 +649,7 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
   bundle << osc::BeginBundleImmediate
     << osc::BeginMessage("/modules/add")
     << module->id
+    << module->brand.c_str()
     << module->name.c_str()
     << module->description.c_str()
     << module->box.pos.x

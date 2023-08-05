@@ -123,6 +123,7 @@ struct VCVDisplay {
 
 struct VCVModule {
   int64_t id;
+  std::string brand;
   std::string name;
   std::string description;
   rack::math::Rect box;
@@ -141,8 +142,8 @@ struct VCVModule {
   VCVModule() {}
   VCVModule(int64_t moduleId, std::string moduleName)
     : id(moduleId), name(moduleName) {}
-  VCVModule(int64_t moduleId, std::string moduleName, std::string modelDescription, rack::math::Rect panelBox, std::string panelPath)
-    : id(moduleId), name(moduleName), description(modelDescription), box(panelBox), panelSvgPath(panelPath) {}
+  VCVModule(int64_t moduleId, std::string moduleBrand, std::string moduleName, std::string modelDescription, rack::math::Rect panelBox, std::string panelPath)
+    : id(moduleId), brand(moduleBrand), name(moduleName), description(modelDescription), box(panelBox), panelSvgPath(panelPath) {}
 };
 
 struct VCVCable {
