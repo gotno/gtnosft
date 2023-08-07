@@ -97,6 +97,7 @@ struct OscController {
   rack::math::Vec vec2cm(rack::math::Vec pxVec);
   int randomId();
   bool isRectangleLight(rack::app::MultiLightWidget* light);
+  std::string getLightSvgPath(rack::app::MultiLightWidget* light);
 
   void bundleLight(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVLight* light, int paramId = -1);
   void bundleParam(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVParam* param);

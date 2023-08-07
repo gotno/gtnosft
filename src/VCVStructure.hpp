@@ -17,6 +17,7 @@ struct VCVLight {
   int paramId = -1;
   rack::math::Rect box;
   LightShape shape;
+  std::string svgPath;
   NVGcolor color;
   NVGcolor bgColor;
 
@@ -26,10 +27,10 @@ struct VCVLight {
   bool hadFirstUpdate = false;
 
   VCVLight() {}
-  VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
-    : id(_id), moduleId(_moduleId), box(_box), shape(_shape), color(_color), bgColor(_bgColor), widget(_widget) {}
-  VCVLight(int _id, int64_t _moduleId, int _paramId, rack::math::Rect _box, LightShape _shape, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
-    : id(_id), moduleId(_moduleId), paramId(_paramId), box(_box), shape(_shape), color(_color), bgColor(_bgColor), widget(_widget) {}
+  VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
+    : id(_id), moduleId(_moduleId), box(_box), shape(_shape), svgPath(_svgPath), color(_color), bgColor(_bgColor), widget(_widget) {}
+  VCVLight(int _id, int64_t _moduleId, int _paramId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
+    : id(_id), moduleId(_moduleId), paramId(_paramId), box(_box), shape(_shape), svgPath(_svgPath), color(_color), bgColor(_bgColor), widget(_widget) {}
 };
 
 enum ParamType {

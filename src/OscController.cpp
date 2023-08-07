@@ -179,6 +179,37 @@ bool OscController::isRectangleLight(rack::app::MultiLightWidget* light) {
   return false;
 }
 
+std::string OscController::getLightSvgPath(rack::app::MultiLightWidget* light) {
+  using namespace rack::componentlibrary;
+
+  if (TSvgLight<GrayModuleLightWidget>* svg_light = dynamic_cast<TSvgLight<GrayModuleLightWidget>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+  if (TSvgLight<WhiteLight>* svg_light = dynamic_cast<TSvgLight<WhiteLight>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+  if (TSvgLight<RedLight>* svg_light = dynamic_cast<TSvgLight<RedLight>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+  if (TSvgLight<GreenLight>* svg_light = dynamic_cast<TSvgLight<GreenLight>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+  if (TSvgLight<BlueLight>* svg_light = dynamic_cast<TSvgLight<BlueLight>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+  if (TSvgLight<YellowLight>* svg_light = dynamic_cast<TSvgLight<YellowLight>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+  if (TSvgLight<GreenRedLight>* svg_light = dynamic_cast<TSvgLight<GreenRedLight>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+  if (TSvgLight<RedGreenBlueLight>* svg_light = dynamic_cast<TSvgLight<RedGreenBlueLight>*>(light)) {
+    return svg_light->sw->svg->path.c_str();
+  }
+
+  return "";
+}
+
 void OscController::collectModules(bool printResults) {
   DEBUG("collecting %lld modules", APP->engine->getModuleIds().size() - 1);
   for (int64_t& moduleId: APP->engine->getModuleIds()) {
@@ -246,6 +277,7 @@ void OscController::collectModule(int64_t moduleId) {
         moduleId,
         box,
         LightShape::Round, // fixme
+        getLightSvgPath(light),
         light->color,
         light->bgColor,
         light
@@ -282,6 +314,7 @@ void OscController::collectModule(int64_t moduleId) {
           pq->paramId,
           box,
           lightShape,
+          getLightSvgPath(light),
           light->color,
           light->bgColor,
           light
@@ -611,6 +644,7 @@ void OscController::bundleLight(osc::OutboundPacketStream& bundle, int64_t modul
     << light->bgColor.b
     << light->bgColor.a
     << light->shape
+    << light->svgPath.c_str()
     << osc::EndMessage;
 }
 
