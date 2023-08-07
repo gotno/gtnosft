@@ -384,13 +384,14 @@ void OscController::collectModule(int64_t moduleId) {
     // Button
     // yet to see an actual instance of SvgButton in the wild
     if (rack::app::SvgButton* p_button = dynamic_cast<rack::app::SvgButton*>(pw)) {
+      (void)p_button;
       WARN("found a button?! %s", Modules[moduleId].name.c_str());
-    /*   Modules[moduleId].Params[pq->paramId].type = ParamType::Button; */
+      /* Modules[moduleId].Params[pq->paramId].type = ParamType::Button; */
 
-    /*   rack::math::Rect box = box2cm(p_button->getBox()); */
-    /*   box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
+      /* rack::math::Rect box = box2cm(p_button->getBox()); */
+      /* box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
 
-    /*   Modules[moduleId].Params[pq->paramId].box = box; */
+      /* Modules[moduleId].Params[pq->paramId].box = box; */
     }
 
     int numPathsToFill = Modules[moduleId].Params[pq->paramId].svgPaths.capacity() - Modules[moduleId].Params[pq->paramId].svgPaths.size();
