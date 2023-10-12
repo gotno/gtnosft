@@ -279,6 +279,7 @@ void OscController::collectModule(int64_t moduleId) {
         box,
         LightShape::Round, // fixme
         getLightSvgPath(light),
+        light->isVisible(),
         light->color,
         light->bgColor,
         light
@@ -316,6 +317,7 @@ void OscController::collectModule(int64_t moduleId) {
           box,
           lightShape,
           getLightSvgPath(light),
+          light->isVisible(),
           light->color,
           light->bgColor,
           light
@@ -646,6 +648,7 @@ void OscController::bundleLight(osc::OutboundPacketStream& bundle, int64_t modul
     << light->bgColor.a
     << light->shape
     << light->svgPath.c_str()
+    << light->visible
     << osc::EndMessage;
 }
 
