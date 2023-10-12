@@ -294,7 +294,7 @@ void OscController::collectModule(int64_t moduleId) {
       pq->paramId,
       pq->getLabel(),
       pq->getUnit(),
-      pq->getDescription(),
+      pq->getDisplayValueString(),
       pq->getMinValue(),
       pq->getMaxValue(),
       pq->getDefaultValue(),
@@ -596,7 +596,7 @@ void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t modul
     << param->type
     << param->name.c_str()
     << param->unit.c_str()
-    << param->description.c_str()
+    << param->displayValue.c_str()
     << param->box.pos.x
     << param->box.pos.y
     << param->box.size.x

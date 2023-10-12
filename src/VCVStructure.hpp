@@ -42,7 +42,7 @@ struct VCVParam {
   ParamType type;
   std::string name;
   std::string unit;
-  std::string description;
+  std::string displayValue;
   rack::math::Rect box;
 
   float minValue;
@@ -89,8 +89,8 @@ struct VCVParam {
   std::map<int, VCVLight> Lights;
 
   VCVParam() {}
-  VCVParam(int paramId, std::string paramName, std::string paramUnit, std::string paramDescription, float paramMinValue, float paramMaxValue, float paramDefaultValue, float paramValue)
-    : id(paramId), name(paramName), unit(paramUnit), description(paramDescription),
+  VCVParam(int paramId, std::string paramName, std::string paramUnit, std::string paramDisplayValue, float paramMinValue, float paramMaxValue, float paramDefaultValue, float paramValue)
+    : id(paramId), name(paramName), unit(paramUnit), displayValue(paramDisplayValue),
       minValue(paramMinValue), maxValue(paramMaxValue), defaultValue(paramDefaultValue),
       value(paramValue) {
     svgPaths.reserve(5);
