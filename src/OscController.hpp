@@ -92,6 +92,7 @@ struct OscController {
   std::unordered_map<int64_t, LightReferenceMap> LightReferences;
 
   rack::math::Vec ueCorrectPos(rack::math::Vec parentSize, rack::math::Vec pos, rack::math::Vec size);
+  float cmScale{2.f};
   float px2cm(float px);
   rack::math::Rect box2cm(rack::math::Rect pxBox);
   rack::math::Vec vec2cm(rack::math::Vec pxVec);

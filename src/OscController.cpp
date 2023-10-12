@@ -133,7 +133,8 @@ rack::math::Vec OscController::ueCorrectPos(rack::math::Vec parentSize, rack::ma
 }
 
 float OscController::px2cm(float px) {
-  return (px / (rack::window::SVG_DPI / rack::window::MM_PER_IN)) / 10.f;
+  float cm = (px / (rack::window::SVG_DPI / rack::window::MM_PER_IN)) / 10.f;
+  return cm * cmScale;
 }
 
 rack::math::Rect OscController::box2cm(rack::math::Rect pxBox) {
