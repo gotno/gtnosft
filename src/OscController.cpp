@@ -116,6 +116,10 @@ void OscController::processQueue() {
         DEBUG("tx /cable/add %lld: %lld:%lld", command.second.pid, Cables[command.second.pid].inputModuleId, Cables[command.second.pid].outputModuleId);
         syncCable(&Cables[command.second.pid]);
         break;
+      case CommandType::SyncParam:
+        /* DEBUG("tx /param/sync"); */
+        syncParam(command.second.pid, command.second.cid);
+        break;
       case CommandType::Noop:
         DEBUG("Q:NOCOMMAND");
         break;
@@ -536,7 +540,8 @@ void OscController::printModules() {
       DEBUG("  Inputs:");
 
       for (std::pair<int, VCVPort> input_pair : module_pair.second.Inputs) {
-        DEBUG("      %d %s %s", input_pair.second.id, input_pair.second.name.c_str(), input_pair.second.description.c_str());
+        DEBUG("      %d %s", input_pair.second.id, input_pair.second.name.c_str());
+        DEBUG("        %s", input_pair.second.description.c_str());
         DEBUG("        %s", input_pair.second.svgPath.c_str());
       }
     }
@@ -595,8 +600,7 @@ void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t modul
     << param->id
     << param->type
     << param->name.c_str()
-    << param->unit.c_str()
-    << param->displayValue.c_str()
+    << (param->displayValue.append(param->unit)).c_str()
     << param->box.pos.x
     << param->box.pos.y
     << param->box.size.x
@@ -974,5 +978,29 @@ void OscController::processParamUpdates() {
     const float& value = Modules[moduleId].Params[paramId].value;
 
     APP->engine->setParamValue(APP->engine->getModule(moduleId), paramId, value);
+    rack::engine::ParamQuantity* pq =
+      APP->scene->rack->getModule(moduleId)->getParam(paramId)->getParamQuantity();
+    Modules[moduleId].Params[paramId].displayValue = pq->getDisplayValueString();
+    enqueueSyncParam(moduleId, paramId);
   }
+}
+
+void OscController::enqueueSyncParam(int64_t moduleId, int paramId) {
+  enqueueCommand(Command(CommandType::SyncParam, Payload(moduleId, paramId)));
+}
+
+void OscController::syncParam(int64_t moduleId, int paramId) {
+  osc::OutboundPacketStream buffer(oscBuffer, OSC_BUFFER_SIZE);
+
+  std::string displayValue = Modules[moduleId].Params[paramId].displayValue;
+  displayValue.append(Modules[moduleId].Params[paramId].unit);
+  /* DEBUG("syncing param label: %lld:%d %s", moduleId, paramId, displayValue.c_str()); */
+
+  buffer << osc::BeginMessage("/param/sync")
+    << moduleId
+    << paramId
+    << displayValue.c_str()
+    << osc::EndMessage;
+
+  sendMessage(buffer);
 }

@@ -25,6 +25,7 @@ enum CommandType {
   CheckModuleSync,
   UpdateLights,
   /* UpdateDisplays, */
+  SyncParam,
   Noop
 };
 struct Payload {
@@ -39,6 +40,7 @@ struct Payload {
 
   Payload() {}
   Payload(int64_t _pid) : pid(_pid) {} 
+  Payload(int64_t _pid, int _cid) : pid(_pid), cid(_cid) {} 
   Payload(int64_t _pid, float_time_point _lastCheck, float _wait) : pid(_pid), lastCheck(_lastCheck), wait(_wait) {} 
 };
 typedef std::pair<CommandType, Payload> Command;
@@ -66,6 +68,8 @@ struct OscController {
   std::mutex pumutex;
   std::set<std::pair<int64_t, int>> pendingParamUpdates;
   void processParamUpdates();
+  void enqueueSyncParam(int64_t moduleId, int paramId);
+  void syncParam(int64_t moduleId, int paramId);
 
   std::mutex cablemutex;
   std::vector<VCVCable> cablesToAdd;
