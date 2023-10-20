@@ -2,7 +2,7 @@ SHELL:=/bin/bash -O extglob
 
 RACK_DIR ?= ../..
 
-#FLAGS += -w
+FLAGS += -I$(RACK_DIR)/include
 	
 # Add .cpp and .c files to the build
 SOURCES = \
