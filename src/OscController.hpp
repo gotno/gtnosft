@@ -1,5 +1,5 @@
 #pragma once
-#include "rack.hpp"
+#include <rack.hpp>
 #include "../dep/oscpack/ip/IpEndpointName.h"
 #include "../dep/oscpack/osc/OscOutboundPacketStream.h"
 
@@ -13,11 +13,18 @@
 #include <condition_variable>
 #include <set>
 
+namespace rack {
+  namespace plugin {
+    class Plugin;
+  }
+}
+
 #define OSC_BUFFER_SIZE (1024 * 64)
 
 using Time = std::chrono::steady_clock;
 using float_sec = std::chrono::duration<float>;
 using float_time_point = std::chrono::time_point<Time, float_sec>;
+
 
 enum CommandType {
   SyncCable,
@@ -39,9 +46,9 @@ struct Payload {
   int retryLimit = 10;
 
   Payload() {}
-  Payload(int64_t _pid) : pid(_pid) {} 
-  Payload(int64_t _pid, int _cid) : pid(_pid), cid(_cid) {} 
-  Payload(int64_t _pid, float_time_point _lastCheck, float _wait) : pid(_pid), lastCheck(_lastCheck), wait(_wait) {} 
+  Payload(int64_t _pid) : pid(_pid) {}
+  Payload(int64_t _pid, int _cid) : pid(_pid), cid(_cid) {}
+  Payload(int64_t _pid, float_time_point _lastCheck, float _wait) : pid(_pid), lastCheck(_lastCheck), wait(_wait) {}
 };
 typedef std::pair<CommandType, Payload> Command;
 
@@ -72,9 +79,14 @@ struct OscController {
   void syncParam(int64_t moduleId, int paramId);
 
   std::mutex cablemutex;
-  std::vector<VCVCable> cablesToAdd;
+  std::vector<VCVCable> cablesToCreate;
   std::vector<int64_t> cablesToDestroy;
-	void processCableUpdates();
+  void processCableUpdates();
+
+  std::mutex modulemutex;
+  std::vector<VCVModule> modulesToCreate;
+  std::vector<int64_t> modulesToDestroy;
+  void processModuleUpdates();
 
   std::mutex syncmutex;
   bool needsSync = false;
@@ -83,7 +95,7 @@ struct OscController {
   std::unordered_map<int64_t, VCVModule> Modules;
   void collectModules(bool printResults = false);
   void collectModule(int64_t moduleId);
-	void printModules();
+  void printModules();
 
   std::unordered_map<int64_t, VCVCable> Cables;
   void collectCables(bool printResults = false);
@@ -114,6 +126,8 @@ struct OscController {
 
   void enqueueSyncModule(int64_t moduleId);
   void syncModule(VCVModule* module);
+  rack::plugin::Model* findModel(std::string& pluginSlug, std::string& moduleSlug) const;
+  void createModule(std::string pluginSlug, std::string moduleSlug);
 
   void enqueueSyncCable(int64_t cableId);
   void syncCable(VCVCable* cable);
@@ -128,16 +142,19 @@ struct OscController {
   void bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color);
 
   // UE callbacks
-	void rxModule(int64_t outerId, int innerId, float value);
-	void rxParam(int64_t outerId, int innerId, float value);
-	void rxInput(int64_t outerId, int innerId, float value);
-	void rxOutput(int64_t outerId, int innerId, float value);
-	void rxModuleLight(int64_t outerId, int innerId, float value);
-	void rxDisplay(int64_t outerId, int innerId, float value);
-	void rxCable(int64_t outerId, int innerId, float value);
+  void rxModule(int64_t outerId, int innerId, float value);
+  void rxParam(int64_t outerId, int innerId, float value);
+  void rxInput(int64_t outerId, int innerId, float value);
+  void rxOutput(int64_t outerId, int innerId, float value);
+  void rxModuleLight(int64_t outerId, int innerId, float value);
+  void rxDisplay(int64_t outerId, int innerId, float value);
+  void rxCable(int64_t outerId, int innerId, float value);
 
-	void updateParam(int64_t outerId, int innerId, float value);
+  void updateParam(int64_t outerId, int innerId, float value);
 
-	void addCable(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId);
-	void destroyCable(int64_t cableId);
+  void addCableToCreate(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId);
+  void addCableToDestroy(int64_t cableId);
+
+  void addModuleToCreate(std::string pluginSlug, std::string moduleSlug);
+  void addModuleToDestroy(int64_t moduleId);
 };

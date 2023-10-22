@@ -12,21 +12,44 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
   }
 
   std::string path(message.AddressPattern());
-  if (path.compare(std::string("/create/cable")) == 0) {
+  if (path.compare(std::string("/create/module")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    std::string pluginSlug, moduleSlug;
+    pluginSlug = (arg++)->AsString();
+    moduleSlug = (arg++)->AsString();
+
+    controller->addModuleToCreate(pluginSlug, moduleSlug);
+    DEBUG("received /create/module %s:%s", pluginSlug.c_str(), moduleSlug.c_str());
+    return;
+  } else if (path.compare(std::string("/destroy/module")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    osc::uint64 moduleId;
+    moduleId = (arg++)->AsInt64();
+
+    controller->addModuleToDestroy(moduleId);
+    DEBUG("received /destroy/module %lld", moduleId);
+    return;
+  } else if (path.compare(std::string("/create/cable")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
     osc::uint64 inputModuleId, outputModuleId;
     osc::uint32 inputPortId, outputPortId;
     inputModuleId = (arg++)->AsInt64();
     outputModuleId = (arg++)->AsInt64();
     inputPortId = (arg++)->AsInt32();
     outputPortId = (arg++)->AsInt32();
-    controller->addCable(inputModuleId, outputModuleId, inputPortId, outputPortId);
+
+    controller->addCableToCreate(inputModuleId, outputModuleId, inputPortId, outputPortId);
     return;
   } else if (path.compare(std::string("/destroy/cable")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
     osc::uint64 cableId;
     cableId = (arg++)->AsInt64();
-    controller->destroyCable(cableId);
+
+    controller->addCableToDestroy(cableId);
     return;
   } else if (path.compare(std::string("/sync")) == 0) {
     controller->needsSync = true;

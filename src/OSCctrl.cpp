@@ -106,6 +106,7 @@ struct OSCctrlWidget : ModuleWidget {
 
     if (ctrl.needsSync) ctrl.collectAndSync();
     ctrl.processCableUpdates();
+    ctrl.processModuleUpdates();
   }
 };
 

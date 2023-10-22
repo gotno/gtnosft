@@ -2,14 +2,32 @@
 
 #include "../dep/oscpack/ip/UdpSocket.h"
 
+#include <plugin.hpp>
+#include <tag.hpp>
+#include <history.hpp>
+
 #include <chrono>
 #include <cstring>
 #include <random>
-#include <sys/stat.h>
+#include <sstream>
 
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
   queueWorker = std::thread(OscController::processQueue, this);
+
+  for (rack::plugin::Plugin* plugin : rack::plugin::plugins) {
+    DEBUG("%s (slug: %s)", plugin->name.c_str(), plugin->slug.c_str());
+    for (rack::plugin::Model* model : plugin->models) {
+      DEBUG("  %s (slug: %s)", model->name.c_str(), model->slug.c_str());
+
+      // tags
+      std::stringstream ss;
+      for (int& tagId : model->tagIds) {
+        ss << rack::tag::getTag(tagId) << ", ";
+      }
+      DEBUG("    %s", ss.str().c_str());
+    }
+  }
 }
 
 OscController::~OscController() {
@@ -46,9 +64,14 @@ void OscController::collectAndSync() {
   llocker.unlock();
 
   std::unique_lock<std::mutex> cablelocker(cablemutex);
-  cablesToAdd.clear();
+  cablesToCreate.clear();
   cablesToDestroy.clear();
   cablelocker.unlock();
+
+  std::unique_lock<std::mutex> modulelocker(modulemutex);
+  modulesToCreate.clear();
+  modulesToDestroy.clear();
+  modulelocker.unlock();
 
   Modules.clear();
 	collectModules(true);
@@ -235,12 +258,12 @@ void OscController::collectModule(int64_t moduleId) {
   rack::app::SvgPanel* panelWidget{nullptr};
   for (rack::widget::Widget* mw_child : mw->children) {
     if ((panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw_child))) {
-      DEBUG("found panel in children for %lld:%s", moduleId, mod->getModel()->name.c_str());
+      /* DEBUG("found panel in children for %lld:%s", moduleId, mod->getModel()->name.c_str()); */
       break;
     }
     for (rack::widget::Widget* mw_grandchild : mw_child->children) {
       if ((panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw_grandchild))) {
-        DEBUG("found panel in grandchildren for %lld:%s", moduleId, mod->getModel()->name.c_str());
+        /* DEBUG("found panel in grandchildren for %lld:%s", moduleId, mod->getModel()->name.c_str()); */
         break;
       }
     }
@@ -265,6 +288,10 @@ void OscController::collectModule(int64_t moduleId) {
     panelBox,
     panelWidget->svg->path
   );
+
+  rack::plugin::Model* model = mod->getModel();
+  Modules[moduleId].pluginSlug = model->plugin->slug;
+  Modules[moduleId].slug = model->slug;
 
   for (rack::widget::Widget* mw_child : mw->children) {
     if (rack::app::LedDisplay* display = dynamic_cast<rack::app::LedDisplay*>(mw_child)) {
@@ -695,6 +722,8 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
     << module->brand.c_str()
     << module->name.c_str()
     << module->description.c_str()
+    << module->slug.c_str()
+    << module->pluginSlug.c_str()
     << module->box.pos.x
     << module->box.pos.y
     << module->box.size.x
@@ -748,6 +777,52 @@ void OscController::syncModule(VCVModule* module) {
   bundle << osc::EndBundle;
 
   sendMessage(bundle);
+}
+
+rack::plugin::Model* OscController::findModel(std::string& pluginSlug, std::string& modelSlug) const {
+  for (rack::plugin::Plugin* plugin : rack::plugin::plugins) {
+    if (plugin->slug.compare(pluginSlug) == 0) {
+      for (rack::plugin::Model* model : plugin->models) {
+        if (model->slug.compare(modelSlug) == 0) return model;
+      }
+    }
+  }
+  return nullptr;
+}
+
+void OscController::createModule(std::string pluginSlug, std::string moduleSlug) {
+  using namespace rack;
+
+  plugin::Model* model = findModel(pluginSlug, moduleSlug);
+  if (!model) return;
+
+  // the following stolen from Browser.cpp
+  // record usage
+  settings::ModuleInfo& mi =
+    settings::moduleInfos[model->plugin->slug][model->slug];
+  mi.added++;
+  mi.lastAdded = system::getUnixTime();
+
+  /* INFO("Creating module %s", model->getFullName().c_str()); */
+  engine::Module* module = model->createModule();
+  APP->engine->addModule(module);
+
+  /* INFO("Creating module widget %s", model->getFullName().c_str()); */
+  ModuleWidget* moduleWidget = model->createModuleWidget(module);
+  APP->scene->rack->setModulePosNearest(moduleWidget, math::Vec(0, 0));
+  APP->scene->rack->addModule(moduleWidget);
+
+  moduleWidget->loadTemplate();
+
+  // history::ModuleAdd
+  history::ModuleAdd* h = new history::ModuleAdd;
+  h->setModule(moduleWidget);
+  APP->history->push(h);
+
+  if (moduleWidget) {
+    collectModule(module->id);
+    enqueueSyncModule(module->id);
+  }
 }
 
 bool OscController::isModuleSynced(int64_t moduleId) {
@@ -920,19 +995,31 @@ void OscController::rxCable(int64_t outerId, int innerId, float value) {
   Cables[outerId].synced = true;
 }
 
-void OscController::addCable(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId) {
+void OscController::addCableToCreate(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId) {
   std::lock_guard<std::mutex> lock(cablemutex);
   DEBUG("adding cable create to queue");
-  cablesToAdd.push_back(VCVCable(inputModuleId, outputModuleId, inputPortId, outputPortId));
+  cablesToCreate.push_back(VCVCable(inputModuleId, outputModuleId, inputPortId, outputPortId));
 }
 
-void OscController::destroyCable(int64_t cableId) {
+void OscController::addCableToDestroy(int64_t cableId) {
+  std::lock_guard<std::mutex> lock(cablemutex);
   cablesToDestroy.push_back(cableId);
+}
+
+void OscController::addModuleToCreate(std::string pluginSlug, std::string moduleSlug) {
+  std::lock_guard<std::mutex> lock(modulemutex);
+  DEBUG("adding module create to queue");
+  modulesToCreate.push_back(VCVModule(moduleSlug, pluginSlug));
+}
+
+void OscController::addModuleToDestroy(int64_t moduleId) {
+  std::lock_guard<std::mutex> lock(modulemutex);
+  modulesToDestroy.push_back(moduleId);
 }
 
 void OscController::processCableUpdates() {
   std::lock_guard<std::mutex> lock(cablemutex);
-  for (VCVCable cable_model : cablesToAdd) {
+  for (VCVCable cable_model : cablesToCreate) {
     rack::engine::Cable* cable = new rack::engine::Cable;
     cable->id = cable_model.id;
     cable->inputModule = APP->engine->getModule(cable_model.inputModuleId);
@@ -949,13 +1036,21 @@ void OscController::processCableUpdates() {
     collectCable(cable->id);
     enqueueSyncCable(cable->id);
   }
-  cablesToAdd.clear();
+  cablesToCreate.clear();
 
   for (int64_t cableId : cablesToDestroy) {
     APP->engine->removeCable(APP->engine->getCable(cableId));
     APP->scene->rack->removeCable(APP->scene->rack->getCable(cableId));
   }
   cablesToDestroy.clear();
+}
+
+void OscController::processModuleUpdates() {
+  std::lock_guard<std::mutex> lock(cablemutex);
+  for (VCVModule& module_model : modulesToCreate) {
+    createModule(module_model.pluginSlug, module_model.slug);
+  }
+  modulesToCreate.clear();
 }
 
 void OscController::updateParam(int64_t outerId, int innerId, float value) {

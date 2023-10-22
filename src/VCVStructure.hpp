@@ -131,6 +131,9 @@ struct VCVModule {
   rack::math::Rect box;
   std::string panelSvgPath;
 
+  std::string slug;
+  std::string pluginSlug;
+
   std::map<int, VCVParam> Params;
   std::map<int, VCVPort> Inputs;
   std::map<int, VCVPort> Outputs;
@@ -144,6 +147,8 @@ struct VCVModule {
   VCVModule() {}
   VCVModule(int64_t moduleId, std::string moduleName)
     : id(moduleId), name(moduleName) {}
+  VCVModule(std::string _moduleSlug, std::string _pluginSlug)
+    : slug(_moduleSlug), pluginSlug(_pluginSlug) {}
   VCVModule(int64_t moduleId, std::string moduleBrand, std::string moduleName, std::string modelDescription, rack::math::Rect panelBox, std::string panelPath)
     : id(moduleId), brand(moduleBrand), name(moduleName), description(modelDescription), box(panelBox), panelSvgPath(panelPath) {}
 };
