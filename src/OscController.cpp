@@ -277,7 +277,7 @@ void OscController::collectModule(int64_t moduleId) {
   rack::math::Rect panelBox = box2cm(panelWidget->getBox());
   // this almost works to get the actual rack position transferred over
   /* rack::math::Rect panelBox = panelWidget->getBox(); */
-  /* panelBox.pos = mw->getPosition() - rack::app::RACK_OFFSET; */
+  /* panelBox.pos = mw->getPosition().minus(rack::app::RACK_OFFSET); */
   /* panelBox = box2cm(panelBox); */
 
   Modules[moduleId] = VCVModule(
@@ -809,7 +809,7 @@ void OscController::createModule(std::string pluginSlug, std::string moduleSlug)
 
   /* INFO("Creating module widget %s", model->getFullName().c_str()); */
   ModuleWidget* moduleWidget = model->createModuleWidget(module);
-  APP->scene->rack->setModulePosNearest(moduleWidget, math::Vec(0, 0));
+  APP->scene->rack->setModulePosNearest(moduleWidget, rack::app::RACK_OFFSET);
   APP->scene->rack->addModule(moduleWidget);
 
   moduleWidget->loadTemplate();
@@ -1039,6 +1039,7 @@ void OscController::processCableUpdates() {
   cablesToCreate.clear();
 
   for (int64_t cableId : cablesToDestroy) {
+    // TODO: does this need to delete objects?
     APP->engine->removeCable(APP->engine->getCable(cableId));
     APP->scene->rack->removeCable(APP->scene->rack->getCable(cableId));
   }
@@ -1051,6 +1052,18 @@ void OscController::processModuleUpdates() {
     createModule(module_model.pluginSlug, module_model.slug);
   }
   modulesToCreate.clear();
+
+  for (int64_t moduleId : modulesToDestroy) {
+    std::unique_lock<std::mutex> locker(lmutex);
+    LightReferences.erase(moduleId);
+    locker.unlock();
+
+    Modules.erase(moduleId);
+
+    rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
+    mw->removeAction();
+  }
+  modulesToDestroy.clear();
 }
 
 void OscController::updateParam(int64_t outerId, int innerId, float value) {
