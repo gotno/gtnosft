@@ -266,11 +266,11 @@ void OscController::collectModule(int64_t moduleId) {
     return;
   }
 
-  rack::math::Rect panelBox = box2cm(panelWidget->getBox());
+  /* rack::math::Rect panelBox = box2cm(panelWidget->getBox()); */
   // this almost works to get the actual rack position transferred over
-  /* rack::math::Rect panelBox = panelWidget->getBox(); */
-  /* panelBox.pos = mw->getPosition().minus(rack::app::RACK_OFFSET); */
-  /* panelBox = box2cm(panelBox); */
+  rack::math::Rect panelBox = panelWidget->getBox();
+  panelBox.pos = mw->getPosition().minus(rack::app::RACK_OFFSET);
+  panelBox = box2cm(panelBox);
 
   Modules[moduleId] = VCVModule(
     moduleId,
