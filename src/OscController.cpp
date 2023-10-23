@@ -1031,9 +1031,12 @@ void OscController::processCableUpdates() {
   cablesToCreate.clear();
 
   for (int64_t cableId : cablesToDestroy) {
-    // TODO: does this need to delete objects?
     APP->engine->removeCable(APP->engine->getCable(cableId));
-    APP->scene->rack->removeCable(APP->scene->rack->getCable(cableId));
+    rack::app::CableWidget * cw = APP->scene->rack->getCable(cableId);
+    APP->scene->rack->removeCable(cw);
+    // TODO: does this need to delete objects?
+    /* delete cw; */
+    // crashes: Assertion failed: it != internal->cables.end(), file src/engine/Engine.cpp, line 1009
   }
   cablesToDestroy.clear();
 }
