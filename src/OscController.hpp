@@ -19,7 +19,7 @@ namespace rack {
   }
 }
 
-#define OSC_BUFFER_SIZE (1024 * 64)
+#define OSC_BUFFER_SIZE (1024 * 128)
 
 using Time = std::chrono::steady_clock;
 using float_sec = std::chrono::duration<float>;
@@ -29,6 +29,7 @@ using float_time_point = std::chrono::time_point<Time, float_sec>;
 enum CommandType {
   SyncCable,
   SyncModule,
+  SyncLibrary,
   CheckModuleSync,
   UpdateLights,
   /* UpdateDisplays, */
@@ -140,6 +141,9 @@ struct OscController {
   void sendLightUpdates();
   void enqueueLightUpdates();
   void bundleLightUpdate(osc::OutboundPacketStream& bundle, int64_t moduleId, int lightId, NVGcolor color);
+
+  void enqueueSyncLibrary();
+  void syncLibrary();
 
   // UE callbacks
   void rxModule(int64_t outerId, int innerId, float value);

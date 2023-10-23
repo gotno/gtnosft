@@ -14,20 +14,6 @@
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
   queueWorker = std::thread(OscController::processQueue, this);
-
-  for (rack::plugin::Plugin* plugin : rack::plugin::plugins) {
-    DEBUG("%s (slug: %s)", plugin->name.c_str(), plugin->slug.c_str());
-    for (rack::plugin::Model* model : plugin->models) {
-      DEBUG("  %s (slug: %s)", model->name.c_str(), model->slug.c_str());
-
-      // tags
-      std::stringstream ss;
-      for (int& tagId : model->tagIds) {
-        ss << rack::tag::getTag(tagId) << ", ";
-      }
-      DEBUG("    %s", ss.str().c_str());
-    }
-  }
 }
 
 OscController::~OscController() {
@@ -81,6 +67,8 @@ void OscController::collectAndSync() {
 
   for (auto& pair : Modules) enqueueSyncModule(pair.first);
   for (auto& pair : Cables) enqueueSyncCable(pair.first);
+
+  enqueueSyncLibrary();
 
   needsSync = false;
 }
@@ -138,6 +126,10 @@ void OscController::processQueue() {
       case CommandType::SyncCable:
         DEBUG("tx /cable/add %lld: %lld:%lld", command.second.pid, Cables[command.second.pid].inputModuleId, Cables[command.second.pid].outputModuleId);
         syncCable(&Cables[command.second.pid]);
+        break;
+      case CommandType::SyncLibrary:
+        DEBUG("syncing library");
+        syncLibrary();
         break;
       case CommandType::SyncParam:
         /* DEBUG("tx /param/sync"); */
@@ -1111,4 +1103,53 @@ void OscController::syncParam(int64_t moduleId, int paramId) {
     << osc::EndMessage;
 
   sendMessage(buffer);
+}
+
+void OscController::enqueueSyncLibrary() {
+  enqueueCommand(Command(CommandType::SyncLibrary, Payload()));
+}
+
+void OscController::syncLibrary() {
+  // sync plugin with modules and module tags, one plugin at a time
+  for (rack::plugin::Plugin* plugin : rack::plugin::plugins) {
+    osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
+    bundle << osc::BeginBundleImmediate;
+
+    bundle << osc::BeginMessage("/library/plugin/add")
+      << plugin->brand.c_str()
+      << plugin->slug.c_str()
+      << osc::EndMessage;
+    for (rack::plugin::Model* model : plugin->models) {
+      bundle << osc::BeginMessage("/library/module/add")
+        << plugin->slug.c_str()
+        << model->name.c_str()
+        << model->slug.c_str()
+        << model->description.c_str()
+        << osc::EndMessage;
+      for (int& tagId : model->tagIds) {
+        bundle << osc::BeginMessage("/library/module_tag/add")
+          << plugin->slug.c_str()
+          << model->slug.c_str()
+          << osc::int32(tagId)
+          << osc::EndMessage;
+      }
+    }
+
+    bundle << osc::EndBundle;
+    sendMessage(bundle);
+  }
+
+  // sync canonical tag aliases
+  osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
+  bundle << osc::BeginBundleImmediate;
+
+  for (size_t i = 0; i < rack::tag::tagAliases.size(); i++) {
+    bundle << osc::BeginMessage("/library/tag/add")
+      << osc::int32(i)
+      << rack::tag::tagAliases[i][0].c_str()
+      << osc::EndMessage;
+  }
+
+  bundle << osc::EndBundle;
+  sendMessage(bundle);
 }
