@@ -1143,16 +1143,22 @@ void OscController::syncLibrary() {
   }
 
   // sync canonical tag aliases
-  osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
-  bundle << osc::BeginBundleImmediate;
+  osc::OutboundPacketStream tagbundle(oscBuffer, OSC_BUFFER_SIZE);
+  tagbundle << osc::BeginBundleImmediate;
 
   for (size_t i = 0; i < rack::tag::tagAliases.size(); i++) {
-    bundle << osc::BeginMessage("/library/tag/add")
+    tagbundle << osc::BeginMessage("/library/tag/add")
       << osc::int32(i)
       << rack::tag::tagAliases[i][0].c_str()
       << osc::EndMessage;
   }
 
-  bundle << osc::EndBundle;
-  sendMessage(bundle);
+  tagbundle << osc::EndBundle;
+  sendMessage(tagbundle);
+
+  // sync complete
+  osc::OutboundPacketStream synccompletebuffer(oscBuffer, OSC_BUFFER_SIZE);
+  synccompletebuffer << osc::BeginMessage("/library_sync_complete")
+    << osc::EndMessage;
+  sendMessage(synccompletebuffer);
 }
