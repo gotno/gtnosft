@@ -145,6 +145,9 @@ struct OscController {
   void enqueueSyncLibrary();
   void syncLibrary();
 
+  rack::ui::Menu* getContextMenu(int64_t moduleId);
+  void printMenu(rack::ui::Menu* menu, std::string prefix = std::string(""));
+
   // UE callbacks
   void rxModule(int64_t outerId, int innerId, float value);
   void rxParam(int64_t outerId, int innerId, float value);
