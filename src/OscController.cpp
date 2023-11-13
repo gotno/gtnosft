@@ -249,6 +249,7 @@ void OscController::collectModule(int64_t moduleId) {
   // some modules (looking at you, BogAudio), define their own module widget with no `getPanel`
   rack::app::SvgPanel* panelWidget{nullptr};
   for (rack::widget::Widget* mw_child : mw->children) {
+
     if ((panelWidget = dynamic_cast<rack::app::SvgPanel*>(mw_child))) {
       /* DEBUG("found panel in children for %lld:%s", moduleId, mod->getModel()->name.c_str()); */
       break;
@@ -1115,6 +1116,8 @@ void OscController::enqueueSyncLibrary() {
 void OscController::syncLibrary() {
   // sync plugin with modules and module tags, one plugin at a time
   for (rack::plugin::Plugin* plugin : rack::plugin::plugins) {
+    if (plugin->slug == "gtnosft") continue;
+
     osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
     bundle << osc::BeginBundleImmediate;
 
@@ -1123,11 +1126,20 @@ void OscController::syncLibrary() {
       << plugin->slug.c_str()
       << osc::EndMessage;
     for (rack::plugin::Model* model : plugin->models) {
+      // we can get the og mutable name from the slug, so why not
+      std::string modelName = model->name;
+      if (plugin->slug == "AudibleInstruments") {
+        modelName.append(" (").append(model->slug).append(")");
+      }
+
+      // model->setFavorite();
+
       bundle << osc::BeginMessage("/library/module/add")
         << plugin->slug.c_str()
-        << model->name.c_str()
+        << modelName.c_str()
         << model->slug.c_str()
         << model->description.c_str()
+        << model->isFavorite()
         << osc::EndMessage;
       for (int& tagId : model->tagIds) {
         bundle << osc::BeginMessage("/library/module_tag/add")
@@ -1161,4 +1173,14 @@ void OscController::syncLibrary() {
   synccompletebuffer << osc::BeginMessage("/library_sync_complete")
     << osc::EndMessage;
   sendMessage(synccompletebuffer);
+}
+
+void OscController::setModuleFavorite(std::string pluginSlug, std::string moduleSlug, bool favorite) {
+  for (rack::plugin::Plugin* plugin : rack::plugin::plugins) {
+    if (plugin->slug != pluginSlug) continue;
+    for (rack::plugin::Model* model : plugin->models) {
+      if (model->slug != moduleSlug) continue;
+      model->setFavorite(favorite);
+    }
+  }
 }

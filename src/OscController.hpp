@@ -161,4 +161,6 @@ struct OscController {
 
   void addModuleToCreate(std::string pluginSlug, std::string moduleSlug);
   void addModuleToDestroy(int64_t moduleId);
+
+  void setModuleFavorite(std::string pluginSlug, std::string moduleSlug, bool favorite);
 };

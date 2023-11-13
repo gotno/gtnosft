@@ -54,6 +54,17 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
   } else if (path.compare(std::string("/sync")) == 0) {
     controller->needsSync = true;
     return;
+  } else if (path.compare(std::string("/favorite")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    std::string pluginSlug, moduleSlug;
+    bool favorite;
+
+    pluginSlug = (arg++)->AsString();
+    moduleSlug = (arg++)->AsString();
+    favorite = (arg++)->AsBool();
+
+    controller->setModuleFavorite(pluginSlug, moduleSlug, favorite);
   } else if (routes.find(path) == routes.end()) {
     DEBUG("no route for %s", path.c_str());
     return;
