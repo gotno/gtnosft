@@ -1,5 +1,4 @@
-#include <rack.hpp>
-#include "VCVStructure.hpp"
+#include "collector.hpp"
 
 rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& box) const {
   rack::math::Vec newPos;
@@ -10,7 +9,7 @@ rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const
 }
 
 float Collector::px2cm(const float& px) const {
-  float mm = px / (rack::window::SVG_DPI / rack::window::MM_PER_IN)
+  float mm = px / (rack::window::SVG_DPI / rack::window::MM_PER_IN);
   return mm / 10.f;
 }
 
@@ -25,17 +24,11 @@ rack::math::Rect Collector::box2cm(const rack::math::Rect& pxBox) const {
   return cmBox;
 }
 
-void Collector::collectParam(VCVModule& vcvModule, const rack::app::ParamWidget* paramWidget) {
-  rack::engine::ParamQuantity* pq = pw->getParamQuantity();
+void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget) {
+  rack::engine::ParamQuantity* pq = paramWidget->getParamQuantity();
 
-  auto inserted = vcvModule.Params.try_emplace(pq->paramId, pq->paramId);
-  if (!inserted.second) return;
-  /* { */
-  /*   WARN("unable to collect param %s (%d) for module %lld (%s)", pq->getLable().c_str(), pq->paramId, vcvModule.name.c_str(), vcvModule.id); */
-  /*   return; */
-  /* } */
-
-  VCVParam& param = inserted.first->second;
+  vcv_module.Params[pq->paramId] = VCVParam(pq->paramId);
+  VCVParam& param = vcv_module.Params[pq->paramId];
 
   param.name = pq->getLabel();
   param.unit = pq->getUnit();
@@ -47,14 +40,14 @@ void Collector::collectParam(VCVModule& vcvModule, const rack::app::ParamWidget*
   param.visible = paramWidget->isVisible();
 
   rack::math::Rect box = box2cm(paramWidget->getBox());
-  box.pos = ueCorrectPos(vcvModule.box.size, box);
+  box.pos = ueCorrectPos(vcv_module.box.size, box);
   param.box = box;
 }
 
-void Collector::collectKnob(VCVParam& vcvKnob, const rack::app::Knob* knob) {
-  vcvKnob.type = ParamType::Knob;
-  vcvKnob.minAngle = knob->minAngle;
-  vcvKnob.maxAngle = knob->maxAngle;
+void Collector::collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob) {
+  vcv_knob.type = ParamType::Knob;
+  vcv_knob.minAngle = knob->minAngle;
+  vcv_knob.maxAngle = knob->maxAngle;
 
   if (rack::app::SvgKnob* svgKnob = dynamic_cast<rack::app::SvgKnob*>(knob)) {
     try {
@@ -71,16 +64,15 @@ void Collector::collectKnob(VCVParam& vcvKnob, const rack::app::Knob* knob) {
           }
         }
       }
-      vcvKnob.svgPaths.push_back(foundBg);
-      vcvKnob.svgPaths.push_back(svgKnob->sw->svg->path);
-      vcvKnob.svgPaths.push_back(foundFg);
+      vcv_knob.svgPaths.push_back(foundBg);
+      vcv_knob.svgPaths.push_back(svgKnob->sw->svg->path);
+      vcv_knob.svgPaths.push_back(foundFg);
+      return;
     } catch (std::exception& e) {
-      WARN("unable to find svgs for knob %s, using defaults (error: %s)", vcvKnob.name.c_str(), e.what());
-      setDefaultKnobSvgs(vcvKnob);
+      WARN("unable to find svgs for knob %s, using defaults (error: %s)", vcv_knob.name.c_str(), e.what());
     }
-  } else {
-    setDefaultKnobSvgs(vcvKnob);
   }
+  setDefaultKnobSvgs(vcv_knob);
 }
 
 void Collector::setDefaultKnobSvgs(VCVParam& knob) {
