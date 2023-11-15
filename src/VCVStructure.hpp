@@ -89,6 +89,9 @@ struct VCVParam {
 
   std::map<int, VCVLight> Lights;
 
+  VCVParam(int _id) : id(_id) {
+    svgPaths.reserve(5);
+  }
   VCVParam() {}
   VCVParam(int _id, std::string _name, std::string _unit, std::string _displayValue, float _minValue, float _maxValue, float _defaultValue, float _value, bool _visible)
     : id(_id), name(_name), unit(_unit), displayValue(_displayValue), minValue(_minValue), maxValue(_maxValue), defaultValue(_defaultValue), value(_value), visible(_visible) {
