@@ -50,8 +50,9 @@ struct VCVParam {
   float defaultValue;
   float value;
 
-  bool snap;
   bool visible{true};
+
+  bool snap;
 
   // Knob
   float minAngle = 0.f;
@@ -89,10 +90,8 @@ struct VCVParam {
   std::map<int, VCVLight> Lights;
 
   VCVParam() {}
-  VCVParam(int paramId, std::string paramName, std::string paramUnit, std::string paramDisplayValue, float paramMinValue, float paramMaxValue, float paramDefaultValue, float paramValue)
-    : id(paramId), name(paramName), unit(paramUnit), displayValue(paramDisplayValue),
-      minValue(paramMinValue), maxValue(paramMaxValue), defaultValue(paramDefaultValue),
-      value(paramValue) {
+  VCVParam(int _id, std::string _name, std::string _unit, std::string _displayValue, float _minValue, float _maxValue, float _defaultValue, float _value, bool _visible)
+    : id(_id), name(_name), unit(_unit), displayValue(_displayValue), minValue(_minValue), maxValue(_maxValue), defaultValue(_defaultValue), value(_value), visible(_visible) {
     svgPaths.reserve(5);
   }
 };

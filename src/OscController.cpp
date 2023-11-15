@@ -323,9 +323,9 @@ void OscController::collectModule(int64_t moduleId) {
       pq->getMinValue(),
       pq->getMaxValue(),
       pq->getDefaultValue(),
-      pq->getValue()
+      pq->getValue(),
+      pw->isVisible()
     );
-    Modules[moduleId].Params[pq->paramId].visible = pw->isVisible();
 
     for (rack::widget::Widget* & pw_child : pw->children) {
       if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(pw_child)) {
