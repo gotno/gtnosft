@@ -80,12 +80,19 @@ void Collector::collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob) {
 void Collector::setDefaultKnobSvgs(VCVParam& vcv_knob) {
   vcv_knob.svgPaths.clear();
 
-  if (vcv_knob.box.size.x < 0.61f) {
+  if (vcv_knob.box.size.x < 0.7f) {
     vcv_knob.svgPaths.push_back(
       rack::asset::system("res/ComponentLibrary/Trimpot_bg.svg")
     );
     vcv_knob.svgPaths.push_back(
       rack::asset::system("res/ComponentLibrary/Trimpot.svg")
+    );
+  } else if (vcv_knob.box.size.x < 1.2f) {
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/RoundBlackKnob_bg.svg")
+    );
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/RoundBlackKnob.svg")
     );
   } else if (vcv_knob.box.size.x < 1.8f) {
     vcv_knob.svgPaths.push_back(
