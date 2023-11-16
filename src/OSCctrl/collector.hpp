@@ -14,6 +14,8 @@ private:
   void collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob);
   void setDefaultKnobSvgs(VCVParam& vcv_knob);
 
+  void collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
+
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);
 };

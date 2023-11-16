@@ -111,6 +111,32 @@ void Collector::setDefaultKnobSvgs(VCVParam& vcv_knob) {
   }
 }
 
+void Collector::collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch) {
+  vcv_switch.latch = svgSwitch->latch;
+  vcv_switch.momentary = svgSwitch->momentary;
+
+  // buttons have either momentary or latch, switches have neither
+  if (svgSwitch->momentary || svgSwitch->latch) {
+    vcv_switch.type = ParamType::Button;
+  } else {
+    vcv_switch.type = ParamType::Switch;
+    vcv_switch.horizontal = vcv_switch.box.size.x > vcv_switch.box.size.y;
+  }
+
+  try {
+		int index{-1};
+		for (std::shared_ptr<rack::window::Svg> svg : svgSwitch->frames) {
+			if (++index > 4) {
+				WARN("%s switch has more than 5 frames", vcv_switch.name.c_str());
+				break;
+			}
+			vcv_switch.svgPaths.push_back(svg->path);
+		}
+	} catch (std::exception& e) {
+		WARN("unable to find svgs for switch %s, using defaults (error: %s)", vcv_switch.name.c_str(), e.what());
+	}
+}
+
 void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWidget) {
 	PortType type;
   VCVPort& port;
