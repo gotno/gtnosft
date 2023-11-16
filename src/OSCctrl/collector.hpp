@@ -10,7 +10,7 @@ private:
 	float px2cm(const float& px) const;
 	rack::math::Rect box2cm(const rack::math::Rect& pxBox) const;
 
-  void collectParam(VCVModule& module, rack::app::ParamWidget* paramWidget);
-  void collectKnob(VCVParam& collectedParam, rack::app::Knob* knob);
-  void setDefaultKnobSvgs(VCVParam& knob);
+  void collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget);
+  void collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob);
+  void setDefaultKnobSvgs(VCVParam& vcv_knob);
 };
