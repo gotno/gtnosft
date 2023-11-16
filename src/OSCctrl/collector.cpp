@@ -155,7 +155,6 @@ void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWi
 
   port->name = portWidget->getPortInfo()->name;
   port->box = box;
-  // TODO: unneeded?
   port->description = portWidget->getPortInfo()->description;
 
   if (rack::app::SvgPort* svgPort = dynamic_cast<rack::app::SvgPort*>(portWidget)) {
