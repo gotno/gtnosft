@@ -1,4 +1,5 @@
 #include "collector.hpp"
+#include <asset.hpp>
 
 rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& box) const {
   rack::math::Vec newPos;
@@ -67,15 +68,38 @@ void Collector::collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob) {
       vcv_knob.svgPaths.push_back(foundBg);
       vcv_knob.svgPaths.push_back(svgKnob->sw->svg->path);
       vcv_knob.svgPaths.push_back(foundFg);
-      return;
     } catch (std::exception& e) {
       WARN("unable to find svgs for knob %s, using defaults (error: %s)", vcv_knob.name.c_str(), e.what());
+      setDefaultKnobSvgs(vcv_knob);
     }
+  } else {
+    setDefaultKnobSvgs(vcv_knob);
   }
-  setDefaultKnobSvgs(vcv_knob);
 }
 
-void Collector::setDefaultKnobSvgs(VCVParam& knob) {
-  // check knob.box.size.x
-  // use appropriate svg paths from system::asset
+void Collector::setDefaultKnobSvgs(VCVParam& vcv_knob) {
+  vcv_knob.svgPaths.clear();
+
+  if (vcv_knob.box.size.x < 0.61f) {
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/Trimpot_bg.svg")
+    );
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/Trimpot.svg")
+    );
+  } else if (vcv_knob.box.size.x < 1.8f) {
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/RoundLargeBlackKnob_bg.svg")
+    );
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/RoundLargeBlackKnob.svg")
+    );
+  } else {
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/RoundHugeBlackKnob_bg.svg")
+    );
+    vcv_knob.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/RoundHugeBlackKnob.svg")
+    );
+  }
 }
