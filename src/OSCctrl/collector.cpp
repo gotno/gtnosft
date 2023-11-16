@@ -134,7 +134,71 @@ void Collector::collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwi
 		}
 	} catch (std::exception& e) {
 		WARN("unable to find svgs for switch %s, using defaults (error: %s)", vcv_switch.name.c_str(), e.what());
+    setDefaultSwitchSvgs(vcv_switch, svgSwitch);
 	}
+}
+
+void Collector::setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch) {
+  vcv_switch.svgPaths.clear();
+
+  if (vcv_switch.type == ParamType::Button) {
+    vcv_switch.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/VCVButton_0.svg")
+    );
+    vcv_switch.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/VCVButton_1.svg")
+    );
+  } else if (svgSwitch->frames.size() == 3) {
+    if (vcv_switch.box.size.x == vcv_switch.box.size.y) {
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/NKK_2.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/NKK_1.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/NKK_0.svg")
+      );
+    } else if (vcv_switch.horizontal) {
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSSThreeHorizontal_2.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSSThreeHorizontal_1.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSSThreeHorizontal_0.svg")
+      );
+    } else {
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSSThree_2.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSSThree_1.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSSThree_0.svg")
+      );
+    }
+  } else if (svgSwitch->frames.size() == 2) {
+    if (vcv_switch.box.size.x == vcv_switch.box.size.y) {
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/NKK_2.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/NKK_0.svg")
+      );
+    } else {
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSS_1.svg")
+      );
+      vcv_switch.svgPaths.push_back(
+        rack::asset::system("res/ComponentLibrary/CKSS_0.svg")
+      );
+    }
+  } else {
+    WARN("svgSwitch %s has frame strangeness (%lld frames)", vcv_switch.name.c_str(), svgSwitch->frames.size());
+  }
 }
 
 void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWidget) {

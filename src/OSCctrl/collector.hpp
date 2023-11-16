@@ -15,6 +15,7 @@ private:
   void setDefaultKnobSvgs(VCVParam& vcv_knob);
 
   void collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
+  void setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
 
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);
