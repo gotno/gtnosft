@@ -125,13 +125,13 @@ void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWi
 		port = &vcv_module.Outputs[portWidget->portId];
   }
 
+	rack::math::Rect box = box2cm(portWidget->getBox());
+	box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+
   port.type = type;
   port.name = portWidget->getPortInfo()->name;
   // TODO: unneeded?
   port.description = portWidget->getPortInfo()->description;
-
-	rack::math::Rect box = box2cm(portWidget->getBox());
-	box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
   port.box = box;
 
   if (rack::app::SvgPort* svgPort = dynamic_cast<rack::app::SvgPort*>(portWidget)) {
