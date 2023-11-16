@@ -113,6 +113,7 @@ struct VCVPort {
   bool synced = false;
 
   VCVPort() {}
+  VCVPort(int _id), : id(_id) {}
   VCVPort(int portId, PortType portType, std::string portName, std::string portDescription, rack::math::Rect portBox, std::string portSvgPath)
     : id(portId), type(portType), name(portName), description(portDescription), box(portBox), svgPath(portSvgPath) {}
 };

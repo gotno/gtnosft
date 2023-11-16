@@ -13,4 +13,7 @@ private:
   void collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget);
   void collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob);
   void setDefaultKnobSvgs(VCVParam& vcv_knob);
+
+  void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
+  void setDefaultPortSvg(VCVPort& vcv_port);
 };
