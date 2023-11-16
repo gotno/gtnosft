@@ -1,0 +1,1048 @@
+
+4936032679508625 VCV:8vert
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/8vert.svg
+  pos: 1.016000x/0.000000y, size: 4.064001x/12.869334y
+  Params:
+    0 (Knob): Row 1 gainV
+    pos: 0.003100x/4.237867y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    1 (Knob): Row 2 gainV
+    pos: 0.003100x/2.936467y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    2 (Knob): Row 3 gainV
+    pos: 0.003100x/1.634266y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    3 (Knob): Row 4 gainV
+    pos: 0.003100x/0.332066y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    4 (Knob): Row 5 gainV
+    pos: 0.003100x/-0.970133y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    5 (Knob): Row 6 gainV
+    pos: 0.003100x/-2.272334y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    6 (Knob): Row 7 gainV
+    pos: 0.003100x/-3.574634y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    7 (Knob): Row 8 gainV
+    pos: 0.003100x/-4.876833y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+  Inputs:
+      0 Row 1
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Row 2
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Row 3
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Row 4
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      4 Row 5
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      5 Row 6
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      6 Row 7
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      7 Row 8
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Row 1
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Row 2
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Row 3
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Row 4
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      4 Row 5
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      5 Row 6
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      6 Row 7
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      7 Row 8
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+7596963735767462 VCV:Push
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/Push.svg
+  pos: 7.620001x/0.000000y, size: 1.524000x/12.869334y
+  Params:
+    0 (Button): Push
+    pos: 0.000000x/3.962367y, size: 1.219988x/1.219837y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/VCVBezelBig.svg
+        svg:
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/VCVBezelBig.svg
+        frame svg:
+        frame svg:
+        frame svg:
+        frame svg:
+    1 (Button): Hold
+    pos: -0.000300x/1.627266y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+  Inputs:
+      0 Hold
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Push
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Trigger
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Gate
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+4478277387813121 VCV:SEQ 3
+        (has 8 lights)
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/SEQ3.svg
+  pos: 23.876003x/0.000000y, size: 11.176002x/12.869334y
+  Params:
+    0 (Knob): Tempo bpm
+    pos: -4.412701x/3.759167y, size: 1.219199x/1.219200y
+    value: 1.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -2.000000/1.000000/4.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    1 (Button): Run
+    pos: 3.254401x/3.066767y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    2 (Button): Reset
+    pos: 4.556100x/3.066767y, size: 0.720015x/0.720001y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVBezel.svg
+        svg:
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVBezel.svg
+        frame svg:
+        frame svg:
+        frame svg:
+        frame svg:
+    3 (Knob): Steps
+    pos: -2.380300x/3.756467y, size: 1.219199x/1.219200y
+    value: 8.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 1.000000/8.000000/8.000000 (snap: true)
+      minAngle/maxAngle -2.607522/2.607522
+    4 (Knob): CV 1 step 1 V
+    pos: -4.556101x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    5 (Knob): CV 1 step 2 V
+    pos: -3.254400x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    6 (Knob): CV 1 step 3 V
+    pos: -1.952600x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    7 (Knob): CV 1 step 4 V
+    pos: -0.650901x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    8 (Knob): CV 1 step 5 V
+    pos: 0.650899x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    9 (Knob): CV 1 step 6 V
+    pos: 1.952600x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    10 (Knob): CV 1 step 7 V
+    pos: 3.254401x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    11 (Knob): CV 1 step 8 V
+    pos: 4.556100x/1.778367y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    12 (Knob): CV 2 step 1 V
+    pos: -4.556101x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    13 (Knob): CV 2 step 2 V
+    pos: -3.254400x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    14 (Knob): CV 2 step 3 V
+    pos: -1.952600x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    15 (Knob): CV 2 step 4 V
+    pos: -0.650901x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    16 (Knob): CV 2 step 5 V
+    pos: 0.650899x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    17 (Knob): CV 2 step 6 V
+    pos: 1.952600x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    18 (Knob): CV 2 step 7 V
+    pos: 3.254401x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    19 (Knob): CV 2 step 8 V
+    pos: 4.556100x/0.373967y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    20 (Knob): CV 3 step 1 V
+    pos: -4.556101x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    21 (Knob): CV 3 step 2 V
+    pos: -3.254400x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    22 (Knob): CV 3 step 3 V
+    pos: -1.952600x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    23 (Knob): CV 3 step 4 V
+    pos: -0.650901x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    24 (Knob): CV 3 step 5 V
+    pos: 0.650899x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    25 (Knob): CV 3 step 6 V
+    pos: 1.952600x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    26 (Knob): CV 3 step 7 V
+    pos: 3.254401x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    27 (Knob): CV 3 step 8 V
+    pos: 4.556100x/-1.025834y, size: 0.960038x/0.960042y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -10.000000/0.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    28 (Button): Step 1 trigger
+    pos: -4.556101x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    29 (Button): Step 2 trigger
+    pos: -3.254401x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    30 (Button): Step 3 trigger
+    pos: -1.952600x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    31 (Button): Step 4 trigger
+    pos: -0.650900x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    32 (Button): Step 5 trigger
+    pos: 0.650900x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    33 (Button): Step 6 trigger
+    pos: 1.952600x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    34 (Button): Step 7 trigger
+    pos: 3.254401x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    35 (Button): Step 8 trigger
+    pos: 4.556101x/-2.145434y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    36 (Knob): Tempo CV%
+    pos: -0.650800x/3.028066y, size: 0.604707x/0.604838y
+    value: 1.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 0.000000/1.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    37 (Knob): Steps CV%
+    pos: 0.651000x/3.028066y, size: 0.604707x/0.604838y
+    value: 1.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 0.000000/1.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    38 (Button): Clock
+    pos: 1.952600x/3.084966y, size: 0.720015x/0.720001y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVBezel.svg
+        svg:
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVBezel.svg
+        frame svg:
+        frame svg:
+        frame svg:
+        frame svg:
+  Inputs:
+      0 Tempo
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Clock
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Reset
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Steps
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      4 Run
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Trigger
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 CV 1
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 CV 2
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 CV 3
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      4 Step 1
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      5 Step 2
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      6 Step 3
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      7 Step 4
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      8 Step 5
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      9 Step 6
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      10 Step 7
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      11 Step 8
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      12 Steps
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      13 Clock
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      14 Run
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      15 Reset
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+7100508333909415 VCV:ADSR EG (has 1 LED displays)
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/ADSR.svg
+  pos: 14.224001x/0.000000y, size: 4.572001x/12.869334y
+  Params:
+    0 (Slider): Attack ms
+    pos: -1.625600x/0.889266y, size: 0.672002x/2.591991y
+    value: 0.500000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSlider.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSliderHandle.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      speed 2.000000 (horizontal: false, snap: false)
+      min/default/max 0.000000/0.500000/1.000000
+    1 (Slider): Decay ms
+    pos: -0.541900x/0.889266y, size: 0.672002x/2.591991y
+    value: 0.500000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSlider.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSliderHandle.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      speed 2.000000 (horizontal: false, snap: false)
+      min/default/max 0.000000/0.500000/1.000000
+    2 (Slider): Sustain%
+    pos: 0.541900x/0.889266y, size: 0.672002x/2.591991y
+    value: 0.500000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSlider.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSliderHandle.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      speed 2.000000 (horizontal: false, snap: false)
+      min/default/max 0.000000/0.500000/1.000000
+    3 (Slider): Release ms
+    pos: 1.625601x/0.889266y, size: 0.672002x/2.591991y
+    value: 0.500000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSlider.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVSliderHandle.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      speed 2.000000 (horizontal: false, snap: false)
+      min/default/max 0.000000/0.500000/1.000000
+    4 (Knob): Attack CV%
+    pos: -1.625600x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    5 (Knob): Decay CV%
+    pos: -0.541900x/-1.628334y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    6 (Knob): Sustain CV%
+    pos: 0.541900x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    7 (Knob): Release CV%
+    pos: 1.625900x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    8 (Button): Push
+    pos: -1.625600x/-4.876833y, size: 0.720015x/0.720001y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVBezel.svg
+        svg:
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: true, latch: false)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVBezel.svg
+        frame svg:
+        frame svg:
+        frame svg:
+        frame svg:
+  Inputs:
+      0 Attack
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Decay
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Sustain
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Release
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      4 Gate
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      5 Retrigger
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Envelope
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+2239875219427428 VCV:Sequential Switch 1 to 4
+        (has 4 lights)
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/SequentialSwitch1.svg
+  pos: 6.096001x/0.000000y, size: 1.524000x/12.869334y
+  Params:
+    0 (Switch): Steps
+    pos: -0.006500x/4.340467y, size: 0.960041x/0.455744y
+    value: 2.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/CKSSThreeHorizontal_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/CKSSThreeHorizontal_1.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/CKSSThreeHorizontal_2.svg
+        svg:
+        svg:
+      (horizontal: true)
+      min/default/max 0.000000/2.000000/2.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/CKSSThreeHorizontal_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/CKSSThreeHorizontal_1.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/CKSSThreeHorizontal_2.svg
+        frame svg:
+        frame svg:
+  Inputs:
+      0 Clock
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Reset
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Main
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Channel 1
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Channel 2
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Channel 3
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Channel 4
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+4783187431781783 VCV:LFO
+        (has 1 lights)
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/LFO.svg
+  pos: 19.304003x/0.000000y, size: 4.572001x/12.869334y
+  Params:
+    0 (Button): Offset
+    pos: 0.541900x/-1.625634y, size: 0.609586x/0.609600y
+    value: 1.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: false, latch: true)
+      min/default/max 0.000000/1.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    1 (Button): Invert
+    pos: -0.541900x/-1.625634y, size: 0.609586x/0.609600y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        svg:
+        svg:
+        svg:
+      (has 1 lights)
+      (momentary: false, latch: true)
+      min/default/max 0.000000/0.000000/1.000000
+      has 5 frames
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_0.svg
+        frame svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/VCVButton_1.svg
+        frame svg:
+        frame svg:
+        frame svg:
+    2 (Knob): Frequency Hz
+    pos: 0.004200x/3.454367y, size: 1.824035x/1.824038y
+    value: 1.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundHugeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundHugeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -8.000000/1.000000/10.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    3 (Knob): Frequency modulation%
+    pos: -1.625600x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    5 (Knob): Pulse width%
+    pos: 0.000100x/0.795866y, size: 1.219199x/1.219200y
+    value: 0.500000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 0.010000/0.500000/0.990000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    6 (Knob): Pulse width modulation%
+    pos: 1.625600x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+  Inputs:
+      0 Frequency modulation
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Reset
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Pulse width modulation
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      4 Clock
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Sine
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Triangle
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Sawtooth
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Square
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+3788181913433864 VCV:VCF
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/VCF.svg
+  pos: 10.668001x/0.000000y, size: 3.556000x/12.869334y
+  Params:
+    0 (Knob): Cutoff frequency Hz
+    pos: -0.019300x/3.453867y, size: 1.824035x/1.824038y
+    value: 0.500000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundHugeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundHugeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 0.006558/0.500000/0.993442 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    2 (Knob): Resonance%
+    pos: -0.888500x/0.795866y, size: 1.219199x/1.219200y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 0.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    3 (Knob): Cutoff frequency CV%
+    pos: -1.078400x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    4 (Knob): Drive%
+    pos: 0.888500x/0.795866y, size: 1.219199x/1.219200y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    5 (Knob): Resonance CV%
+    pos: 0.005300x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    6 (Knob): Drive CV%
+    pos: 1.089000x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+  Inputs:
+      0 Frequency
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Resonance
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Drive
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Audio
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Lowpass filter
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Highpass filter
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
