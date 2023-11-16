@@ -1,0 +1,83 @@
+
+3788181913433864 VCV:VCF
+        panel svg path: C:/VCV/rack-src/rack-gotno/plugins/Fundamental/res/VCF.svg
+  pos: 10.668001x/0.000000y, size: 3.556000x/12.869334y
+  Params:
+    0 (Knob): Cutoff frequency Hz
+    pos: -0.019300x/3.453867y, size: 1.824035x/1.824038y
+    value: 0.500000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundHugeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundHugeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 0.006558/0.500000/0.993442 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    2 (Knob): Resonance%
+    pos: -0.888500x/0.795866y, size: 1.219199x/1.219200y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max 0.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    3 (Knob): Cutoff frequency CV%
+    pos: -1.078400x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    4 (Knob): Drive%
+    pos: 0.888500x/0.795866y, size: 1.219199x/1.219200y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/RoundLargeBlackKnob.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.607522/2.607522
+    5 (Knob): Resonance CV%
+    pos: 0.005300x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+    6 (Knob): Drive CV%
+    pos: 1.089000x/-1.625634y, size: 0.604707x/0.604838y
+    value: 0.000000
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot_bg.svg
+        svg: C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/Trimpot.svg
+        svg:
+        svg:
+        svg:
+      min/default/max -1.000000/0.000000/1.000000 (snap: false)
+      minAngle/maxAngle -2.356194/2.356194
+  Inputs:
+      0 Frequency
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Resonance
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      2 Drive
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      3 Audio
+
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+  Outputs:
+      0 Lowpass filter
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
+      1 Highpass filter
+        C:/VCV/rack-src/rack-gotno/res/ComponentLibrary/PJ301M.svg
