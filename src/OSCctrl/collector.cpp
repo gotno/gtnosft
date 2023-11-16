@@ -138,37 +138,35 @@ void Collector::collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwi
 }
 
 void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWidget) {
-	PortType type;
-  VCVPort& port;
+  VCVPort* port;
 
   if (portWidget->type == rack::engine::Port::INPUT) {
-    type = PortType::Input
-		vcv_module.Inputs[portWidget->portId] = VCVPort(portWidget->portId);
+		vcv_module.Inputs.emplace(portWidget->portId, portWidget->portId);
 		port = &vcv_module.Inputs[portWidget->portId];
+    port->type = PortType::Input;
   } else {
-    type = PortType::Output;
-		vcv_module.Outputs[portWidget->portId] = VCVPort(portWidget->portId);
+		vcv_module.Outputs.emplace(portWidget->portId, portWidget->portId);
 		port = &vcv_module.Outputs[portWidget->portId];
+    port->type = PortType::Output;
   }
 
 	rack::math::Rect box = box2cm(portWidget->getBox());
-	box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+	box.pos = ueCorrectPos(vcv_module.box.size, box);
 
-  port.type = type;
-  port.name = portWidget->getPortInfo()->name;
+  port->name = portWidget->getPortInfo()->name;
+  port->box = box;
   // TODO: unneeded?
-  port.description = portWidget->getPortInfo()->description;
-  port.box = box;
+  port->description = portWidget->getPortInfo()->description;
 
   if (rack::app::SvgPort* svgPort = dynamic_cast<rack::app::SvgPort*>(portWidget)) {
     try {
-      port.svgPath = svgPort->sw->svg->path;
+      port->svgPath = svgPort->sw->svg->path;
     } catch (std::exception& e) {
-      WARN("unable to find svg for port %s, using default (error: %s)", port.name.c_str(), e.what());
-      setDefaultPortSvg(port);
+      WARN("unable to find svg for port %s, using default (error: %s)", port->name.c_str(), e.what());
+      setDefaultPortSvg(*port);
     }
   } else {
-    setDefaultPortSvg(port);
+    setDefaultPortSvg(*port);
   }
 }
 
