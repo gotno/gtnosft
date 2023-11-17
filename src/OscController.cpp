@@ -315,17 +315,19 @@ void OscController::collectModule(int64_t moduleId) {
   for (rack::app::ParamWidget* & pw : mw->getParams()) {
     rack::engine::ParamQuantity* pq = pw->getParamQuantity();
 
-    Modules[moduleId].Params[pq->paramId] = VCVParam(
-      pq->paramId,
-      pq->getLabel(),
-      pq->getUnit(),
-      pq->getDisplayValueString(),
-      pq->getMinValue(),
-      pq->getMaxValue(),
-      pq->getDefaultValue(),
-      pq->getValue(),
-      pw->isVisible()
-    );
+    /* Modules[moduleId].Params[pq->paramId] = VCVParam( */
+    /*   pq->paramId, */
+    /*   pq->getLabel(), */
+    /*   pq->getUnit(), */
+    /*   pq->getDisplayValueString(), */
+    /*   pq->getMinValue(), */
+    /*   pq->getMaxValue(), */
+    /*   pq->getDefaultValue(), */
+    /*   pq->getValue(), */
+    /*   pw->isVisible() */
+    /* ); */
+
+    Collectr.collectParam(Modules[moduleId], pw);
 
     for (rack::widget::Widget* & pw_child : pw->children) {
       if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(pw_child)) {
@@ -353,93 +355,102 @@ void OscController::collectModule(int64_t moduleId) {
       }
     }
 
-    Modules[moduleId].Params[pq->paramId].snap = pq->snapEnabled;
+    /* Modules[moduleId].Params[pq->paramId].snap = pq->snapEnabled; */
 
     // Knob
-    if (rack::app::SvgKnob* p_knob = dynamic_cast<rack::app::SvgKnob*>(pw)) {
-      Modules[moduleId].Params[pq->paramId].type = ParamType::Knob;
+    if (rack::app::Knob* p_knob = dynamic_cast<rack::app::Knob*>(pw)) {
+    /* if (rack::app::SvgKnob* p_knob = dynamic_cast<rack::app::SvgKnob*>(pw)) { */
+      // avoid double-collecting sliders due to shared ancestors
+      if (!dynamic_cast<rack::app::SliderKnob*>(pw))
+        Collectr.collectKnob(Modules[moduleId].Params[pq->paramId], p_knob);
+      /* Modules[moduleId].Params[pq->paramId].type = ParamType::Knob; */
 
-      rack::math::Rect box = box2cm(p_knob->getBox());
-      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+      /* rack::math::Rect box = box2cm(p_knob->getBox()); */
+      /* box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
 
-      Modules[moduleId].Params[pq->paramId].box = box;
-      Modules[moduleId].Params[pq->paramId].minAngle = p_knob->minAngle;
-      Modules[moduleId].Params[pq->paramId].maxAngle = p_knob->maxAngle;
+      /* Modules[moduleId].Params[pq->paramId].box = box; */
+      /* Modules[moduleId].Params[pq->paramId].minAngle = p_knob->minAngle; */
+      /* Modules[moduleId].Params[pq->paramId].maxAngle = p_knob->maxAngle; */
 
 
-      std::string foundBg, foundFg;
-      for (rack::widget::Widget* & fb_child : p_knob->fb->children) {
-        if (rack::widget::SvgWidget* svg_widget = dynamic_cast<rack::widget::SvgWidget*>(fb_child)) {
-          if (!svg_widget->svg) continue;
+      /* std::string foundBg, foundFg; */
+      /* for (rack::widget::Widget* & fb_child : p_knob->fb->children) { */
+      /*   if (rack::widget::SvgWidget* svg_widget = dynamic_cast<rack::widget::SvgWidget*>(fb_child)) { */
+      /*     if (!svg_widget->svg) continue; */
 
-          std::string& path = svg_widget->svg->path;
-          if (path.find("_bg") != std::string::npos || path.find("-bg") != std::string::npos) {
-            foundBg = path;
-          } else if (path.find("_fg") != std::string::npos || path.find("-fg") != std::string::npos) {
-            foundFg = path;
-          }
-        }
-      }
-      Modules[moduleId].Params[pq->paramId].svgPaths.push_back(foundBg);
-      Modules[moduleId].Params[pq->paramId].svgPaths.push_back(p_knob->sw->svg->path);
-      Modules[moduleId].Params[pq->paramId].svgPaths.push_back(foundFg);
+      /*     std::string& path = svg_widget->svg->path; */
+      /*     if (path.find("_bg") != std::string::npos || path.find("-bg") != std::string::npos) { */
+      /*       foundBg = path; */
+      /*     } else if (path.find("_fg") != std::string::npos || path.find("-fg") != std::string::npos) { */
+      /*       foundFg = path; */
+      /*     } */
+      /*   } */
+      /* } */
+      /* Modules[moduleId].Params[pq->paramId].svgPaths.push_back(foundBg); */
+      /* Modules[moduleId].Params[pq->paramId].svgPaths.push_back(p_knob->sw->svg->path); */
+      /* Modules[moduleId].Params[pq->paramId].svgPaths.push_back(foundFg); */
     }
 
     // Slider
     if (rack::app::SvgSlider* p_slider = dynamic_cast<rack::app::SvgSlider*>(pw)) {
-      Modules[moduleId].Params[pq->paramId].type = ParamType::Slider;
+      Collectr.collectSlider(Modules[moduleId].Params[pq->paramId], p_slider);
 
-      rack::math::Rect sliderBox = box2cm(p_slider->getBox());
-      sliderBox.pos = ueCorrectPos(panelBox.size, sliderBox.pos, sliderBox.size);
+      /* Modules[moduleId].Params[pq->paramId].type = ParamType::Slider; */
 
-      rack::math::Rect handleBox = box2cm(p_slider->handle->getBox());
-      handleBox.pos = ueCorrectPos(sliderBox.size, handleBox.pos, handleBox.size);
+      /* rack::math::Rect sliderBox = box2cm(p_slider->getBox()); */
+      /* sliderBox.pos = ueCorrectPos(panelBox.size, sliderBox.pos, sliderBox.size); */
 
-      rack::math::Vec minHandlePos = vec2cm(p_slider->minHandlePos);
-      minHandlePos = ueCorrectPos(sliderBox.size, minHandlePos, handleBox.size);
+      /* rack::math::Rect handleBox = box2cm(p_slider->handle->getBox()); */
+      /* handleBox.pos = ueCorrectPos(sliderBox.size, handleBox.pos, handleBox.size); */
 
-      rack::math::Vec maxHandlePos = vec2cm(p_slider->maxHandlePos);
-      maxHandlePos = ueCorrectPos(sliderBox.size, maxHandlePos, handleBox.size);
+      /* rack::math::Vec minHandlePos = vec2cm(p_slider->minHandlePos); */
+      /* minHandlePos = ueCorrectPos(sliderBox.size, minHandlePos, handleBox.size); */
 
-      Modules[moduleId].Params[pq->paramId].box = sliderBox;
-      Modules[moduleId].Params[pq->paramId].horizontal = p_slider->horizontal;
-      Modules[moduleId].Params[pq->paramId].speed = p_slider->speed;
-      Modules[moduleId].Params[pq->paramId].minHandlePos = minHandlePos;
-      Modules[moduleId].Params[pq->paramId].maxHandlePos = maxHandlePos;
-      Modules[moduleId].Params[pq->paramId].handleBox = handleBox;
+      /* rack::math::Vec maxHandlePos = vec2cm(p_slider->maxHandlePos); */
+      /* maxHandlePos = ueCorrectPos(sliderBox.size, maxHandlePos, handleBox.size); */
 
-      Modules[moduleId].Params[pq->paramId].svgPaths.push_back(p_slider->background->svg->path);
-      Modules[moduleId].Params[pq->paramId].svgPaths.push_back(p_slider->handle->svg->path);
+      /* Modules[moduleId].Params[pq->paramId].box = sliderBox; */
+      /* Modules[moduleId].Params[pq->paramId].horizontal = p_slider->horizontal; */
+      /* // TODO: unused? */
+      /* Modules[moduleId].Params[pq->paramId].speed = p_slider->speed; */
+      /* Modules[moduleId].Params[pq->paramId].minHandlePos = minHandlePos; */
+      /* Modules[moduleId].Params[pq->paramId].maxHandlePos = maxHandlePos; */
+      /* Modules[moduleId].Params[pq->paramId].handleBox = handleBox; */
 
-      if (rack::engine::SwitchQuantity* sq = dynamic_cast<rack::engine::SwitchQuantity*>(pq))
-        Modules[moduleId].Params[pq->paramId].sliderLabels = sq->labels;
+      /* Modules[moduleId].Params[pq->paramId].svgPaths.push_back(p_slider->background->svg->path); */
+      /* Modules[moduleId].Params[pq->paramId].svgPaths.push_back(p_slider->handle->svg->path); */
+
+      /* // TODO: unused? */
+      /* if (rack::engine::SwitchQuantity* sq = dynamic_cast<rack::engine::SwitchQuantity*>(pq)) */
+      /*   Modules[moduleId].Params[pq->paramId].sliderLabels = sq->labels; */
     }
 
     // Switch/Button
     if (rack::app::SvgSwitch* p_switch = dynamic_cast<rack::app::SvgSwitch*>(pw)) {
-      rack::math::Rect box = box2cm(p_switch->getBox());
-      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+      Collectr.collectSwitch(Modules[moduleId].Params[pq->paramId], p_switch);
+      /* rack::math::Rect box = box2cm(p_switch->getBox()); */
+      /* box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
 
-      Modules[moduleId].Params[pq->paramId].box = box;
-      Modules[moduleId].Params[pq->paramId].latch = p_switch->latch;
-      Modules[moduleId].Params[pq->paramId].momentary = p_switch->momentary;
+      /* Modules[moduleId].Params[pq->paramId].box = box; */
+      /* Modules[moduleId].Params[pq->paramId].latch = p_switch->latch; */
+      /* Modules[moduleId].Params[pq->paramId].momentary = p_switch->momentary; */
 
-      // buttons have either momentary or latch, switches have neither
-      if (p_switch->momentary || p_switch->latch) {
-        Modules[moduleId].Params[pq->paramId].type = ParamType::Button;
-      } else {
-        Modules[moduleId].Params[pq->paramId].type = ParamType::Switch;
-        Modules[moduleId].Params[pq->paramId].horizontal = box.size.x > box.size.y;
-      }
+      /* // buttons have either momentary or latch, switches have neither */
+      /* if (p_switch->momentary || p_switch->latch) { */
+      /*   Modules[moduleId].Params[pq->paramId].type = ParamType::Button; */
+      /* } else { */
+      /*   Modules[moduleId].Params[pq->paramId].type = ParamType::Switch; */
+      /*   Modules[moduleId].Params[pq->paramId].horizontal = box.size.x > box.size.y; */
+      /* } */
 
-      int index{-1};
-      for (std::shared_ptr<rack::window::Svg> svg : p_switch->frames) {
-        if (++index > 4) {
-          WARN("%s switch has more than 5 frames", Modules[moduleId].name.c_str());
-          break;
-        }
-        Modules[moduleId].Params[pq->paramId].svgPaths.push_back(svg->path);
-      }
+      /* int index{-1}; */
+      /* for (std::shared_ptr<rack::window::Svg> svg : p_switch->frames) { */
+      /*   if (++index > 4) { */
+      /*     WARN("%s switch has more than 5 frames", Modules[moduleId].name.c_str()); */
+      /*     break; */
+      /*   } */
+      /*   Modules[moduleId].Params[pq->paramId].svgPaths.push_back(svg->path); */
+      /* } */
     }
 
     // Button
@@ -462,25 +473,26 @@ void OscController::collectModule(int64_t moduleId) {
   }
 
   for (rack::app::PortWidget* portWidget : mw->getPorts()) {
-    PortType type = portWidget->type == rack::engine::Port::INPUT ? PortType::Input : PortType::Output;
+    Collectr.collectPort(Modules[moduleId], portWidget);
+    /* PortType type = portWidget->type == rack::engine::Port::INPUT ? PortType::Input : PortType::Output; */
 
-    rack::math::Rect box = box2cm(portWidget->getBox());
-    box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+    /* rack::math::Rect box = box2cm(portWidget->getBox()); */
+    /* box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
 
-    VCVPort port = VCVPort(
-      portWidget->portId,
-      type,
-      portWidget->getPortInfo()->name,
-      portWidget->getPortInfo()->description,
-      box,
-      dynamic_cast<rack::app::SvgPort*>(portWidget)->sw->svg->path
-    );
+    /* VCVPort port = VCVPort( */
+    /*   portWidget->portId, */
+    /*   type, */
+    /*   portWidget->getPortInfo()->name, */
+    /*   portWidget->getPortInfo()->description, */
+    /*   box, */
+    /*   dynamic_cast<rack::app::SvgPort*>(portWidget)->sw->svg->path */
+    /* ); */
 
-    if (type == PortType::Input) {
-      Modules[moduleId].Inputs[portWidget->portId] = port;
-    } else {
-      Modules[moduleId].Outputs[portWidget->portId] = port;
-    }
+    /* if (type == PortType::Input) { */
+    /*   Modules[moduleId].Inputs[portWidget->portId] = port; */
+    /* } else { */
+    /*   Modules[moduleId].Outputs[portWidget->portId] = port; */
+    /* } */
   }
 }
 
@@ -530,6 +542,9 @@ void OscController::printModules() {
         if (type == "Knob") {
           DEBUG("      min/default/max %f/%f/%f (snap: %s)", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue, param_pair.second.snap ? "true" : "false");
           DEBUG("      minAngle/maxAngle %f/%f", param_pair.second.minAngle, param_pair.second.maxAngle);
+          for (std::string& path : param_pair.second.svgPaths) {
+            DEBUG("        svg: %s", path.c_str());
+          }
         }
         if (type == "Slider") {
           DEBUG("      speed %f (horizontal: %s, snap: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false", param_pair.second.snap ? "true" : "false");
@@ -537,7 +552,9 @@ void OscController::printModules() {
           for (std::string& label : param_pair.second.sliderLabels) {
             DEBUG("      label: %s", label.c_str());
           }
-
+          for (std::string& path : param_pair.second.svgPaths) {
+            DEBUG("        svg: %s", path.c_str());
+          }
         }
         if (type == "Button") {
           DEBUG("      (momentary: %s, latch: %s)", param_pair.second.momentary ? "true" : "false", param_pair.second.latch ? "true" : "false");

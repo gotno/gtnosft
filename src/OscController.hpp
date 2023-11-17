@@ -4,6 +4,7 @@
 #include "../dep/oscpack/osc/OscOutboundPacketStream.h"
 
 #include "VCVStructure.hpp"
+#include "OSCctrl/collector.hpp"
 
 #include <unordered_map>
 #include <vector>
@@ -92,6 +93,8 @@ struct OscController {
   std::mutex syncmutex;
   bool needsSync = false;
   void collectAndSync();
+
+  Collector Collectr;
 
   std::unordered_map<int64_t, VCVModule> Modules;
   void collectModules(bool printResults = false);
