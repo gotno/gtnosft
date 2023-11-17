@@ -1,17 +1,31 @@
 #include "collector.hpp"
 #include <asset.hpp>
 
-rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& box) const {
+rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const {
   rack::math::Vec newPos;
-  newPos.x = (box.pos.x - (parentSize.x * 0.5f)) + (box.size.x * 0.5f);
-  newPos.y = (box.pos.y - (parentSize.y * 0.5f)) + (box.size.y * 0.5f);
+  newPos.x = (childBox.pos.x - (parentSize.x * 0.5f)) + (childBox.size.x * 0.5f);
+  newPos.y = (childBox.pos.y - (parentSize.y * 0.5f)) + (childBox.size.y * 0.5f);
   newPos.y = -newPos.y;
   return newPos;
+}
+
+rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Vec& childPos, const rack::math::Vec& childSize) const {
+  rack::math::Rect childBox;
+  childBox.pos = childPos;
+  childBox.size = childSize;
+  return ueCorrectPos(parentSize, childBox);
 }
 
 float Collector::px2cm(const float& px) const {
   float mm = px / (rack::window::SVG_DPI / rack::window::MM_PER_IN);
   return mm / 10.f;
+}
+
+rack::math::Vec Collector::vec2cm(const rack::math::Vec& pxVec) const {
+  rack::math::Vec cmVec = pxVec;
+  cmVec.x = px2cm(pxVec.x);
+  cmVec.y = px2cm(pxVec.y);
+  return cmVec;
 }
 
 rack::math::Rect Collector::box2cm(const rack::math::Rect& pxBox) const {
@@ -39,6 +53,7 @@ void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* para
   param.defaultValue = pq->getDefaultValue();
   param.value = pq->getValue();
   param.visible = paramWidget->isVisible();
+  param.snap = pq->snapEnabled
 
   rack::math::Rect box = box2cm(paramWidget->getBox());
   box.pos = ueCorrectPos(vcv_module.box.size, box);
@@ -47,8 +62,14 @@ void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* para
 
 void Collector::collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob) {
   vcv_knob.type = ParamType::Knob;
-  vcv_knob.minAngle = knob->minAngle;
-  vcv_knob.maxAngle = knob->maxAngle;
+
+  // more reasonable default min/max than Knob's -M_PI/M_PI,
+  // specifically to account for Vult knobs' lack of defaults.
+  // does this mess with endless encoders? probably?
+  vcv_knob.minAngle =
+    BasicallyEqual<float>(knob->minAngle, -M_PI) ? -0.75 * M_PI : knob->minAngle;
+  vcv_knob.maxAngle =
+    BasicallyEqual<float>(knob->maxAngle, M_PI) ? 0.75 * M_PI : knob->maxAngle;
 
   if (rack::app::SvgKnob* svgKnob = dynamic_cast<rack::app::SvgKnob*>(knob)) {
     try {
