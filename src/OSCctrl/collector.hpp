@@ -29,7 +29,7 @@ struct Collector {
   void setDefaultPortSvg(VCVPort& vcv_port);
 
   template<typename T>
-  bool BasicallyEqual(T f1, T f2) { 
+  bool BasicallyEqual(T f1, T f2) {
     return (std::fabs(f1 - f2) <= std::numeric_limits<T>::epsilon() * std::fmax(std::fabs(f1), std::fabs(f2)));
   }
 };
