@@ -17,6 +17,10 @@ private:
   void collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
   void setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
 
+  void collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSlider);
+  void setDefaultSliderSvgs(VCVParam& vcv_slider);
+
+  /* collect ports */
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);
 };

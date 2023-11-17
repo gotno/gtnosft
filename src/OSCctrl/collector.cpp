@@ -201,6 +201,50 @@ void Collector::setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch*
   }
 }
 
+void Collector::collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSlider) {
+  vcv_slider.type = ParamType::Slider;
+
+  rack::math::Rect handleBox = box2cm(svgSlider->handle->getBox());
+  handleBox.pos = ueCorrectPos(vcv_slider.box.size, handleBox);
+
+  rack::math::Vec minHandlePos = vec2cm(svgSlider->minHandlePos);
+  minHandlePos = ueCorrectPos(vcv_slider.box.size, minHandlePos, handleBox.size);
+
+  rack::math::Vec maxHandlePos = vec2cm(svgSlider->maxHandlePos);
+  maxHandlePos = ueCorrectPos(vcv_slider.box.size, maxHandlePos, handleBox.size);
+
+  vcv_slider.horizontal = svgSlider->horizontal;
+  vcv_slider.minHandlePos = minHandlePos;
+  vcv_slider.maxHandlePos = maxHandlePos;
+  vcv_slider.handleBox = handleBox;
+
+  try {
+    vcv_slider.svgPaths.push_back(svgSlider->background->svg->path);
+    vcv_slider.svgPaths.push_back(svgSlider->handle->svg->path);
+  } catch (std::exception& e) {
+		WARN("unable to find svgs for slider %s, using defaults (error: %s)", vcv_slider.name.c_str(), e.what());
+    setDefaultSliderSvgs(vcv_slider);
+  }
+}
+
+void Collector::setDefaultSliderSvgs(VCVParam& vcv_slider) {
+  vcv_slider.svgPaths.clear();
+
+  if (vcv_slider.horizontal) {
+    vcv_slider.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/VCVSliderHorizontal.svg")
+    );
+  } else {
+    vcv_slider.svgPaths.push_back(
+      rack::asset::system("res/ComponentLibrary/VCVSlider.svg")
+    );
+  }
+
+  vcv_slider.svgPaths.push_back(
+    rack::asset::system("res/ComponentLibrary/VCVSliderHandle.svg")
+  );
+}
+
 void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWidget) {
   VCVPort* port;
 
