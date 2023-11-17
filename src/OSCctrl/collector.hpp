@@ -2,6 +2,8 @@
 #include "../VCVStructure.hpp"
 
 struct Collector {
+  void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
+  rack::app::SvgPanel* findModulePanel(const rack::app::ModuleWidget* mw) const;
 /* private: */
   /* box (size/position) utils */
   // convert rack's upper left origin to unreal's center origin

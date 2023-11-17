@@ -39,6 +39,33 @@ rack::math::Rect Collector::box2cm(const rack::math::Rect& pxBox) const {
   return cmBox;
 }
 
+void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId) {
+	rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
+	rack::engine::Module* mod = mw->getModule();
+
+	if (mod->getModel()->name == "OSCctrl") return;
+}
+
+rack::app::SvgPanel* Collector::findModulePanel(const rack::app::ModuleWidget* mw) const {
+	// some modules (looking at you, BogAudio), define their own module widget with no `getPanel`
+	for (rack::widget::Widget* child : mw->children) {
+		if (dynamic_cast<rack::app::SvgPanel*>(child)) {
+			/* DEBUG("found panel in children for %lld:%s", moduleId, mod->getModel()->name.c_str()); */
+      return dynamic_cast<rack::app::SvgPanel*>(child);
+		}
+
+		for (rack::widget::Widget* grandchild : child->children) {
+			if (dynamic_cast<rack::app::SvgPanel*>(grandchild)) {
+				/* DEBUG("found panel in grandchildren for %lld:%s", moduleId, mod->getModel()->name.c_str()); */
+        return dynamic_cast<rack::app::SvgPanel*>(grandchild);
+			}
+		}
+	}
+
+  WARN("no panel widget found for %lld:%s, abondoning collect.", moduleId, mod->getModel()->name.c_str());
+	return nullptr;
+}
+
 void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget) {
   rack::engine::ParamQuantity* pq = paramWidget->getParamQuantity();
 
