@@ -293,23 +293,24 @@ void OscController::collectModule(int64_t moduleId) {
       rack::math::Rect box = box2cm(display->getBox());
       box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
       Modules[moduleId].Displays.emplace_back(box);
-    } else if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(mw_child)) {
-      int lightId = randomId();
+    } else if (rack::app::LightWidget* light = dynamic_cast<rack::app::LightWidget*>(mw_child)) {
+      Collectr.collectModuleLight(Modules[moduleId], light);
+      /* int lightId = randomId(); */
 
-      rack::math::Rect box = box2cm(light->getBox());
-      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+      /* rack::math::Rect box = box2cm(light->getBox()); */
+      /* box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
 
-      Modules[moduleId].Lights[lightId] = VCVLight(
-        lightId,
-        moduleId,
-        box,
-        LightShape::Round, // fixme
-        getLightSvgPath(light),
-        light->isVisible(),
-        light->color,
-        light->bgColor,
-        light
-      );
+      /* Modules[moduleId].Lights[lightId] = VCVLight( */
+      /*   lightId, */
+      /*   moduleId, */
+      /*   box, */
+      /*   LightShape::Round, // fixme */
+      /*   getLightSvgPath(light), */
+      /*   light->isVisible(), */
+      /*   light->color, */
+      /*   light->bgColor, */
+      /*   light */
+      /* ); */
     }
   }
 
@@ -331,28 +332,29 @@ void OscController::collectModule(int64_t moduleId) {
     Collectr.collectParam(Modules[moduleId], pw);
 
     for (rack::widget::Widget* & pw_child : pw->children) {
-      if (rack::app::MultiLightWidget* light = dynamic_cast<rack::app::MultiLightWidget*>(pw_child)) {
-        int lightId = randomId();
-        LightShape lightShape = isRectangleLight(light) ? LightShape::Rectangle : LightShape::Round;
+      if (rack::app::LightWidget* light = dynamic_cast<rack::app::LightWidget*>(pw_child)) {
+        Collectr.collectParamLight(Modules[moduleId], Modules[moduleId].Params[pq->paramId], light);
+        /* int lightId = randomId(); */
+        /* LightShape lightShape = isRectangleLight(light) ? LightShape::Rectangle : LightShape::Round; */
 
-        rack::math::Rect box = box2cm(light->getBox());
-        box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
+        /* rack::math::Rect box = box2cm(light->getBox()); */
+        /* box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
 
-        Modules[moduleId].Params[pq->paramId].Lights[lightId] = VCVLight(
-          lightId,
-          moduleId,
-          pq->paramId,
-          box,
-          lightShape,
-          getLightSvgPath(light),
-          light->isVisible(),
-          light->color,
-          light->bgColor,
-          light
-        );
+        /* Modules[moduleId].Params[pq->paramId].Lights[lightId] = VCVLight( */
+        /*   lightId, */
+        /*   moduleId, */
+        /*   pq->paramId, */
+        /*   box, */
+        /*   lightShape, */
+        /*   getLightSvgPath(light), */
+        /*   light->isVisible(), */
+        /*   light->color, */
+        /*   light->bgColor, */
+        /*   light */
+        /* ); */
 
-        Modules[moduleId].ParamLights[lightId] = 
-          &Modules[moduleId].Params[pq->paramId].Lights[lightId];
+        /* Modules[moduleId].ParamLights[lightId] = */
+        /*   &Modules[moduleId].Params[pq->paramId].Lights[lightId]; */
       }
     }
 

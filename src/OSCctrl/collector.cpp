@@ -321,6 +321,57 @@ void Collector::setDefaultSliderSvgs(VCVParam& vcv_slider) {
   );
 }
 
+void Collector::collectModuleLight(VCVModule& vcv_module, rack::app::LightWidget* lightWidget) {
+	int lightId = randomId();
+  VCVLight vcv_light(lightId);
+  vcv_light.moduleId = vcv_module.id;
+
+	vcv_light.box = box2cm(lightWidget->getBox());
+	vcv_light.box.pos = ueCorrectPos(vcv_module.box.size, vcv_light.box);
+
+  vcv_light.shape = LightShape::Round;
+  vcv_light.svgPath = rack::asset::system("res/ComponentLibrary/MediumLight.svg");
+
+  vcv_light.widget = lightWidget;
+
+  collectLight(vcv_light, lightWidget);
+
+  vcv_module.Lights[lightId] = vcv_light;
+}
+
+void Collector::collectParamLight(VCVModule& vcv_module, VCVParam& vcv_param, rack::app::LightWidget* lightWidget) {
+	int lightId = randomId();
+  VCVLight vcv_light(lightId);
+  vcv_light.moduleId = vcv_module.id;
+  vcv_light.paramId = vcv_param.id;
+
+	vcv_light.box = box2cm(lightWidget->getBox());
+	vcv_light.box.pos = ueCorrectPos(vcv_param.box.size, vcv_light.box);
+
+  vcv_light.shape =
+    vcv_param.type == ParamType::Slider
+      ? LightShape::Rectangle
+      : LightShape::Round;
+
+  vcv_light.svgPath =
+    vcv_param.type == ParamType::Slider
+      ? rack::asset::system("res/ComponentLibrary/VCVSliderLight.svg")
+      : std::string("");
+
+  vcv_light.widget = lightWidget;
+
+  collectLight(vcv_light, lightWidget);
+
+	vcv_param.Lights[lightId] = vcv_light;
+  vcv_module.ParamLights[lightId] = &vcv_param.Lights[lightId];
+}
+
+void Collector::collectLight(VCVLight& vcv_light, rack::app::LightWidget* lightWidget) {
+  vcv_light.visible = lightWidget->isVisible();
+  vcv_light.color = lightWidget->color;
+  vcv_light.bgColor = lightWidget->bgColor;
+}
+
 void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWidget) {
   VCVPort* port;
 

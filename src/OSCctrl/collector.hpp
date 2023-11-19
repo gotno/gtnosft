@@ -30,6 +30,11 @@ struct Collector {
   void collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSlider);
   void setDefaultSliderSvgs(VCVParam& vcv_slider);
 
+  /* collect lights */
+  void collectModuleLight(VCVModule& vcv_module, rack::app::LightWidget* lightWidget);
+  void collectParamLight(VCVModule& vcv_module, VCVParam& vcv_param, rack::app::LightWidget* lightWidget);
+  void collectLight(VCVLight& vcv_light, rack::app::LightWidget* lightWidget);
+
   /* collect ports */
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);

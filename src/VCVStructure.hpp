@@ -14,7 +14,7 @@ enum LightShape {
 struct VCVLight {
   int id;
   int64_t moduleId;
-  int paramId = -1;
+  int paramId{-1};
   rack::math::Rect box;
   LightShape shape;
   std::string svgPath;
@@ -22,16 +22,17 @@ struct VCVLight {
   NVGcolor color;
   NVGcolor bgColor;
 
-  rack::app::MultiLightWidget* widget;
+  rack::app::LightWidget* widget;
 
-  bool synced = false;
-  bool hadFirstUpdate = false;
+  bool synced{false};
+  bool hadFirstUpdate{false};
 
   VCVLight() {}
-  VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
-    : id(_id), moduleId(_moduleId), box(_box), shape(_shape), svgPath(_svgPath), visible(_visible), color(_color), bgColor(_bgColor), widget(_widget) {}
-  VCVLight(int _id, int64_t _moduleId, int _paramId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget)
-    : id(_id), moduleId(_moduleId), paramId(_paramId), box(_box), shape(_shape), svgPath(_svgPath), visible(_visible), color(_color), bgColor(_bgColor), widget(_widget) {}
+  VCVLight(_id) : id(_id) {}
+  /* VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget) */
+  /*   : id(_id), moduleId(_moduleId), box(_box), shape(_shape), svgPath(_svgPath), visible(_visible), color(_color), bgColor(_bgColor), widget(_widget) {} */
+  /* VCVLight(int _id, int64_t _moduleId, int _paramId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget) */
+  /*   : id(_id), moduleId(_moduleId), paramId(_paramId), box(_box), shape(_shape), svgPath(_svgPath), visible(_visible), color(_color), bgColor(_bgColor), widget(_widget) {} */
 };
 
 enum ParamType {
