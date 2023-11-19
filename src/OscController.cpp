@@ -12,6 +12,8 @@
 #include <random>
 #include <sstream>
 
+/* #include <BogAudioModules/src/widgets.hpp> */
+
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
   queueWorker = std::thread(OscController::processQueue, this);
@@ -242,6 +244,7 @@ void OscController::collectModules(bool printResults) {
 }
 
 void OscController::collectModule(int64_t moduleId) {
+  /* Collectr.collectModule(Modules, moduleId); */
   rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
   rack::engine::Module* mod = mw->getModule();
 
@@ -268,8 +271,6 @@ void OscController::collectModule(int64_t moduleId) {
     return;
   }
 
-  /* rack::math::Rect panelBox = box2cm(panelWidget->getBox()); */
-  // this almost works to get the actual rack position transferred over
   rack::math::Rect panelBox = panelWidget->getBox();
   panelBox.pos = mw->getPosition().minus(rack::app::RACK_OFFSET);
   panelBox = box2cm(panelBox);
@@ -392,6 +393,12 @@ void OscController::collectModule(int64_t moduleId) {
     }
 
     // Slider
+    /* if (rack::app::SliderKnob* p_slider = dynamic_cast<rack::app::SliderKnob*>(pw)) { */
+
+              /* if (dynamic_cast<bogaudio::VUSlider*>(pw)) { */
+              /*   DEBUG("%s cast to VUSlider", pq->getLabel().c_str()); */
+              /* } */
+
     if (rack::app::SvgSlider* p_slider = dynamic_cast<rack::app::SvgSlider*>(pw)) {
       Collectr.collectSlider(Modules[moduleId].Params[pq->paramId], p_slider);
 

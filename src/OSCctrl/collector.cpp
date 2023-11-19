@@ -39,31 +39,58 @@ rack::math::Rect Collector::box2cm(const rack::math::Rect& pxBox) const {
   return cmBox;
 }
 
-void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId) {
-	rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
-	rack::engine::Module* mod = mw->getModule();
+int Collector::randomId() {
+  std::random_device dev;
+  std::mt19937 rng(dev());
+  std::uniform_int_distribution<std::mt19937::result_type> dist(10000, 30000);
 
-	if (mod->getModel()->name == "OSCctrl") return;
+  return dist(rng);
+}
+
+void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId) {
+  rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
+  rack::engine::Module* mod = mw->getModule();
+
+  if (mod->getModel()->name == "OSCctrl") return;
+
+  rack::app::SvgPanel* panel = findModulePanel(mw);
+  if (!panel) {
+    WARN("no panel widget found for %lld:%s, abandoning collect.", mw->getModule()->getId(), mw->getModule()->getModel()->name.c_str());
+    return;
+  }
+
+  rack::math::Rect panelBox = panel->getBox();
+  panelBox.pos = mw->getPosition().minus(rack::app::RACK_OFFSET);
+  panelBox = box2cm(panelBox);
+
+  Modules[moduleId] = VCVModule(moduleId);
+  VCVModule& vcv_module = Modules[moduleId];
+
+  vcv_module.brand = mod->getModel()->plugin->brand;
+  vcv_module.name = mod->getModel()->name;
+  vcv_module.description = mod->getModel()->description;
+  vcv_module.box = panelBox;
+  vcv_module.panelSvgPath = panel->svg->path;
+
+  rack::plugin::Model* model = mod->getModel();
+  vcv_module.pluginSlug = model->plugin->slug;
+  vcv_module.slug = model->slug;
 }
 
 rack::app::SvgPanel* Collector::findModulePanel(const rack::app::ModuleWidget* mw) const {
-	// some modules (looking at you, BogAudio), define their own module widget with no `getPanel`
-	for (rack::widget::Widget* child : mw->children) {
-		if (dynamic_cast<rack::app::SvgPanel*>(child)) {
-			/* DEBUG("found panel in children for %lld:%s", moduleId, mod->getModel()->name.c_str()); */
-      return dynamic_cast<rack::app::SvgPanel*>(child);
-		}
+  for (rack::widget::Widget* child : mw->children) {
+    if (rack::app::SvgPanel* panel = dynamic_cast<rack::app::SvgPanel*>(child)) {
+      return panel;
+    }
 
-		for (rack::widget::Widget* grandchild : child->children) {
-			if (dynamic_cast<rack::app::SvgPanel*>(grandchild)) {
-				/* DEBUG("found panel in grandchildren for %lld:%s", moduleId, mod->getModel()->name.c_str()); */
-        return dynamic_cast<rack::app::SvgPanel*>(grandchild);
-			}
-		}
-	}
+    for (rack::widget::Widget* grandchild : child->children) {
+      if (rack::app::SvgPanel* panel = dynamic_cast<rack::app::SvgPanel*>(grandchild)) {
+        return panel;
+      }
+    }
+  }
 
-  WARN("no panel widget found for %lld:%s, abondoning collect.", moduleId, mod->getModel()->name.c_str());
-	return nullptr;
+  return nullptr;
 }
 
 void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget) {
@@ -80,7 +107,7 @@ void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* para
   param.defaultValue = pq->getDefaultValue();
   param.value = pq->getValue();
   param.visible = paramWidget->isVisible();
-  param.snap = pq->snapEnabled
+  param.snap = pq->snapEnabled;
 
   rack::math::Rect box = box2cm(paramWidget->getBox());
   box.pos = ueCorrectPos(vcv_module.box.size, box);
@@ -266,6 +293,7 @@ void Collector::collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSli
   vcv_slider.maxHandlePos = maxHandlePos;
   vcv_slider.handleBox = handleBox;
 
+  /* if (rack::app::SvgSlider* svgSlider = dynamic_cast<rack::app::SvgSlider*>(pw)) */
   try {
     vcv_slider.svgPaths.push_back(svgSlider->background->svg->path);
     vcv_slider.svgPaths.push_back(svgSlider->handle->svg->path);

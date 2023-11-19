@@ -3,9 +3,8 @@
 
 struct Collector {
   void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
-  rack::app::SvgPanel* findModulePanel(const rack::app::ModuleWidget* mw) const;
 /* private: */
-  /* box (size/position) utils */
+  /* utils */
   // convert rack's upper left origin to unreal's center origin
   rack::math::Vec ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const;
   rack::math::Vec ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Vec& childPos, const rack::math::Vec& childSize) const;
@@ -13,6 +12,11 @@ struct Collector {
   float px2cm(const float& px) const;
   rack::math::Vec vec2cm(const rack::math::Vec& pxVec) const;
   rack::math::Rect box2cm(const rack::math::Rect& pxBox) const;
+  // generate a random id to keep track of lights
+	int randomId();
+  // some modules (looking at you, BogAudio) define their own module widget
+  // with no `getPanel`, so we gotta dig through the children.
+  rack::app::SvgPanel* findModulePanel(const rack::app::ModuleWidget* mw) const;
 
   /* collect params */
   void collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget);

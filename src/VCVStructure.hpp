@@ -148,6 +148,7 @@ struct VCVModule {
   bool synced = false;
 
   VCVModule() {}
+  VCVModule(int64_t _id) : id(_id) {}
   VCVModule(int64_t moduleId, std::string moduleName)
     : id(moduleId), name(moduleName) {}
   VCVModule(std::string _moduleSlug, std::string _pluginSlug)
