@@ -245,6 +245,7 @@ void OscController::collectModules(bool printResults) {
 
 void OscController::collectModule(int64_t moduleId) {
   /* Collectr.collectModule(Modules, moduleId); */
+
   rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
   rack::engine::Module* mod = mw->getModule();
 
@@ -290,9 +291,10 @@ void OscController::collectModule(int64_t moduleId) {
 
   for (rack::widget::Widget* mw_child : mw->children) {
     if (rack::app::LedDisplay* display = dynamic_cast<rack::app::LedDisplay*>(mw_child)) {
-      rack::math::Rect box = box2cm(display->getBox());
-      box.pos = ueCorrectPos(panelBox.size, box.pos, box.size);
-      Modules[moduleId].Displays.emplace_back(box);
+      Collectr.collectDisplay(Modules[moduleId], display);
+      /* rack::math::Rect box = box2cm(display->getBox()); */
+      /* box.pos = ueCorrectPos(panelBox.size, box.pos, box.size); */
+      /* Modules[moduleId].Displays.emplace_back(box); */
     } else if (rack::app::LightWidget* light = dynamic_cast<rack::app::LightWidget*>(mw_child)) {
       Collectr.collectModuleLight(Modules[moduleId], light);
       /* int lightId = randomId(); */

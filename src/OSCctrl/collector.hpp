@@ -35,6 +35,9 @@ struct Collector {
   void collectParamLight(VCVModule& vcv_module, VCVParam& vcv_param, rack::app::LightWidget* lightWidget);
   void collectLight(VCVLight& vcv_light, rack::app::LightWidget* lightWidget);
 
+  /* collect display */
+  void collectDisplay(VCVModule& vcv_module, rack::app::LedDisplay* displayWidget);
+
   /* collect ports */
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);

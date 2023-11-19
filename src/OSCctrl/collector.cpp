@@ -372,6 +372,12 @@ void Collector::collectLight(VCVLight& vcv_light, rack::app::LightWidget* lightW
   vcv_light.bgColor = lightWidget->bgColor;
 }
 
+void Collector::collectDisplay(VCVModule& vcv_module, rack::app::LedDisplay* displayWidget) {
+  rack::math::Rect box = box2cm(displayWidget->getBox());
+  box.pos = ueCorrectPos(vcv_module.box.size, box);
+  vcv_module.Displays.emplace_back(box);
+}
+
 void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWidget) {
   VCVPort* port;
 
