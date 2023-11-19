@@ -28,7 +28,7 @@ struct VCVLight {
   bool hadFirstUpdate{false};
 
   VCVLight() {}
-  VCVLight(_id) : id(_id) {}
+  VCVLight(int _id) : id(_id) {}
   /* VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget) */
   /*   : id(_id), moduleId(_moduleId), box(_box), shape(_shape), svgPath(_svgPath), visible(_visible), color(_color), bgColor(_bgColor), widget(_widget) {} */
   /* VCVLight(int _id, int64_t _moduleId, int _paramId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget) */

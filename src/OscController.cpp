@@ -477,10 +477,12 @@ void OscController::collectModule(int64_t moduleId) {
       /* Modules[moduleId].Params[pq->paramId].box = box; */
     }
 
-    int numPathsToFill = Modules[moduleId].Params[pq->paramId].svgPaths.capacity() - Modules[moduleId].Params[pq->paramId].svgPaths.size();
-    for (int i = 0; i < numPathsToFill; i++) {
-      Modules[moduleId].Params[pq->paramId].svgPaths.push_back("");
-    }
+    /* int numPathsToFill = Modules[moduleId].Params[pq->paramId].svgPaths.capacity() - Modules[moduleId].Params[pq->paramId].svgPaths.size(); */
+    /* for (int i = 0; i < numPathsToFill; i++) { */
+    /*   Modules[moduleId].Params[pq->paramId].svgPaths.push_back(""); */
+    /* } */
+
+    Collectr.fillParamSvgPaths(Modules[moduleId].Params[pq->paramId]);
   }
 
   for (rack::app::PortWidget* portWidget : mw->getPorts()) {

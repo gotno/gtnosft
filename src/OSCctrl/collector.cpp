@@ -114,6 +114,13 @@ void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* para
   param.box = box;
 }
 
+void Collector::fillParamSvgPaths(VCVParam& vcv_param) {
+  int numPathsToFill = vcv_param.svgPaths.capacity() - vcv_param.svgPaths.size();
+  for (int i = 0; i < numPathsToFill; i++) {
+    vcv_param.svgPaths.push_back(std::string(""));
+  }
+}
+
 void Collector::collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob) {
   vcv_knob.type = ParamType::Knob;
 

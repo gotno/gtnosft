@@ -20,6 +20,7 @@ struct Collector {
 
   /* collect params */
   void collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget);
+  void fillParamSvgPaths(VCVParam& vcv_param);
 
   void collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob);
   void setDefaultKnobSvgs(VCVParam& vcv_knob);
