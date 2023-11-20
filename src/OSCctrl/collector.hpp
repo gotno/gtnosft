@@ -3,7 +3,7 @@
 
 struct Collector {
   void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
-private:
+
   /* utils */
   // convert rack's upper left origin to unreal's center origin
   rack::math::Vec ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const;
