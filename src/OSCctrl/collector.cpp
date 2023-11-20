@@ -47,6 +47,18 @@ int Collector::randomId() {
   return dist(rng);
 }
 
+void Collector::collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId) {
+  rack::engine::Cable* cable = APP->engine->getCable(cableId);
+
+  Cables[cableId] = VCVCable(
+    cable->id,
+    cable->inputModule->getId(),
+    cable->outputModule->getId(),
+    cable->inputId,
+    cable->outputId
+  );
+}
+
 void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId) {
   rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
   rack::engine::Module* mod = mw->getModule();

@@ -255,22 +255,10 @@ void OscController::printModules() {
   }
 }
 
-void OscController::collectCable(int64_t cableId) {
-  rack::engine::Cable* cable = APP->engine->getCable(cableId);
-
-  Cables[cableId] = VCVCable(
-    cable->id,
-    cable->inputModule->getId(),
-    cable->outputModule->getId(),
-    cable->inputId,
-    cable->outputId
-  );
-}
-
 void OscController::collectCables(bool printResults) {
   DEBUG("collecting %lld cables", APP->engine->getCableIds().size());
 	for (int64_t& cableId: APP->engine->getCableIds()) {
-    collectCable(cableId);
+    Collectr.collectCable(Cables, cableId);
 	}
   DEBUG("collected %lld cables", Cables.size());
 
@@ -705,7 +693,7 @@ void OscController::processCableUpdates() {
 		cableWidget->color = rack::settings::cableColors[0];
 		APP->scene->rack->addCable(cableWidget);
 
-    collectCable(cable->id);
+    Collectr.collectCable(Cables, cable->id);
     enqueueSyncCable(cable->id);
   }
   cablesToCreate.clear();

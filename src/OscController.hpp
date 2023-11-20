@@ -102,7 +102,6 @@ struct OscController {
 
   std::unordered_map<int64_t, VCVCable> Cables;
   void collectCables(bool printResults = false);
-  void collectCable(int64_t cableId);
   void printCables();
 
   bool isModuleSynced(int64_t moduleId);

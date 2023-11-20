@@ -2,6 +2,7 @@
 #include "../VCVStructure.hpp"
 
 struct Collector {
+  void collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId);
   void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
 
   /* utils */
