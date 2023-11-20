@@ -14,9 +14,9 @@ struct Collector {
   rack::math::Rect box2cm(const rack::math::Rect& pxBox) const;
   // generate a random id to keep track of lights
 	int randomId();
-  // some modules (looking at you, BogAudio) define their own module widget
-  // with no `getPanel`, so we gotta dig through the children.
-  rack::app::SvgPanel* findModulePanel(const rack::app::ModuleWidget* mw) const;
+  // special handling because some of you don't play by the rules and `getPanel`
+  // doesn't work (looking at you, bogaudio and mockbamodular)
+  bool findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath);
 
   /* collect params */
   void collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget);
@@ -46,5 +46,16 @@ struct Collector {
   template<typename T>
   bool BasicallyEqual(T f1, T f2) {
     return (std::fabs(f1 - f2) <= std::numeric_limits<T>::epsilon() * std::fmax(std::fabs(f1), std::fabs(f2)));
+  }
+
+  template <class T, typename F>
+  void doIfTypeRecursive(rack::widget::Widget* widget, F callback) {
+    T* t = dynamic_cast<T*>(widget);
+    if (t)
+      callback(t);
+
+    for (rack::widget::Widget* child : widget->children) {
+      doIfTypeRecursive<T>(child, callback);
+    }
   }
 };

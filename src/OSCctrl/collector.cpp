@@ -53,13 +53,17 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
 
   if (mod->getModel()->name == "OSCctrl") return;
 
-  rack::app::SvgPanel* panel = findModulePanel(mw);
-  if (!panel) {
-    WARN("no panel widget found for %lld:%s, abandoning collect.", mw->getModule()->getId(), mw->getModule()->getModel()->name.c_str());
+  rack::math::Rect panelBox;
+  std::string panelSvgPath;
+  if (!findModulePanel(mw, panelBox, panelSvgPath)) {
+    WARN(
+      "no panel found for %s:%s, abandoning collect.",
+      mw->getModule()->getModel()->plugin->slug.c_str(),
+      mw->getModule()->getModel()->name.c_str()
+    );
     return;
   }
 
-  rack::math::Rect panelBox = panel->getBox();
   panelBox.pos = mw->getPosition().minus(rack::app::RACK_OFFSET);
   panelBox = box2cm(panelBox);
 
@@ -70,7 +74,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   vcv_module.name = mod->getModel()->name;
   vcv_module.description = mod->getModel()->description;
   vcv_module.box = panelBox;
-  vcv_module.panelSvgPath = panel->svg->path;
+  vcv_module.panelSvgPath = panelSvgPath;
 
   rack::plugin::Model* model = mod->getModel();
   vcv_module.pluginSlug = model->plugin->slug;
@@ -128,20 +132,37 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   }
 }
 
-rack::app::SvgPanel* Collector::findModulePanel(const rack::app::ModuleWidget* mw) const {
-  for (rack::widget::Widget* child : mw->children) {
-    if (rack::app::SvgPanel* panel = dynamic_cast<rack::app::SvgPanel*>(child)) {
-      return panel;
-    }
+bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath) {
+  bool found{false};
 
-    for (rack::widget::Widget* grandchild : child->children) {
-      if (rack::app::SvgPanel* panel = dynamic_cast<rack::app::SvgPanel*>(grandchild)) {
-        return panel;
+  // special cases
+  std::string& pluginSlug = mw->getModule()->getModel()->plugin->slug;
+  std::string& moduleSlug = mw->getModule()->getModel()->slug;
+
+  if (pluginSlug == "MockbaModular") {
+    // TODO: handle mockba's two-layer ish? (base dark/light SvgPanel + SvgWidget overlay)
+    doIfTypeRecursive<rack::widget::SvgWidget>(mw, [&](rack::widget::SvgWidget* svgWidget) {
+      if (svgWidget->svg) {
+        if (svgWidget->svg->path.find(moduleSlug) != std::string::npos) {
+          panelBox = svgWidget->box;
+          panelSvgPath = svgWidget->svg->path;
+          found = true;
+        }
       }
-    }
+    });
   }
+  if (found) return true;
 
-  return nullptr;
+  // generic thank-you-for-using-an-svg-panel case
+  doIfTypeRecursive<rack::app::SvgPanel>(mw, [&](rack::app::SvgPanel* svgPanel) {
+    if (svgPanel->svg) {
+      panelBox = svgPanel->box;
+      panelSvgPath = svgPanel->svg->path;
+      found = true;
+    }
+  });
+
+  return found;
 }
 
 void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget) {
