@@ -75,6 +75,57 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   rack::plugin::Model* model = mod->getModel();
   vcv_module.pluginSlug = model->plugin->slug;
   vcv_module.slug = model->slug;
+
+  // Module LedDisplays and Lights
+  for (rack::widget::Widget* widget : mw->children) {
+    if (rack::app::LedDisplay* display = dynamic_cast<rack::app::LedDisplay*>(widget)) {
+      collectDisplay(vcv_module, display);
+    } else if (rack::app::LightWidget* lightWidget = dynamic_cast<rack::app::LightWidget*>(widget)) {
+      collectModuleLight(vcv_module, lightWidget);
+    }
+  }
+
+  // Params
+  for (rack::app::ParamWidget* & paramWidget : mw->getParams()) {
+    int paramId = paramWidget->getParamQuantity()->paramId;
+
+    collectParam(vcv_module, paramWidget);
+
+    for (rack::widget::Widget* & widget : paramWidget->children) {
+      if (rack::app::LightWidget* lightWidget = dynamic_cast<rack::app::LightWidget*>(widget)) {
+        collectParamLight(vcv_module, vcv_module.Params[paramId], lightWidget);
+      }
+    }
+
+    // Knob
+    if (rack::app::Knob* knob = dynamic_cast<rack::app::Knob*>(paramWidget)) {
+      // avoid double-collecting sliders due to shared ancestors
+      if (!dynamic_cast<rack::app::SliderKnob*>(paramWidget))
+        collectKnob(vcv_module.Params[paramId], knob);
+    }
+
+    // Slider
+    if (rack::app::SvgSlider* svgSlider = dynamic_cast<rack::app::SvgSlider*>(paramWidget)) {
+      collectSlider(vcv_module.Params[paramId], svgSlider);
+    }
+
+    // Switch/Button
+    if (rack::app::SvgSwitch* svgSwitch = dynamic_cast<rack::app::SvgSwitch*>(paramWidget)) {
+      collectSwitch(vcv_module.Params[paramId], svgSwitch);
+    }
+
+    // Button (yet to see one in the wild)
+    if (dynamic_cast<rack::app::SvgButton*>(paramWidget)) {
+      WARN("found a button?! %s", vcv_module.name.c_str());
+    }
+
+    fillParamSvgPaths(vcv_module.Params[paramId]);
+  }
+
+  // Ports
+  for (rack::app::PortWidget* portWidget : mw->getPorts()) {
+    collectPort(vcv_module, portWidget);
+  }
 }
 
 rack::app::SvgPanel* Collector::findModulePanel(const rack::app::ModuleWidget* mw) const {
@@ -300,7 +351,6 @@ void Collector::collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSli
   vcv_slider.maxHandlePos = maxHandlePos;
   vcv_slider.handleBox = handleBox;
 
-  /* if (rack::app::SvgSlider* svgSlider = dynamic_cast<rack::app::SvgSlider*>(pw)) */
   try {
     vcv_slider.svgPaths.push_back(svgSlider->background->svg->path);
     vcv_slider.svgPaths.push_back(svgSlider->handle->svg->path);

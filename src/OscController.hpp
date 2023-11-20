@@ -98,7 +98,6 @@ struct OscController {
 
   std::unordered_map<int64_t, VCVModule> Modules;
   void collectModules(bool printResults = false);
-  void collectModule(int64_t moduleId);
   void printModules();
 
   std::unordered_map<int64_t, VCVCable> Cables;
@@ -110,14 +109,6 @@ struct OscController {
 
   std::mutex lmutex;
   std::unordered_map<int64_t, LightReferenceMap> LightReferences;
-
-  rack::math::Vec ueCorrectPos(rack::math::Vec parentSize, rack::math::Vec pos, rack::math::Vec size);
-  float px2cm(float px);
-  rack::math::Rect box2cm(rack::math::Rect pxBox);
-  rack::math::Vec vec2cm(rack::math::Vec pxVec);
-  int randomId();
-  bool isRectangleLight(rack::app::MultiLightWidget* light);
-  std::string getLightSvgPath(rack::app::MultiLightWidget* light);
 
   void bundleLight(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVLight* light, int paramId = -1);
   void bundleParam(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVParam* param);
