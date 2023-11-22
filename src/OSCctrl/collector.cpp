@@ -106,10 +106,11 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
     int paramId = paramWidget->getParamQuantity()->paramId;
 
     collectParam(vcv_module, paramWidget);
+    VCVParam& vcv_param = vcv_module.Params[paramId];
 
     for (rack::widget::Widget* & widget : paramWidget->children) {
       if (rack::app::LightWidget* lightWidget = dynamic_cast<rack::app::LightWidget*>(widget)) {
-        collectParamLight(vcv_module, vcv_module.Params[paramId], lightWidget);
+        collectParamLight(vcv_module, vcv_param, lightWidget);
       }
     }
 
@@ -117,17 +118,17 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
     if (rack::app::Knob* knob = dynamic_cast<rack::app::Knob*>(paramWidget)) {
       // avoid double-collecting sliders due to shared ancestors
       if (!dynamic_cast<rack::app::SliderKnob*>(paramWidget))
-        collectKnob(vcv_module.Params[paramId], knob);
+        collectKnob(vcv_param, knob);
     }
 
     // Slider
     if (rack::app::SvgSlider* svgSlider = dynamic_cast<rack::app::SvgSlider*>(paramWidget)) {
-      collectSlider(vcv_module.Params[paramId], svgSlider);
+      collectSlider(vcv_param, svgSlider);
     }
 
     // Switch/Button
     if (rack::app::SvgSwitch* svgSwitch = dynamic_cast<rack::app::SvgSwitch*>(paramWidget)) {
-      collectSwitch(vcv_module.Params[paramId], svgSwitch);
+      collectSwitch(vcv_param, svgSwitch);
     }
 
     // Button (yet to see one in the wild)
@@ -135,7 +136,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
       WARN("found a button?! %s", vcv_module.name.c_str());
     }
 
-    fillParamSvgPaths(vcv_module.Params[paramId]);
+    fillParamSvgPaths(vcv_param);
   }
 
   // Ports
