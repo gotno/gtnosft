@@ -189,6 +189,9 @@ void OscController::printModules() {
           case (ParamType::Switch):
             type = "Switch";
             break;
+          case (ParamType::Unknown):
+            type = "Unknown";
+            break;
           default:
             break;
         }
@@ -282,6 +285,11 @@ void OscController::printCables() {
 }
 
 void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVParam* param) {
+  if (param->type == ParamType::Unknown) {
+    WARN("unknown param %d for %s, skipping bundle", param->id, Modules[moduleId].name.c_str());
+    return;
+  }
+
   bundle << osc::BeginMessage("/modules/param/add")
     << moduleId
     << param->id

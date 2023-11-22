@@ -36,11 +36,11 @@ struct VCVLight {
 };
 
 enum ParamType {
-  Knob, Slider, Button, Switch
+  Knob, Slider, Button, Switch, Unknown
 };
 struct VCVParam {
   int id;
-  ParamType type;
+  ParamType type{ParamType::Unknown};
   std::string name;
   std::string unit;
   std::string displayValue;
