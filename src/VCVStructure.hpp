@@ -29,10 +29,6 @@ struct VCVLight {
 
   VCVLight() {}
   VCVLight(int _id) : id(_id) {}
-  /* VCVLight(int _id, int64_t _moduleId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget) */
-  /*   : id(_id), moduleId(_moduleId), box(_box), shape(_shape), svgPath(_svgPath), visible(_visible), color(_color), bgColor(_bgColor), widget(_widget) {} */
-  /* VCVLight(int _id, int64_t _moduleId, int _paramId, rack::math::Rect _box, LightShape _shape, std::string _svgPath, bool _visible, NVGcolor _color, NVGcolor _bgColor, rack::app::MultiLightWidget* _widget) */
-  /*   : id(_id), moduleId(_moduleId), paramId(_paramId), box(_box), shape(_shape), svgPath(_svgPath), visible(_visible), color(_color), bgColor(_bgColor), widget(_widget) {} */
 };
 
 enum ParamType {
@@ -90,12 +86,8 @@ struct VCVParam {
 
   std::map<int, VCVLight> Lights;
 
-  VCVParam(int _id) : id(_id) {
-    svgPaths.reserve(5);
-  }
   VCVParam() {}
-  VCVParam(int _id, std::string _name, std::string _unit, std::string _displayValue, float _minValue, float _maxValue, float _defaultValue, float _value, bool _visible)
-    : id(_id), name(_name), unit(_unit), displayValue(_displayValue), minValue(_minValue), maxValue(_maxValue), defaultValue(_defaultValue), value(_value), visible(_visible) {
+  VCVParam(int _id) : id(_id) {
     svgPaths.reserve(5);
   }
 };
@@ -115,8 +107,6 @@ struct VCVPort {
 
   VCVPort() {}
   VCVPort(int _id) : id(_id) {}
-  VCVPort(int portId, PortType portType, std::string portName, std::string portDescription, rack::math::Rect portBox, std::string portSvgPath)
-    : id(portId), type(portType), name(portName), description(portDescription), box(portBox), svgPath(portSvgPath) {}
 };
 
 struct VCVDisplay {
@@ -150,12 +140,8 @@ struct VCVModule {
 
   VCVModule() {}
   VCVModule(int64_t _id) : id(_id) {}
-  VCVModule(int64_t moduleId, std::string moduleName)
-    : id(moduleId), name(moduleName) {}
   VCVModule(std::string _moduleSlug, std::string _pluginSlug)
     : slug(_moduleSlug), pluginSlug(_pluginSlug) {}
-  VCVModule(int64_t moduleId, std::string moduleBrand, std::string moduleName, std::string modelDescription, rack::math::Rect panelBox, std::string panelPath)
-    : id(moduleId), brand(moduleBrand), name(moduleName), description(modelDescription), box(panelBox), panelSvgPath(panelPath) {}
 };
 
 struct VCVCable {
