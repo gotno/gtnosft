@@ -104,8 +104,6 @@ struct OscController {
   void collectCables(bool printResults = false);
   void printCables();
 
-  bool isModuleSynced(int64_t moduleId);
-
   std::mutex lmutex;
   std::unordered_map<int64_t, LightReferenceMap> LightReferences;
 
@@ -142,11 +140,6 @@ struct OscController {
 
   // UE callbacks
   void rxModule(int64_t outerId, int innerId, float value);
-  void rxParam(int64_t outerId, int innerId, float value);
-  void rxInput(int64_t outerId, int innerId, float value);
-  void rxOutput(int64_t outerId, int innerId, float value);
-  void rxModuleLight(int64_t outerId, int innerId, float value);
-  void rxDisplay(int64_t outerId, int innerId, float value);
   void rxCable(int64_t outerId, int innerId, float value);
 
   void updateParam(int64_t outerId, int innerId, float value);

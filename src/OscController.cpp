@@ -116,7 +116,7 @@ void OscController::processQueue() {
         }
 
         // check failed, requeue command
-        if (!isModuleSynced(command.second.pid)) {
+        if (!Modules[command.second.pid].synced) {
           command.second.lastCheck = now;
           commandQueue.push(command);
           continue;
@@ -493,40 +493,6 @@ void OscController::createModule(std::string pluginSlug, std::string moduleSlug)
   }
 }
 
-bool OscController::isModuleSynced(int64_t moduleId) {
-  VCVModule& module = Modules[moduleId];
-
-  if (!module.synced) return false;
-
-  for (auto& p_param : module.Params) {
-    if (!p_param.second.synced) return false;
-
-    for (auto& p_light : p_param.second.Lights) {
-      if (!p_light.second.synced) return false;
-    }
-  }
-
-  for (auto& p_input : module.Inputs) {
-    if (!p_input.second.synced) return false;
-  }
-
-  for (auto& p_output : module.Outputs) {
-    if (!p_output.second.synced) return false;
-  }
-
-  for (auto& p_light : module.Lights) {
-    if (!p_light.second.synced) return false;
-  }
-
-  // how, for multiple?
-  // generate id like for Lights
-  for (VCVDisplay& display : module.Displays) {
-    if (!display.synced) return false;
-  }
-
-  return true;
-}
-
 void OscController::enqueueSyncCable(int64_t cableId) {
   enqueueCommand(Command(CommandType::SyncCable, Payload(cableId)));
 }
@@ -617,46 +583,14 @@ void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
 
 // UE callbacks
 void OscController::rxModule(int64_t outerId, int innerId, float value) {
+  for (auto& pair : Modules[outerId].Lights) {
+    registerLightReference(outerId, &pair.second);
+  }
+  for (auto& pair : Modules[outerId].ParamLights) {
+    registerLightReference(outerId, pair.second);
+  }
+
   Modules[outerId].synced = true;
-}
-
-void OscController::rxParam(int64_t outerId, int innerId, float value) {
-  Modules[outerId].Params[innerId].synced = true;
-}
-
-void OscController::rxInput(int64_t outerId, int innerId, float value) {
-  Modules[outerId].Inputs[innerId].synced = true;
-}
-
-void OscController::rxOutput(int64_t outerId, int innerId, float value) {
-  Modules[outerId].Outputs[innerId].synced = true;
-}
-
-void OscController::rxModuleLight(int64_t outerId, int innerId, float value) {
-  VCVLight* light = nullptr;
-
-  if (Modules[outerId].Lights.count(innerId) > 0) {
-    /* DEBUG("/rx/module_light %lld:%d", outerId, innerId); */
-    light = &Modules[outerId].Lights[innerId];
-  } else if (Modules[outerId].ParamLights.count(innerId) > 0) {
-    /* DEBUG("/rx/module_light (param) %lld:%d", outerId, innerId); */
-    light = Modules[outerId].ParamLights[innerId];
-  }
-
-  if (!light) {
-    DEBUG("no module or param light found on /rx/module_light");
-    return;
-  }
-
-  light->synced = true;
-  registerLightReference(outerId, light);
-}
-
-void OscController::rxDisplay(int64_t outerId, int innerId, float value) {
-  /* DEBUG("/rx/display %lld:%d", outerId, innerId); */
-  // how, for multiple?
-  // generate id like for Lights
-  Modules[outerId].Displays[0].synced = true;
 }
 
 void OscController::rxCable(int64_t outerId, int innerId, float value) {

@@ -24,7 +24,6 @@ struct VCVLight {
 
   rack::app::LightWidget* widget;
 
-  bool synced{false};
   bool hadFirstUpdate{false};
 
   VCVLight() {}
@@ -82,8 +81,6 @@ struct VCVParam {
   // float displayMultiplier;
   // float displayOffset;
 
-  bool synced = false;
-
   std::map<int, VCVLight> Lights;
 
   VCVParam() {}
@@ -103,16 +100,12 @@ struct VCVPort {
   rack::math::Rect box;
   std::string svgPath;
 
-  bool synced = false;
-
   VCVPort() {}
   VCVPort(int _id) : id(_id) {}
 };
 
 struct VCVDisplay {
   rack::math::Rect box;
-
-  bool synced = false;
 
   VCVDisplay(rack::math::Rect displayBox) : box(displayBox) {}
 };
@@ -136,7 +129,7 @@ struct VCVModule {
 
   std::vector<VCVDisplay> Displays;
 
-  bool synced = false;
+  bool synced{false};
 
   VCVModule() {}
   VCVModule(int64_t _id) : id(_id) {}
@@ -148,7 +141,7 @@ struct VCVCable {
   int64_t id = -1, inputModuleId, outputModuleId;
   int inputPortId, outputPortId;
 
-  bool synced = false;
+  bool synced{false};
 
   VCVCable() {}
   VCVCable(int64_t _id, int64_t _inputModuleId, int64_t _outputModuleId, int _inputPortId, int _outputPortId)
