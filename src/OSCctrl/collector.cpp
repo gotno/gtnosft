@@ -166,6 +166,26 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
   }
   if (found) return true;
 
+  /* if (pluginSlug == "SlimeChild-Substation") { */
+  /*   std::smatch match; */
+  /*   std::string moduleName; */
+  /*   if (std::regex_search(moduleSlug, match, std::regex("SlimeChild-Substation-(.+)"))) { */
+  /*     moduleName = match.str(1); */
+  /*   } */
+  /*   if (moduleName.empty()) return false; */
+
+  /*   doIfTypeRecursive<rack::widget::SvgWidget>(mw, [&](rack::widget::SvgWidget* svgWidget) { */
+  /*     if (svgWidget->svg) { */
+  /*       if (svgWidget->svg->path.find(moduleName) != std::string::npos) { */
+  /*         panelBox = svgWidget->box; */
+  /*         panelSvgPath = svgWidget->svg->path; */
+  /*         found = true; */
+  /*       } */
+  /*     } */
+  /*   }); */
+  /* } */
+  /* if (found) return true; */
+
   // generic thank-you-for-using-an-svg-panel case
   doIfTypeRecursive<rack::app::SvgPanel>(mw, [&](rack::app::SvgPanel* svgPanel) {
     if (svgPanel->svg) {
