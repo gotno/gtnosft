@@ -117,6 +117,7 @@ struct VCVModule {
   std::string description;
   rack::math::Rect box;
   std::string panelSvgPath;
+  NVGcolor bodyColor;
 
   std::string slug;
   std::string pluginSlug;

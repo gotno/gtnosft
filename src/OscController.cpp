@@ -169,6 +169,7 @@ void OscController::printModules() {
       DEBUG("        (has %lld lights)", module_pair.second.Lights.size());
     }
     DEBUG("        panel svg path: %s", module_pair.second.panelSvgPath.c_str());
+    DEBUG("        body color: %fr %fg %fb", module_pair.second.bodyColor.r, module_pair.second.bodyColor.g, module_pair.second.bodyColor.b);
     DEBUG("  pos: %fx/%fy, size: %fx/%fy", module_pair.second.box.pos.x, module_pair.second.box.pos.y, module_pair.second.box.size.x, module_pair.second.box.size.y);
 
     if (module_pair.second.Params.size() > 0) {
@@ -397,6 +398,9 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
     << module->box.size.x
     << module->box.size.y
     << module->panelSvgPath.c_str()
+    << module->bodyColor.r
+    << module->bodyColor.g
+    << module->bodyColor.b
     << osc::EndMessage;
 }
  

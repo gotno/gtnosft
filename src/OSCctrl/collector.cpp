@@ -1,5 +1,6 @@
 #include "collector.hpp"
 #include <asset.hpp>
+#include <regex>
 
 rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const {
   rack::math::Vec newPos;
@@ -67,7 +68,8 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
 
   rack::math::Rect panelBox;
   std::string panelSvgPath;
-  if (!findModulePanel(mw, panelBox, panelSvgPath)) {
+  NVGcolor bodyColor;
+  if (!findModulePanel(mw, panelBox, panelSvgPath, bodyColor)) {
     WARN(
       "no panel found for %s:%s, abandoning collect.",
       mw->getModule()->getModel()->plugin->slug.c_str(),
@@ -87,6 +89,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   vcv_module.description = mod->getModel()->description;
   vcv_module.box = panelBox;
   vcv_module.panelSvgPath = panelSvgPath;
+  vcv_module.bodyColor = bodyColor;
 
   rack::plugin::Model* model = mod->getModel();
   vcv_module.pluginSlug = model->plugin->slug;
@@ -145,7 +148,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   }
 }
 
-bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath) {
+bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath, NVGcolor& bodyColor) {
   bool found{false};
 
   // special cases
@@ -159,6 +162,7 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
         if (svgWidget->svg->path.find(moduleSlug) != std::string::npos) {
           panelBox = svgWidget->box;
           panelSvgPath = svgWidget->svg->path;
+          bodyColor = getModuleBodyColor(svgWidget->svg->handle);
           found = true;
         }
       }
@@ -166,36 +170,85 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
   }
   if (found) return true;
 
-  /* if (pluginSlug == "SlimeChild-Substation") { */
-  /*   std::smatch match; */
-  /*   std::string moduleName; */
-  /*   if (std::regex_search(moduleSlug, match, std::regex("SlimeChild-Substation-(.+)"))) { */
-  /*     moduleName = match.str(1); */
-  /*   } */
-  /*   if (moduleName.empty()) return false; */
+  if (pluginSlug == "SlimeChild-Substation") {
+    std::smatch match;
+    std::string moduleName;
+    if (std::regex_search(moduleSlug, match, std::regex("SlimeChild-Substation-(.+)"))) {
+      moduleName = match.str(1);
+    }
+    if (moduleName.empty()) return false;
 
-  /*   doIfTypeRecursive<rack::widget::SvgWidget>(mw, [&](rack::widget::SvgWidget* svgWidget) { */
-  /*     if (svgWidget->svg) { */
-  /*       if (svgWidget->svg->path.find(moduleName) != std::string::npos) { */
-  /*         panelBox = svgWidget->box; */
-  /*         panelSvgPath = svgWidget->svg->path; */
-  /*         found = true; */
-  /*       } */
-  /*     } */
-  /*   }); */
-  /* } */
-  /* if (found) return true; */
+    doIfTypeRecursive<rack::widget::SvgWidget>(mw, [&](rack::widget::SvgWidget* svgWidget) {
+      if (svgWidget->svg) {
+        if (svgWidget->svg->path.find(moduleName) != std::string::npos) {
+          panelBox = svgWidget->box;
+          panelSvgPath = svgWidget->svg->path;
+          bodyColor = getModuleBodyColor(svgWidget->svg->handle);
+          found = true;
+        }
+      }
+    });
+  }
+  if (found) return true;
 
   // generic thank-you-for-using-an-svg-panel case
   doIfTypeRecursive<rack::app::SvgPanel>(mw, [&](rack::app::SvgPanel* svgPanel) {
     if (svgPanel->svg) {
       panelBox = svgPanel->box;
       panelSvgPath = svgPanel->svg->path;
+      bodyColor = getModuleBodyColor(svgPanel->svg->handle);
       found = true;
     }
   });
 
   return found;
+}
+
+NVGcolor Collector::getModuleBodyColor(NSVGimage* svgHandle) {
+  // educated guess as to what a reasonable minimum area should be,
+  // based on testing a bunch of different modules
+  float largestArea{11000.f};
+
+  // default in case we can't find anything reasonable
+  NVGcolor bodyColor = nvgRGBA(255, 255, 255, 255);
+
+  for (NSVGshape* shape = svgHandle->shapes; shape; shape = shape->next) {
+    // skip invisible shapes
+    if (!(shape->flags & NSVG_FLAGS_VISIBLE)) continue;
+
+    // "Tight bounding box of the shape [minx,miny,maxx,maxy]."
+    float area =
+      (shape->bounds[2] - shape->bounds[0]) * (shape->bounds[3] - shape->bounds[1]);
+
+    // skip if this shape is smaller than the largest so far
+    if (area < largestArea) continue;
+
+    unsigned int color;
+    switch (shape->fill.type) {
+      case NSVG_PAINT_COLOR:
+        color = shape->fill.color;
+        break;
+      case NSVG_PAINT_LINEAR_GRADIENT:
+      case NSVG_PAINT_RADIAL_GRADIENT:
+        color = shape->fill.gradient->stops[0].color;
+        break;
+      default:
+        continue;
+    }
+
+    // skip transparent colors
+    if (((color >> 24) & 0xff) < 255) continue;
+
+    largestArea = area;
+    bodyColor = nvgRGBA(
+      (color >> 0) & 0xff,
+      (color >> 8) & 0xff,
+      (color >> 16) & 0xff,
+      (color >> 24) & 0xff
+    );
+  }
+
+  return bodyColor;
 }
 
 void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget) {

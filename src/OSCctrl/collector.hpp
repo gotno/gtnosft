@@ -17,7 +17,11 @@ struct Collector {
 	int randomId();
   // special handling because some of you don't play by the rules and `getPanel`
   // doesn't work (looking at you, bogaudio and mockbamodular)
-  bool findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath);
+  bool findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath, NVGcolor& bodyColor);
+
+  // attempt to parse out the most likely "main" color from an svg
+  // by finding the largest visible, non-transparent bounding box
+  NVGcolor getModuleBodyColor(NSVGimage* svgHandle);
 
   /* collect params */
   void collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget);
