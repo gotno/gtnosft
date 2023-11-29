@@ -899,12 +899,6 @@ void OscController::syncLibrary() {
 
   tagbundle << osc::EndBundle;
   sendMessage(tagbundle);
-
-  // sync complete
-  osc::OutboundPacketStream synccompletebuffer(oscBuffer, OSC_BUFFER_SIZE);
-  synccompletebuffer << osc::BeginMessage("/library_sync_complete")
-    << osc::EndMessage;
-  sendMessage(synccompletebuffer);
 }
 
 void OscController::setModuleFavorite(std::string pluginSlug, std::string moduleSlug, bool favorite) {
