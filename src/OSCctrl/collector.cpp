@@ -233,6 +233,7 @@ NVGcolor Collector::getModuleBodyColor(NSVGimage* svgHandle) {
         color = shape->fill.gradient->stops[0].color;
         break;
       default:
+        // skip unknown fill types
         continue;
     }
 
