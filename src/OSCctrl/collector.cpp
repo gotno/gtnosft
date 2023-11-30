@@ -494,7 +494,6 @@ void Collector::collectModuleLight(VCVModule& vcv_module, rack::app::LightWidget
 	vcv_light.box.pos = ueCorrectPos(vcv_module.box.size, vcv_light.box);
 
   vcv_light.shape = LightShape::Round;
-  vcv_light.svgPath = rack::asset::system("res/ComponentLibrary/MediumLight.svg");
 
   vcv_light.widget = lightWidget;
 
@@ -516,11 +515,6 @@ void Collector::collectParamLight(VCVModule& vcv_module, VCVParam& vcv_param, ra
     vcv_param.type == ParamType::Slider
       ? LightShape::Rectangle
       : LightShape::Round;
-
-  vcv_light.svgPath =
-    vcv_param.type == ParamType::Slider
-      ? rack::asset::system("res/ComponentLibrary/VCVSliderLight.svg")
-      : std::string("");
 
   vcv_light.widget = lightWidget;
 

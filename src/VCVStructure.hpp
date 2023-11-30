@@ -17,7 +17,6 @@ struct VCVLight {
   int paramId{-1};
   rack::math::Rect box;
   LightShape shape;
-  std::string svgPath;
   bool visible{true};
   NVGcolor color;
   NVGcolor bgColor;
