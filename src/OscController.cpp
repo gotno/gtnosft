@@ -341,7 +341,6 @@ void OscController::bundleLight(osc::OutboundPacketStream& bundle, int64_t modul
     << light->bgColor.b
     << light->bgColor.a
     << light->shape
-    << light->svgPath.c_str()
     << light->visible
     << osc::EndMessage;
 }
