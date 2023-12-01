@@ -134,6 +134,10 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
     // Switch/Button
     if (rack::app::SvgSwitch* svgSwitch = dynamic_cast<rack::app::SvgSwitch*>(paramWidget)) {
       collectSwitch(vcv_param, svgSwitch);
+    } else if (bogaudio::StatefulButton* button = dynamic_cast<bogaudio::StatefulButton*>(paramWidget)) {
+      rack::app::SvgSwitch svgSwitch;
+      svgSwitch.frames = button->_frames;
+      collectSwitch(vcv_param, &svgSwitch);
     }
 
     // Button (yet to see one in the wild)
