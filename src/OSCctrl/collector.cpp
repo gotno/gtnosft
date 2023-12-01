@@ -2,6 +2,8 @@
 #include <asset.hpp>
 #include <regex>
 
+#include <BogaudioModules/src/widgets.hpp>
+
 rack::math::Vec Collector::ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const {
   rack::math::Vec newPos;
   newPos.x = (childBox.pos.x - (parentSize.x * 0.5f)) + (childBox.size.x * 0.5f);
@@ -125,8 +127,8 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
     }
 
     // Slider
-    if (rack::app::SvgSlider* svgSlider = dynamic_cast<rack::app::SvgSlider*>(paramWidget)) {
-      collectSlider(vcv_param, svgSlider);
+    if (rack::app::SliderKnob* sliderKnob = dynamic_cast<rack::app::SliderKnob*>(paramWidget)) {
+      collectSlider(vcv_param, sliderKnob);
     }
 
     // Switch/Button
@@ -442,8 +444,15 @@ void Collector::setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch*
   }
 }
 
-void Collector::collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSlider) {
+void Collector::collectSlider(VCVParam& vcv_slider, rack::app::SliderKnob* sliderKnob) {
   vcv_slider.type = ParamType::Slider;
+
+  rack::app::SvgSlider* svgSlider = dynamic_cast<rack::app::SvgSlider*>(sliderKnob);
+
+  rack::componentlibrary::VCVSlider defaultSlider;
+  if (!svgSlider) {
+    svgSlider = dynamic_cast<rack::app::SvgSlider*>(&defaultSlider);
+  }
 
   rack::math::Rect handleBox = box2cm(svgSlider->handle->getBox());
   handleBox.pos = ueCorrectPos(vcv_slider.box.size, handleBox);
@@ -458,6 +467,29 @@ void Collector::collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSli
   vcv_slider.minHandlePos = minHandlePos;
   vcv_slider.maxHandlePos = maxHandlePos;
   vcv_slider.handleBox = handleBox;
+
+  if (bogaudio::VUSlider* bogSlider = dynamic_cast<bogaudio::VUSlider*>(sliderKnob)) {
+    rack::math::Vec factor{
+      bogSlider->box.size.x / svgSlider->box.size.x,
+      bogSlider->box.size.y / svgSlider->box.size.y,
+    };
+
+    rack::math::Rect handleBox = box2cm(svgSlider->handle->getBox());
+    handleBox.size = handleBox.size.mult(factor);
+    handleBox.pos = handleBox.pos.mult(factor);
+    handleBox.pos = ueCorrectPos(vcv_slider.box.size, handleBox);
+    vcv_slider.handleBox = handleBox;
+
+    rack::math::Vec minHandlePos = vec2cm(svgSlider->minHandlePos);
+    minHandlePos = minHandlePos.mult(factor);
+    minHandlePos = ueCorrectPos(vcv_slider.box.size, minHandlePos, handleBox.size);
+    vcv_slider.minHandlePos = minHandlePos;
+
+    rack::math::Vec maxHandlePos = vec2cm(svgSlider->maxHandlePos);
+    maxHandlePos = maxHandlePos.mult(factor);
+    maxHandlePos = ueCorrectPos(vcv_slider.box.size, maxHandlePos, handleBox.size);
+    vcv_slider.maxHandlePos = maxHandlePos;
+  }
 
   try {
     vcv_slider.svgPaths.push_back(svgSlider->background->svg->path);

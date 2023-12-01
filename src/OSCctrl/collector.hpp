@@ -36,7 +36,7 @@ struct Collector {
   void collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
   void setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
 
-  void collectSlider(VCVParam& vcv_slider, rack::app::SvgSlider* svgSlider);
+  void collectSlider(VCVParam& vcv_slider, rack::app::SliderKnob* sliderKnob);
   void setDefaultSliderSvgs(VCVParam& vcv_slider);
 
   /* collect lights */
