@@ -132,12 +132,11 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
     }
 
     // Switch/Button
-    if (rack::app::SvgSwitch* svgSwitch = dynamic_cast<rack::app::SvgSwitch*>(paramWidget)) {
-      collectSwitch(vcv_param, svgSwitch);
-    } else if (bogaudio::StatefulButton* button = dynamic_cast<bogaudio::StatefulButton*>(paramWidget)) {
-      rack::app::SvgSwitch svgSwitch;
-      svgSwitch.frames = button->_frames;
-      collectSwitch(vcv_param, &svgSwitch);
+    bool isSwitch = dynamic_cast<rack::app::SvgSwitch*>(paramWidget)
+      || dynamic_cast<rack::app::Switch*>(paramWidget)
+      || dynamic_cast<bogaudio::StatefulButton*>(paramWidget);
+    if (isSwitch) {
+      collectSwitch(vcv_param, paramWidget);
     }
 
     // Button (yet to see one in the wild)
@@ -358,35 +357,60 @@ void Collector::setDefaultKnobSvgs(VCVParam& vcv_knob) {
   }
 }
 
-void Collector::collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch) {
-  vcv_switch.latch = svgSwitch->latch;
-  vcv_switch.momentary = svgSwitch->momentary;
+void Collector::collectSwitch(VCVParam& vcv_switch, rack::app::ParamWidget* paramWidget) {
+  rack::app::SvgSwitch* svgSwitch = dynamic_cast<rack::app::SvgSwitch*>(paramWidget);
+  rack::app::SvgSwitch defaultSwitch;
+  if (!svgSwitch) svgSwitch = &defaultSwitch;
 
-  // buttons have either momentary or latch, switches have neither
-  if (svgSwitch->momentary || svgSwitch->latch) {
+  bogaudio::StatefulButton* BSButton = dynamic_cast<bogaudio::StatefulButton*>(paramWidget);
+  if (BSButton) svgSwitch->frames = BSButton->_frames;
+
+  // buttons have either momentary or latch, switches have neither.
+  // we only use momentary right now (latch has something to do with
+  // internal svg handling? unclear)
+  vcv_switch.momentary = svgSwitch->momentary || svgSwitch->latch;
+  if (vcv_switch.momentary) {
     vcv_switch.type = ParamType::Button;
   } else {
     vcv_switch.type = ParamType::Switch;
     vcv_switch.horizontal = vcv_switch.box.size.x > vcv_switch.box.size.y;
   }
 
+  // we're only set up to handle 5 frames max. this is 2 more than i've ever
+  // seen, but just in case, call it out if we see it.
+  if (svgSwitch->frames.size() > 5) {
+    WARN("%s switch has more than 5 frames", vcv_switch.name.c_str());
+  }
+
+  // we might be looking at a custom switch (slimechild, for instance)
+  // TODO: ok so this only runs for slimechild afaik, so we're defaulting to 
+  //       reversed frame order here which is probably not going to be right
+  //       for everyone else
+  if (svgSwitch->frames.size() == 0) {
+    WARN("no frames found in SvgSwitch %s, defaulting (and reversing)", vcv_switch.name.c_str());
+    setDefaultSwitchSvgs(vcv_switch, vcv_switch.maxValue + 1, true);
+    return;
+  }
+
+  // sometimes grabbing the svg path errors out (vult, for instance)
   try {
-		int index{-1};
 		for (std::shared_ptr<rack::window::Svg> svg : svgSwitch->frames) {
-			if (++index > 4) {
-				WARN("%s switch has more than 5 frames", vcv_switch.name.c_str());
-				break;
-			}
 			vcv_switch.svgPaths.push_back(svg->path);
 		}
 	} catch (std::exception& e) {
-		WARN("unable to find svgs for switch %s, using defaults (error: %s)", vcv_switch.name.c_str(), e.what());
-    setDefaultSwitchSvgs(vcv_switch, svgSwitch);
+		WARN("errored finding svgs for switch %s, using defaults (error: %s)", vcv_switch.name.c_str(), e.what());
+    setDefaultSwitchSvgs(vcv_switch, svgSwitch->frames.size());
+    return;
 	}
+
+  if (vcv_switch.svgPaths.size() > 0) return;
+  WARN("switch %s has no frames, setting type to Unknown", vcv_switch.name.c_str());
+  vcv_switch.type = ParamType::Unknown;
 }
 
-void Collector::setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch) {
+void Collector::setDefaultSwitchSvgs(VCVParam& vcv_switch, int numFrames, bool reverse) {
   vcv_switch.svgPaths.clear();
+  std::vector<std::string> svgPaths;
 
   if (vcv_switch.type == ParamType::Button) {
     vcv_switch.svgPaths.push_back(
@@ -395,56 +419,64 @@ void Collector::setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch*
     vcv_switch.svgPaths.push_back(
       rack::asset::system("res/ComponentLibrary/VCVButton_1.svg")
     );
-  } else if (svgSwitch->frames.size() == 3) {
+    return;
+  }
+
+  if (numFrames == 3) {
     if (vcv_switch.box.size.x == vcv_switch.box.size.y) {
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/NKK_2.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/NKK_1.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/NKK_0.svg")
       );
     } else if (vcv_switch.horizontal) {
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSSThreeHorizontal_2.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSSThreeHorizontal_1.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSSThreeHorizontal_0.svg")
       );
     } else {
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSSThree_2.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSSThree_1.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSSThree_0.svg")
       );
     }
-  } else if (svgSwitch->frames.size() == 2) {
+  } else if (numFrames == 2) {
     if (vcv_switch.box.size.x == vcv_switch.box.size.y) {
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/NKK_2.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/NKK_0.svg")
       );
     } else {
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSS_1.svg")
       );
-      vcv_switch.svgPaths.push_back(
+      svgPaths.push_back(
         rack::asset::system("res/ComponentLibrary/CKSS_0.svg")
       );
     }
   } else {
-    WARN("svgSwitch %s has frame strangeness (%lld frames)", vcv_switch.name.c_str(), svgSwitch->frames.size());
+    WARN("svgSwitch %s has frame strangeness (%d frames)", vcv_switch.name.c_str(), numFrames);
+  }
+
+  if (reverse) std::reverse(svgPaths.begin(), svgPaths.end());
+  for (auto& path : svgPaths) {
+    vcv_switch.svgPaths.push_back(path);
   }
 }
 
@@ -460,17 +492,17 @@ void Collector::collectSlider(VCVParam& vcv_slider, rack::app::SliderKnob* slide
 
   rack::math::Rect handleBox = box2cm(svgSlider->handle->getBox());
   handleBox.pos = ueCorrectPos(vcv_slider.box.size, handleBox);
+  vcv_slider.handleBox = handleBox;
 
   rack::math::Vec minHandlePos = vec2cm(svgSlider->minHandlePos);
   minHandlePos = ueCorrectPos(vcv_slider.box.size, minHandlePos, handleBox.size);
+  vcv_slider.minHandlePos = minHandlePos;
 
   rack::math::Vec maxHandlePos = vec2cm(svgSlider->maxHandlePos);
   maxHandlePos = ueCorrectPos(vcv_slider.box.size, maxHandlePos, handleBox.size);
+  vcv_slider.maxHandlePos = maxHandlePos;
 
   vcv_slider.horizontal = svgSlider->horizontal;
-  vcv_slider.minHandlePos = minHandlePos;
-  vcv_slider.maxHandlePos = maxHandlePos;
-  vcv_slider.handleBox = handleBox;
 
   if (bogaudio::VUSlider* bogSlider = dynamic_cast<bogaudio::VUSlider*>(sliderKnob)) {
     rack::math::Vec factor{

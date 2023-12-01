@@ -286,11 +286,6 @@ void OscController::printCables() {
 }
 
 void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t moduleId, VCVParam* param) {
-  if (param->type == ParamType::Unknown) {
-    WARN("unknown param %d for %s, skipping bundle", param->id, Modules[moduleId].name.c_str());
-    return;
-  }
-
   bundle << osc::BeginMessage("/modules/param/add")
     << moduleId
     << param->id
@@ -318,7 +313,6 @@ void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t modul
     << param->handleBox.size.y
     << param->horizontal
     << param->speed
-    << param->latch
     << param->momentary
     << param->visible
     << param->svgPaths[0].c_str()
@@ -420,6 +414,12 @@ void OscController::syncModule(VCVModule* module) {
 
   for (std::pair<int, VCVParam> p_param : module->Params) {
     VCVParam* param = &p_param.second;
+
+    if (param->type == ParamType::Unknown) {
+      WARN("unknown param %d for %s, skipping bundle", param->id, module->name.c_str());
+      continue;
+    }
+
     bundleParam(bundle, module->id, param);
 
     for (std::pair<int, VCVLight> p_light : p_param.second.Lights) {

@@ -33,8 +33,8 @@ struct Collector {
   void collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob);
   void setDefaultKnobSvgs(VCVParam& vcv_knob);
 
-  void collectSwitch(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
-  void setDefaultSwitchSvgs(VCVParam& vcv_switch, rack::app::SvgSwitch* svgSwitch);
+  void collectSwitch(VCVParam& vcv_switch, rack::app::ParamWidget* paramWidget);
+  void setDefaultSwitchSvgs(VCVParam& vcv_switch, int numFrames, bool reverse = false);
 
   void collectSlider(VCVParam& vcv_slider, rack::app::SliderKnob* sliderKnob);
   void setDefaultSliderSvgs(VCVParam& vcv_slider);

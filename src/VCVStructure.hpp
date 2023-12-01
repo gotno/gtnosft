@@ -63,9 +63,6 @@ struct VCVParam {
   std::vector<std::string> sliderLabels;
 
   // Switch/Button
-  // "button" will have one of latch or momentary, "switch" will have neither
-  // (both are SvgSwitch under the hood)
-  bool latch = false;
   bool momentary = false;
 
   // 0- knob bg, slider base, switch/button frame 0
