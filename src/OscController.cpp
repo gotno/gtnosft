@@ -160,6 +160,7 @@ void OscController::collectModules(bool printResults) {
 void OscController::printModules() {
   for (std::pair<int64_t, VCVModule> module_pair : Modules) {
     // module id, name
+    DEBUG("\n");
     if (module_pair.second.Displays.size() > 0) {
       DEBUG("%lld %s:%s (has %lld LED displays)", module_pair.first, module_pair.second.brand.c_str(), module_pair.second.name.c_str(), module_pair.second.Displays.size());
     } else {
@@ -199,7 +200,8 @@ void OscController::printModules() {
 
         // param id, type, name, unit
         DEBUG("    %d (%s): %s%s", param_pair.second.id, type.c_str(), param_pair.second.name.c_str(), param_pair.second.unit.c_str());
-        DEBUG("    value: %f", param_pair.second.value);
+        DEBUG("    value: %f, min/default/max %f/%f/%f", param_pair.second.value, param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+        DEBUG("    box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
         if (param_pair.second.Lights.size() > 0) {
           DEBUG("      (has %lld lights)", param_pair.second.Lights.size());
         }
@@ -214,6 +216,9 @@ void OscController::printModules() {
         if (type == "Slider") {
           DEBUG("      speed %f (horizontal: %s, snap: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false", param_pair.second.snap ? "true" : "false");
           DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+          DEBUG("      box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
+          DEBUG("      handleBox size %f/%f, pos %f/%f", param_pair.second.handleBox.size.x, param_pair.second.handleBox.size.y, param_pair.second.handleBox.pos.x, param_pair.second.handleBox.pos.y);
+          DEBUG("      minHandlePos %f/%f, maxHandlePos %f/%f", param_pair.second.minHandlePos.x, param_pair.second.minHandlePos.y, param_pair.second.maxHandlePos.x, param_pair.second.maxHandlePos.y);
           for (std::string& label : param_pair.second.sliderLabels) {
             DEBUG("      label: %s", label.c_str());
           }
