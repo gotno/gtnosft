@@ -2,19 +2,22 @@
 #include "../VCVStructure.hpp"
 
 struct Collector {
-  void collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId);
   void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
+  void collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId);
 
   /* utils */
   // convert rack's upper left origin to unreal's center origin
   rack::math::Vec ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const;
   rack::math::Vec ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Vec& childPos, const rack::math::Vec& childSize) const;
+
   // rack uses a mm->px formula: reverse it and divide by 10 for unreal centimeters
   float px2cm(const float& px) const;
   rack::math::Vec vec2cm(const rack::math::Vec& pxVec) const;
   rack::math::Rect box2cm(const rack::math::Rect& pxBox) const;
+
   // generate a random id to keep track of lights
 	int randomId();
+
   // special handling because some of you don't play by the rules and `getPanel`
   // doesn't work (looking at you, bogaudio and mockbamodular)
   bool findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath, NVGcolor& bodyColor);
