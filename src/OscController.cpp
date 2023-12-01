@@ -192,9 +192,8 @@ void OscController::printModules() {
             type = "Switch";
             break;
           case (ParamType::Unknown):
-            type = "Unknown";
-            break;
           default:
+            type = "Unknown";
             break;
         }
 
