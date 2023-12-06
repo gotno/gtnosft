@@ -226,7 +226,7 @@ void OscController::printModules() {
           }
         }
         if (type == "Button") {
-          DEBUG("      (momentary: %s, latch: %s)", param_pair.second.momentary ? "true" : "false", param_pair.second.latch ? "true" : "false");
+          DEBUG("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
           DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
           DEBUG("      has %lld frames", param_pair.second.svgPaths.size());
           for (std::string& path : param_pair.second.svgPaths) {
@@ -324,6 +324,9 @@ void OscController::bundleParam(osc::OutboundPacketStream& bundle, int64_t modul
     << param->svgPaths[2].c_str()
     << param->svgPaths[3].c_str()
     << param->svgPaths[4].c_str()
+    << param->bodyColor.r
+    << param->bodyColor.g
+    << param->bodyColor.b
     << osc::EndMessage;
 }
 
@@ -368,6 +371,9 @@ void OscController::bundlePort(osc::OutboundPacketStream& bundle, VCVPort* port)
     << port->box.size.x
     << port->box.size.y
     << port->svgPath.c_str()
+    << port->bodyColor.r
+    << port->bodyColor.g
+    << port->bodyColor.b
     << osc::EndMessage;
 }
 

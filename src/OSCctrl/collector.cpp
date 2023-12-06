@@ -70,8 +70,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
 
   rack::math::Rect panelBox;
   std::string panelSvgPath;
-  NVGcolor bodyColor;
-  if (!findModulePanel(mw, panelBox, panelSvgPath, bodyColor)) {
+  if (!findModulePanel(mw, panelBox, panelSvgPath)) {
     WARN(
       "no panel found for %s:%s, abandoning collect.",
       mw->getModule()->getModel()->plugin->slug.c_str(),
@@ -91,7 +90,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   vcv_module.description = mod->getModel()->description;
   vcv_module.box = panelBox;
   vcv_module.panelSvgPath = panelSvgPath;
-  vcv_module.bodyColor = bodyColor;
+  vcv_module.bodyColor = getSvgColor(panelSvgPath);
 
   rack::plugin::Model* model = mod->getModel();
   vcv_module.pluginSlug = model->plugin->slug;
@@ -113,6 +112,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
     collectParam(vcv_module, paramWidget);
     VCVParam& vcv_param = vcv_module.Params[paramId];
 
+    // Param lights
     for (rack::widget::Widget* & widget : paramWidget->children) {
       if (rack::app::LightWidget* lightWidget = dynamic_cast<rack::app::LightWidget*>(widget)) {
         collectParamLight(vcv_module, vcv_param, lightWidget);
@@ -144,6 +144,12 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
       WARN("found a button?! %s", vcv_module.name.c_str());
     }
 
+    for (std::string& path : vcv_param.svgPaths) {
+      if (path.empty()) continue;
+      vcv_param.bodyColor = getSvgColor(path);
+      break;
+    }
+
     fillParamSvgPaths(vcv_param);
   }
 
@@ -153,7 +159,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   }
 }
 
-bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath, NVGcolor& bodyColor) {
+bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath) {
   bool found{false};
 
   // special cases
@@ -167,7 +173,6 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
         if (svgWidget->svg->path.find(moduleSlug) != std::string::npos) {
           panelBox = svgWidget->box;
           panelSvgPath = svgWidget->svg->path;
-          bodyColor = getModuleBodyColor(svgWidget->svg->handle);
           found = true;
         }
       }
@@ -188,7 +193,6 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
         if (svgWidget->svg->path.find(moduleName) != std::string::npos) {
           panelBox = svgWidget->box;
           panelSvgPath = svgWidget->svg->path;
-          bodyColor = getModuleBodyColor(svgWidget->svg->handle);
           found = true;
         }
       }
@@ -201,7 +205,6 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
     if (svgPanel->svg) {
       panelBox = svgPanel->box;
       panelSvgPath = svgPanel->svg->path;
-      bodyColor = getModuleBodyColor(svgPanel->svg->handle);
       found = true;
     }
   });
@@ -209,15 +212,24 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
   return found;
 }
 
-NVGcolor Collector::getModuleBodyColor(NSVGimage* svgHandle) {
-  // educated guess as to what a reasonable minimum area should be,
-  // based on testing a bunch of different modules
-  float largestArea{11000.f};
+void Collector::findMainSvgColor(std::string& svgPath, bool isPanelSvg) {
+  // educated guess as to what a reasonable minimum area for a panel svg
+  // should be, based on testing a bunch of different modules
+  float largestArea{isPanelSvg ? 11000.f : 0.f};
 
   // default in case we can't find anything reasonable
-  NVGcolor bodyColor = nvgRGBA(255, 255, 255, 255);
+  NVGcolor svgColor =
+    isPanelSvg ? nvgRGBA(255, 255, 255, 255) : nvgRGBA(0, 0, 0, 255);
 
-  for (NSVGshape* shape = svgHandle->shapes; shape; shape = shape->next) {
+  NSVGimage* handle = nullptr;
+  handle = nsvgParseFromFile(svgPath.c_str(), "px", SVG_DPI);
+
+  if (!handle) {
+    WARN("defaulting svg color for %s", svgPath.c_str());
+    svgColors[svgPath] = svgColor;
+  }
+
+  for (NSVGshape* shape = handle->shapes; shape; shape = shape->next) {
     // skip invisible shapes
     if (!(shape->flags & NSVG_FLAGS_VISIBLE)) continue;
 
@@ -235,7 +247,8 @@ NVGcolor Collector::getModuleBodyColor(NSVGimage* svgHandle) {
         break;
       case NSVG_PAINT_LINEAR_GRADIENT:
       case NSVG_PAINT_RADIAL_GRADIENT:
-        color = shape->fill.gradient->stops[0].color;
+        // the final stop tends to be the darker color
+        color = shape->fill.gradient->stops[shape->fill.gradient->nstops - 1].color;
         break;
       default:
         // skip unknown fill types
@@ -246,7 +259,7 @@ NVGcolor Collector::getModuleBodyColor(NSVGimage* svgHandle) {
     if (((color >> 24) & 0xff) < 255) continue;
 
     largestArea = area;
-    bodyColor = nvgRGBA(
+    svgColor = nvgRGBA(
       (color >> 0) & 0xff,
       (color >> 8) & 0xff,
       (color >> 16) & 0xff,
@@ -254,7 +267,13 @@ NVGcolor Collector::getModuleBodyColor(NSVGimage* svgHandle) {
     );
   }
 
-  return bodyColor;
+  svgColors[svgPath] = svgColor;
+  delete handle;
+}
+
+NVGcolor Collector::getSvgColor(std::string& svgPath, bool isPanelSvg) {
+  if (svgColors.count(svgPath) == 0) findMainSvgColor(svgPath, isPanelSvg);
+  return svgColors.at(svgPath);
 }
 
 void Collector::collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget) {
@@ -635,6 +654,8 @@ void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWi
   } else {
     setDefaultPortSvg(*port);
   }
+
+  port->bodyColor = getSvgColor(port->svgPath);
 }
 
 void Collector::setDefaultPortSvg(VCVPort& vcv_port) {

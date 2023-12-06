@@ -40,6 +40,8 @@ struct VCVParam {
   std::string displayValue;
   rack::math::Rect box;
 
+  NVGcolor bodyColor;
+
   float minValue;
   float maxValue;
   float defaultValue;
@@ -96,6 +98,8 @@ struct VCVPort {
   rack::math::Rect box;
   std::string svgPath;
 
+  NVGcolor bodyColor;
+
   VCVPort() {}
   VCVPort(int _id) : id(_id) {}
 };
@@ -113,6 +117,7 @@ struct VCVModule {
   std::string description;
   rack::math::Rect box;
   std::string panelSvgPath;
+
   NVGcolor bodyColor;
 
   std::string slug;
