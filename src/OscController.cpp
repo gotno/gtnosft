@@ -537,20 +537,14 @@ void OscController::sendLightUpdates() {
 
   std::lock_guard<std::mutex> lock(lmutex);
   for (std::pair<int64_t, LightReferenceMap> module_pair : LightReferences) {
+    int64_t& moduleId = module_pair.first;
     for (std::pair<int, VCVLight*> light_pair : module_pair.second) {
-      VCVLight* light = light_pair.second;
-      
-      // unreal emissive colors ignore alpha and obscure the background color,
-      // so screen the light color over the background color and
-      // apply the alpha to the rgb values before sending.
-      NVGcolor lightColor = rack::color::screen(light->widget->bgColor, light->widget->color);
-      lightColor = rack::color::mult(light->widget->color, light->widget->color.a);
+      int& lightId = light_pair.first;
 
-      // TODO: this doesn't work for the initial update of static lights
-      if (!rack::color::isEqual(light->color, lightColor) || !light->hadFirstUpdate) {
-        light->hadFirstUpdate = true;
-        light->color = lightColor;
-        bundleLightUpdate(bundle, module_pair.first, light_pair.first, light->color);
+      VCVLight* vcv_light = light_pair.second;
+      if (!rack::color::isEqual(vcv_light->color, vcv_light->widget->color)) {
+        vcv_light->color = vcv_light->widget->color;
+        bundleLightUpdate(bundle, moduleId, lightId, vcv_light->color);
       }
     }
   }

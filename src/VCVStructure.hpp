@@ -18,12 +18,10 @@ struct VCVLight {
   rack::math::Rect box;
   LightShape shape;
   bool visible{true};
-  NVGcolor color;
-  NVGcolor bgColor;
+  NVGcolor color{nvgRGBA(0, 0, 0, 0)};
+  NVGcolor bgColor{nvgRGBA(0, 0, 0, 0)};
 
   rack::app::LightWidget* widget;
-
-  bool hadFirstUpdate{false};
 
   VCVLight() {}
   VCVLight(int _id) : id(_id) {}
