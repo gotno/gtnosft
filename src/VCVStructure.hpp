@@ -149,3 +149,28 @@ struct VCVCable {
   VCVCable(int64_t _inputModuleId, int64_t _outputModuleId, int _inputPortId, int _outputPortId)
     : inputModuleId(_inputModuleId), outputModuleId(_outputModuleId), inputPortId(_inputPortId), outputPortId(_outputPortId) {}
 };
+
+typedef std::unordered_map<unsigned int, VCVMenu> MenuMap;
+std::unordered_map<int64_t, MenuMap> ContextMenus;
+
+struct VCVMenu {
+  unsigned int id, parentId;
+  int64_t moduleId;
+};
+
+enum VCVMenuItemType {
+  LABEL,
+  SUBMENU,
+  BOOL,
+  RANGE,
+  DIVIDER
+};
+
+struct VCVMenuItem {
+  int index; //, submenuId?;
+  VCVMenuItemType type;
+
+  std::string label;
+  bool boolValue{false};
+  float rangeValue{0.f};
+};
