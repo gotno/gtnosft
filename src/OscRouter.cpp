@@ -54,6 +54,19 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
   } else if (path.compare(std::string("/sync")) == 0) {
     controller->needsSync = true;
     return;
+  } else if (path.compare(std::string("/get_menu")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    VCVMenu menu;
+    menu.moduleId = (arg++)->AsInt64();
+    menu.id = (arg++)->AsInt32();
+    menu.parentMenuId = (arg++)->AsInt32();
+    menu.parentItemIndex = (arg++)->AsInt32();
+
+    DEBUG("received /get_menu %lld", menu.moduleId);
+
+    controller->addMenuToSync(menu);
+    return;
   } else if (path.compare(std::string("/favorite")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
 
@@ -65,6 +78,7 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     favorite = (arg++)->AsBool();
 
     controller->setModuleFavorite(pluginSlug, moduleSlug, favorite);
+    return;
   } else if (routes.find(path) == routes.end()) {
     DEBUG("no route for %s", path.c_str());
     return;

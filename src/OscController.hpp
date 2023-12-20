@@ -33,8 +33,8 @@ enum CommandType {
   SyncLibrary,
   CheckModuleSync,
   UpdateLights,
-  /* UpdateDisplays, */
   SyncParam,
+  SyncMenu,
   Noop
 };
 struct Payload {
@@ -135,8 +135,15 @@ struct OscController {
   void enqueueSyncLibrary();
   void syncLibrary();
 
-  rack::ui::Menu* getContextMenu(int64_t moduleId);
-  void printMenu(rack::ui::Menu* menu, std::string prefix = std::string(""));
+  // context menus
+  std::unordered_map<int64_t, ModuleMenuMap> ContextMenus;
+
+  std::mutex menumutex;
+  std::vector<VCVMenu> menusToSync;
+  void processMenuRequests();
+  void enqueueSyncMenu(int64_t moduleId, int menuId);
+  void syncMenu(int64_t moduleId, int menuId);
+  void printMenu(VCVMenu& menu);
 
   // UE callbacks
   void rxModule(int64_t outerId, int innerId, float value);
@@ -151,4 +158,6 @@ struct OscController {
   void addModuleToDestroy(int64_t moduleId);
 
   void setModuleFavorite(std::string pluginSlug, std::string moduleSlug, bool favorite);
+
+  void addMenuToSync(VCVMenu menu);
 };

@@ -150,27 +150,33 @@ struct VCVCable {
     : inputModuleId(_inputModuleId), outputModuleId(_outputModuleId), inputPortId(_inputPortId), outputPortId(_outputPortId) {}
 };
 
-typedef std::unordered_map<unsigned int, VCVMenu> MenuMap;
-std::unordered_map<int64_t, MenuMap> ContextMenus;
-
-struct VCVMenu {
-  unsigned int id, parentId;
-  int64_t moduleId;
-};
-
 enum VCVMenuItemType {
   LABEL,
+  ACTION,
   SUBMENU,
-  BOOL,
   RANGE,
-  DIVIDER
+  DIVIDER,
+  UNKNOWN
 };
 
 struct VCVMenuItem {
-  int index; //, submenuId?;
-  VCVMenuItemType type;
+  int index;
+  VCVMenuItemType type{VCVMenuItemType::UNKNOWN};
 
-  std::string label;
-  bool boolValue{false};
-  float rangeValue{0.f};
+  std::string text;
+
+  bool checked{false};
+  bool disabled{false};
+  float rangeValue{0.f}, minRangeValue{0.f}, maxRangeValue{1.f}, defaultRangeValue{0.f};
+  std::string rangeDisplayValue;
+
+  VCVMenuItem(int _index) : index(_index) {}
 };
+
+struct VCVMenu {
+  int64_t moduleId;
+  int id, parentMenuId{-1}, parentItemIndex{-1};
+  std::vector<VCVMenuItem> MenuItems;
+};
+
+typedef std::map<int, VCVMenu> ModuleMenuMap;

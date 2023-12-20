@@ -17,6 +17,7 @@
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
   queueWorker = std::thread(OscController::processQueue, this);
+  DEBUG("USER D: %s", rack::asset::user().c_str());
 }
 
 OscController::~OscController() {
@@ -137,6 +138,10 @@ void OscController::processQueue() {
       case CommandType::SyncParam:
         /* DEBUG("tx /param/sync"); */
         syncParam(command.second.pid, command.second.cid);
+        break;
+      case CommandType::SyncMenu:
+        /* DEBUG("tx /menu/sync"); */
+        syncMenu(command.second.pid, command.second.cid);
         break;
       case CommandType::Noop:
         DEBUG("Q:NOCOMMAND");
@@ -450,7 +455,7 @@ void OscController::syncModule(VCVModule* module) {
     bundleLight(bundle, module->id, light);
   }
 
-  // generate id like for Lights
+  // TODO? generate id like for Lights
   for (VCVDisplay& display : module->Displays) {
     bundleDisplay(bundle, module->id, &display);
   }
@@ -658,118 +663,86 @@ void OscController::processCableUpdates() {
   cablesToDestroy.clear();
 }
 
-rack::ui::Menu* OscController::getContextMenu(int64_t moduleId) {
-  using namespace rack::widget;
-
-  rack::app::ModuleWidget* moduleWidget = APP->scene->rack->getModule(moduleId);
-
-  // close open menu?
-  for (Widget* scene_child : APP->scene->children) {
-    if (dynamic_cast<rack::ui::MenuOverlay*>(scene_child)) {
-      for (Widget* overlay_child : scene_child->children) {
-        if (rack::ui::Menu* menu = dynamic_cast<rack::ui::Menu*>(overlay_child)) {
-          rack::ui::MenuOverlay* overlay = menu->getAncestorOfType<rack::ui::MenuOverlay>();
-          overlay->requestDelete();
-        }
-      }
-    }
+void OscController::processMenuRequests() {
+  std::lock_guard<std::mutex> lock(menumutex);
+  for (VCVMenu& menu : menusToSync) {
+    Collectr.collectMenu(ContextMenus, menu);
+    enqueueSyncMenu(menu.moduleId, menu.id);
   }
-
-  // open module context menu
-  moduleWidget->createContextMenu();
-
-  // find opened menu
-  for (Widget* scene_child : APP->scene->children) {
-    if (dynamic_cast<rack::ui::MenuOverlay*>(scene_child)) {
-      /* DEBUG("FOUND MENU OVERLAY"); */
-
-      for (Widget* overlay_child : scene_child->children) {
-        if (rack::ui::Menu* menu = dynamic_cast<rack::ui::Menu*>(overlay_child)) {
-          /* DEBUG("FOUND MENU"); */
-
-          return menu;
-        }
-      }
-    }
-  }
-
-  return nullptr;
+  menusToSync.clear();
 }
 
-void OscController::printMenu(rack::ui::Menu* menu, std::string prefix) {
-  using namespace rack::widget;
+void OscController::enqueueSyncMenu(int64_t moduleId, int menuId) {
+  enqueueCommand(Command(CommandType::SyncMenu, Payload(moduleId, menuId)));
+}
 
-  prefix = prefix.append(std::string("  "));
+void OscController::syncMenu(int64_t moduleId, int menuId) {
+  DEBUG("syncing menu");
+  if (ContextMenus.count(moduleId) == 0 || ContextMenus[moduleId].count(menuId) == 0) {
+    WARN("no context menu to sync (%lld:%d)", moduleId, menuId);
+    return;
+  }
 
-  std::string checkmark(CHECKMARK_STRING);
-  std::string submenuSuffix(RIGHT_ARROW);
+  VCVMenu& menu = ContextMenus.at(moduleId).at(menuId);
+  printMenu(menu);
 
-  for (Widget* menu_child : menu->children) {
-    // label: true
-    if (dynamic_cast<rack::ui::MenuLabel*>(menu_child)) {
-      rack::ui::MenuLabel* label = dynamic_cast<rack::ui::MenuLabel*>(menu_child);
-      DEBUG("%s%s", prefix.c_str(), label->text.c_str());
-    } else if (dynamic_cast<rack::ui::MenuItem*>(menu_child)) {
-      rack::ui::MenuItem* item = dynamic_cast<rack::ui::MenuItem*>(menu_child);
+  osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
+  bundle << osc::BeginBundleImmediate;
 
-      // step to handle rightText generation for some menu item types
-      item->step();
+  // sync plugin with modules and module tags, one plugin at a time
+  for (VCVMenuItem& menuItem : menu.MenuItems) {
+    bundle << osc::BeginMessage("/menu/item/add")
+      << menu.moduleId
+      << menu.id
+      << menuItem.index
+      << menuItem.type
+      << menuItem.text.c_str()
+      << menuItem.checked
+      << menuItem.disabled
+      << menuItem.rangeValue
+      << menuItem.minRangeValue
+      << menuItem.maxRangeValue
+      << menuItem.defaultRangeValue
+      << menuItem.rangeDisplayValue.c_str()
+      << osc::EndMessage;
+  }
 
-      DEBUG("%s%s\t%s", prefix.c_str(), item->text.c_str(), item->rightText.c_str());
+  bundle << osc::BeginMessage("/menu/synced")
+    << menu.moduleId
+    << menu.id
+    << osc::EndMessage;
 
-      // checked: true
-      /* bool isChecked = */ 
-      /*   item->rightText.length() < checkmark.length() */
-      /*     ? false */
-      /*     : item->rightText.compare( */
-      /*         item->rightText.length() - checkmark.length(), */
-      /*         checkmark.length(), */
-      /*         checkmark */
-      /*       ) == 0; */
+  sendMessage(bundle);
+}
 
-      // submenu: true
-      bool hasSubmenu = 
-        item->rightText.length() < submenuSuffix.length()
-          ? false
-          : item->rightText.compare(
-              item->rightText.length() - submenuSuffix.length(),
-              submenuSuffix.length(),
-              submenuSuffix
-            ) == 0;
-
-      if (hasSubmenu) {
-        /* DEBUG("    (has submenu)"); */
-
-        // Dispatch EnterEvent
-        EventContext cEnter;
-        cEnter.target = item;
-        Widget::EnterEvent eEnter;
-        eEnter.context = &cEnter;
-        item->onEnter(eEnter);
-
-        if (menu->childMenu) printMenu(menu->childMenu, prefix);
-      } // else if (item->rightText.back() == CHECKMARK_STRING[0]) {
-        /* DEBUG("    (is boolean)"); */
-      // }
-
-      // how2click a menu item
-      /* if (item->text.compare(std::string("Delete")) == 0) { */
-      /*   item->doAction(true); */
-      /* } */
-
-      // how2 open submenu
-      /* if (item->text.compare(std::string("Info")) == 0) { */
-      /*   // Dispatch EnterEvent */
-      /*   EventContext cEnter; */
-      /*   cEnter.target = item; */
-      /*   Widget::EnterEvent eEnter; */
-      /*   eEnter.context = &cEnter; */
-      /*   item->onEnter(eEnter); */
-      /* } */
-    } else if (dynamic_cast<rack::ui::MenuSeparator*>(menu_child)) {
-      DEBUG("%s----------", prefix.c_str());
+void OscController::printMenu(VCVMenu& menu) {
+  DEBUG("\n\ncontext menu id:%d for %s:%s", menu.id, Modules[menu.moduleId].brand.c_str(), Modules[menu.moduleId].name.c_str());
+  for (VCVMenuItem& item : menu.MenuItems) {
+    switch (item.type) {
+      case VCVMenuItemType::LABEL:
+        DEBUG("[%s]", item.text.c_str());
+        break;
+      case VCVMenuItemType::ACTION:
+        if (item.checked) {
+          DEBUG("%s\t[x]", item.text.c_str());
+        } else {
+          DEBUG("%s", item.text.c_str());
+        }
+        break;
+      case VCVMenuItemType::DIVIDER:
+        DEBUG("--------------------");
+        break;
+      case VCVMenuItemType::SUBMENU:
+        DEBUG("%s\t->", item.text.c_str());
+        break;
+      case VCVMenuItemType::RANGE:
+        DEBUG("==%s: %s--", item.text.c_str(), item.rangeDisplayValue.c_str());
+        break;
+      default:
+        DEBUG("???");
     }
   }
+  DEBUG("\n");
 }
 
 void OscController::processModuleUpdates() {
@@ -785,11 +758,6 @@ void OscController::processModuleUpdates() {
     locker.unlock();
 
     Modules.erase(moduleId);
-
-    /* rack::ui::Menu* menu = getContextMenu(moduleId); */
-    /* printMenu(menu); */
-    /* rack::ui::MenuOverlay* overlay = menu->getAncestorOfType<rack::ui::MenuOverlay>(); */
-    /* overlay->requestDelete(); */
 
     rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
     mw->removeAction();
@@ -912,4 +880,10 @@ void OscController::setModuleFavorite(std::string pluginSlug, std::string module
       model->setFavorite(favorite);
     }
   }
+}
+
+void OscController::addMenuToSync(VCVMenu menu) {
+  std::lock_guard<std::mutex> lock(menumutex);
+  DEBUG("adding menu sync to queue");
+  menusToSync.push_back(menu);
 }

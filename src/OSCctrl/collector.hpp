@@ -4,7 +4,9 @@
 struct Collector {
   void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
   void collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId);
+  void collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
 
+private:
   /* utils */
   // convert rack's upper left origin to unreal's center origin
   rack::math::Vec ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const;
@@ -24,10 +26,32 @@ struct Collector {
 
   // attempt to parse out the most likely "main" color from an svg
   // by finding the largest visible, non-transparent bounding box
-  NVGcolor getModuleBodyColor(NSVGimage* svgHandle);
   void findMainSvgColor(std::string& svgPath, bool isPanelSvg);
   NVGcolor getSvgColor(std::string& svgPath, bool isPanelSvg = false);
   std::map<std::string, NVGcolor> svgColors;
+
+  template<typename T>
+  bool BasicallyEqual(T f1, T f2) {
+    return (std::fabs(f1 - f2) <= std::numeric_limits<T>::epsilon() * std::fmax(std::fabs(f1), std::fabs(f2)));
+  }
+
+  template <class T, typename F>
+  void doIfTypeRecursive(rack::widget::Widget* widget, F callback) {
+    T* t = dynamic_cast<T*>(widget);
+    if (t)
+      callback(t);
+
+    for (rack::widget::Widget* child : widget->children) {
+      doIfTypeRecursive<T>(child, callback);
+    }
+  }
+
+  bool endsWith(std::string str, std::string end) {
+    return
+      str.length() < end.length()
+        ? false
+        : str.compare(str.length() - end.length(), end.length(), end) == 0;
+  }
 
   /* collect params */
   void collectParam(VCVModule& vcv_module, rack::app::ParamWidget* paramWidget);
@@ -54,19 +78,6 @@ struct Collector {
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);
 
-  template<typename T>
-  bool BasicallyEqual(T f1, T f2) {
-    return (std::fabs(f1 - f2) <= std::numeric_limits<T>::epsilon() * std::fmax(std::fabs(f1), std::fabs(f2)));
-  }
-
-  template <class T, typename F>
-  void doIfTypeRecursive(rack::widget::Widget* widget, F callback) {
-    T* t = dynamic_cast<T*>(widget);
-    if (t)
-      callback(t);
-
-    for (rack::widget::Widget* child : widget->children) {
-      doIfTypeRecursive<T>(child, callback);
-    }
-  }
+  /* collect context menu */
+  rack::ui::Menu* findContextMenu(const VCVMenu& vcv_menu) const;
 };

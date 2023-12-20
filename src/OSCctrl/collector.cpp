@@ -50,6 +50,109 @@ int Collector::randomId() {
   return dist(rng);
 }
 
+      // how2click a menu item
+      /* if (item->text.compare(std::string("Delete")) == 0) { */
+      /*   item->doAction(true); */
+      /* } */
+
+      // how2open submenu
+      /* if (item->text.compare(std::string("Info")) == 0) { */
+      /*   // Dispatch EnterEvent */
+      /*   EventContext cEnter; */
+      /*   cEnter.target = item; */
+      /*   Widget::EnterEvent eEnter; */
+      /*   eEnter.context = &cEnter; */
+      /*   item->onEnter(eEnter); */
+
+      /*   if (menu->childMenu) { */
+      /*     // do somethin */
+      /*   } */
+      /* } */
+
+void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu) {
+  rack::ui::Menu* menu = findContextMenu(vcv_menu);
+
+  if (!menu) {
+    WARN("no menu found for %lld:%d", vcv_menu.moduleId, vcv_menu.id);
+    return;
+  }
+
+  using namespace rack::widget;
+
+  int index = -1;
+  for (Widget* menu_child : menu->children) {
+    VCVMenuItem vcv_menu_item(++index);
+
+    if (rack::ui::MenuLabel* label = dynamic_cast<rack::ui::MenuLabel*>(menu_child)) {
+      vcv_menu_item.type = VCVMenuItemType::LABEL;
+      vcv_menu_item.text = label->text;
+    } else if (rack::ui::MenuItem* menuItem = dynamic_cast<rack::ui::MenuItem*>(menu_child)) {
+      // step to handle rightText generation for some menu item types
+      menuItem->step();
+
+
+      if (endsWith(menuItem->rightText, std::string(RIGHT_ARROW))) {
+        // submenu
+        vcv_menu_item.type = VCVMenuItemType::SUBMENU;
+      } else {
+        // generic action
+        vcv_menu_item.type = VCVMenuItemType::ACTION;
+      }
+
+      vcv_menu_item.text = menuItem->text;
+      vcv_menu_item.disabled = menuItem->disabled;
+      if (endsWith(menuItem->rightText, std::string(CHECKMARK_STRING)))
+        vcv_menu_item.checked = true;
+    } else if (rack::ui::Slider* slider = dynamic_cast<rack::ui::Slider*>(menu_child)) {
+      vcv_menu_item.type = VCVMenuItemType::RANGE;
+      if (slider->quantity) {
+        vcv_menu_item.text = slider->quantity->getLabel();
+
+        vcv_menu_item.rangeDisplayValue = slider->quantity->getDisplayValueString();
+        vcv_menu_item.rangeDisplayValue.append(slider->quantity->getUnit());
+
+        vcv_menu_item.rangeValue = slider->quantity->getValue();
+        vcv_menu_item.minRangeValue = slider->quantity->getMinValue();
+        vcv_menu_item.maxRangeValue = slider->quantity->getMaxValue();
+        vcv_menu_item.defaultRangeValue = slider->quantity->getDefaultValue();
+      }
+    } else if (dynamic_cast<rack::ui::MenuSeparator*>(menu_child)) {
+      vcv_menu_item.type = VCVMenuItemType::DIVIDER;
+    } else {
+      vcv_menu_item.type = VCVMenuItemType::UNKNOWN;
+    }
+
+    vcv_menu.MenuItems.push_back(vcv_menu_item);
+  }
+
+  ContextMenus[vcv_menu.moduleId][vcv_menu.id] = vcv_menu;
+
+  // close menu
+  rack::ui::MenuOverlay* overlay = menu->getAncestorOfType<rack::ui::MenuOverlay>();
+  if (overlay) overlay->requestDelete();
+}
+
+rack::ui::Menu* Collector::findContextMenu(const VCVMenu& vcv_menu) const {
+  using namespace rack::widget;
+
+  // open module context menu
+  rack::app::ModuleWidget* moduleWidget = APP->scene->rack->getModule(vcv_menu.moduleId);
+  moduleWidget->createContextMenu();
+
+  // find opened menu
+  for (Widget* scene_child : APP->scene->children) {
+    if (dynamic_cast<rack::ui::MenuOverlay*>(scene_child)) {
+      for (Widget* overlay_child : scene_child->children) {
+        if (rack::ui::Menu* menu = dynamic_cast<rack::ui::Menu*>(overlay_child)) {
+          return menu;
+        }
+      }
+    }
+  }
+
+  return nullptr;
+}
+
 void Collector::collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId) {
   rack::engine::Cable* cable = APP->engine->getCable(cableId);
 
