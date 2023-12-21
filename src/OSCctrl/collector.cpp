@@ -55,22 +55,9 @@ int Collector::randomId() {
       /*   item->doAction(true); */
       /* } */
 
-      // how2open submenu
-      /* if (item->text.compare(std::string("Info")) == 0) { */
-      /*   // Dispatch EnterEvent */
-      /*   EventContext cEnter; */
-      /*   cEnter.target = item; */
-      /*   Widget::EnterEvent eEnter; */
-      /*   eEnter.context = &cEnter; */
-      /*   item->onEnter(eEnter); */
-
-      /*   if (menu->childMenu) { */
-      /*     // do somethin */
-      /*   } */
-      /* } */
 
 void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu) {
-  rack::ui::Menu* menu = findContextMenu(vcv_menu);
+  rack::ui::Menu* menu = findContextMenu(ContextMenus, vcv_menu);
 
   if (!menu) {
     WARN("no menu found for %lld:%d", vcv_menu.moduleId, vcv_menu.id);
@@ -132,25 +119,83 @@ void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextM
   if (overlay) overlay->requestDelete();
 }
 
-rack::ui::Menu* Collector::findContextMenu(const VCVMenu& vcv_menu) const {
+// how2open submenu
+/* if (item->text.compare(std::string("Info")) == 0) { */
+/*   // Dispatch EnterEvent */
+/*   EventContext cEnter; */
+/*   cEnter.target = item; */
+/*   Widget::EnterEvent eEnter; */
+/*   eEnter.context = &cEnter; */
+/*   item->onEnter(eEnter); */
+
+/*   if (menu->childMenu) { */
+/*     // do somethin */
+/*   } */
+/* } */
+
+rack::ui::Menu* Collector::findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu) {
   using namespace rack::widget;
+
+  std::vector<int> selections;
+  int parentMenuId = vcv_menu.parentMenuId;
+
+  if (parentMenuId != -1) {
+    selections.push_back(vcv_menu.parentItemIndex);
+    while (parentMenuId != 0) {
+      VCVMenu& parentMenu = ContextMenus.at(vcv_menu.moduleId).at(parentMenuId);
+      parentMenuId = parentMenu.parentMenuId;
+      selections.push_back(parentMenu.parentItemIndex);
+    }
+    std::reverse(selections.begin(), selections.end());
+  }
 
   // open module context menu
   rack::app::ModuleWidget* moduleWidget = APP->scene->rack->getModule(vcv_menu.moduleId);
   moduleWidget->createContextMenu();
 
-  // find opened menu
+  // grab base menu
+  rack::ui::Menu* foundMenu{nullptr};
   for (Widget* scene_child : APP->scene->children) {
     if (dynamic_cast<rack::ui::MenuOverlay*>(scene_child)) {
       for (Widget* overlay_child : scene_child->children) {
         if (rack::ui::Menu* menu = dynamic_cast<rack::ui::Menu*>(overlay_child)) {
-          return menu;
+          foundMenu = menu;
+          break;
         }
+      }
+      if (foundMenu) break;
+    }
+  }
+
+  // step through selections if any, opening submenus
+  for (int& selection : selections) {
+    int index = -1;
+    for (Widget* menu_child : foundMenu->children) {
+      if (++index != selection) continue;
+
+      rack::ui::MenuItem* menuItem =
+        dynamic_cast<rack::ui::MenuItem*>(menu_child);
+
+      if (!menuItem) {
+        WARN("found menu selection is not a menu item");
+        return nullptr;
+      }
+
+      // Dispatch EnterEvent
+      EventContext cEnter;
+      cEnter.target = menuItem;
+      Widget::EnterEvent eEnter;
+      eEnter.context = &cEnter;
+      menuItem->onEnter(eEnter);
+
+      if (foundMenu->childMenu) {
+        foundMenu = foundMenu->childMenu;
+        break;
       }
     }
   }
 
-  return nullptr;
+  return foundMenu;
 }
 
 void Collector::collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId) {

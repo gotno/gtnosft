@@ -79,5 +79,5 @@ private:
   void setDefaultPortSvg(VCVPort& vcv_port);
 
   /* collect context menu */
-  rack::ui::Menu* findContextMenu(const VCVMenu& vcv_menu) const;
+  rack::ui::Menu* findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
 };
