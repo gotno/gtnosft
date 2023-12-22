@@ -691,6 +691,8 @@ void OscController::syncMenu(int64_t moduleId, int menuId) {
 
   // sync plugin with modules and module tags, one plugin at a time
   for (VCVMenuItem& menuItem : menu.MenuItems) {
+    if (menuItem.type == VCVMenuItemType::UNKNOWN) continue;
+
     bundle << osc::BeginMessage("/menu/item/add")
       << menu.moduleId
       << menu.id
