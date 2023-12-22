@@ -90,6 +90,10 @@ struct OscController {
   std::vector<int64_t> modulesToDestroy;
   void processModuleUpdates();
 
+  std::mutex menuitemmutex;
+  std::set<std::tuple<int64_t, int, int>> pendingMenuClicks;
+  void processMenuClicks();
+
   std::mutex syncmutex;
   bool needsSync = false;
   void collectAndSync();
@@ -160,4 +164,5 @@ struct OscController {
   void setModuleFavorite(std::string pluginSlug, std::string moduleSlug, bool favorite);
 
   void addMenuToSync(VCVMenu menu);
+  void clickMenuItem(int64_t moduleId, int menuId, int menuItemIndex);
 };

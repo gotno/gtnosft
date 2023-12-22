@@ -67,6 +67,20 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
     controller->addMenuToSync(menu);
     return;
+  } else if (path.compare(std::string("/click_menu_item")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    osc::uint64 moduleId;
+    moduleId = (arg++)->AsInt64();
+
+    osc::uint32 menuId, itemIndex;
+    menuId = (arg++)->AsInt32();
+    itemIndex = (arg++)->AsInt32();
+
+    DEBUG("received /click_menu_item %lld", moduleId);
+
+    controller->clickMenuItem(moduleId, menuId, itemIndex);
+    return;
   } else if (path.compare(std::string("/favorite")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
 

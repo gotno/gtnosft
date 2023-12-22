@@ -50,12 +50,6 @@ int Collector::randomId() {
   return dist(rng);
 }
 
-      // how2click a menu item
-      /* if (item->text.compare(std::string("Delete")) == 0) { */
-      /*   item->doAction(true); */
-      /* } */
-
-
 void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu) {
   rack::ui::Menu* menu = findContextMenu(ContextMenus, vcv_menu);
 
@@ -118,20 +112,6 @@ void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextM
   rack::ui::MenuOverlay* overlay = menu->getAncestorOfType<rack::ui::MenuOverlay>();
   if (overlay) overlay->requestDelete();
 }
-
-// how2open submenu
-/* if (item->text.compare(std::string("Info")) == 0) { */
-/*   // Dispatch EnterEvent */
-/*   EventContext cEnter; */
-/*   cEnter.target = item; */
-/*   Widget::EnterEvent eEnter; */
-/*   eEnter.context = &cEnter; */
-/*   item->onEnter(eEnter); */
-
-/*   if (menu->childMenu) { */
-/*     // do somethin */
-/*   } */
-/* } */
 
 rack::ui::Menu* Collector::findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu) {
   using namespace rack::widget;

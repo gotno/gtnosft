@@ -4,7 +4,9 @@
 struct Collector {
   void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
   void collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId);
+
   void collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
+  rack::ui::Menu* findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
 
 private:
   /* utils */
@@ -78,6 +80,4 @@ private:
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);
 
-  /* collect context menu */
-  rack::ui::Menu* findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
 };

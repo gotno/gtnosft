@@ -102,6 +102,7 @@ struct OSCctrlWidget : ModuleWidget {
     ctrl.processCableUpdates();
     ctrl.processModuleUpdates();
     ctrl.processMenuRequests();
+    ctrl.processMenuClicks();
   }
 };
 

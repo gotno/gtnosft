@@ -887,3 +887,44 @@ void OscController::addMenuToSync(VCVMenu menu) {
   DEBUG("adding menu sync to queue");
   menusToSync.push_back(menu);
 }
+
+void OscController::clickMenuItem(int64_t moduleId, int menuId, int menuItemIndex) {
+  std::lock_guard<std::mutex> lock(menuitemmutex);
+  pendingMenuClicks.emplace(moduleId, menuId, menuItemIndex);
+}
+
+void OscController::processMenuClicks() {
+  if (pendingMenuClicks.empty()) return;
+
+  std::set<std::tuple<int64_t, int, int>> menuClicks;
+  std::unique_lock<std::mutex> locker(menuitemmutex);
+  menuClicks.swap(pendingMenuClicks);
+  locker.unlock();
+
+  for (const std::tuple<int64_t, int, int>& tuple : menuClicks) {
+    const int64_t& moduleId = std::get<0>(tuple);
+    const int& menuId = std::get<1>(tuple);
+    const int& menuItemIndex = std::get<2>(tuple);
+
+    rack::ui::Menu* menu =
+      Collectr.findContextMenu(ContextMenus, ContextMenus.at(moduleId).at(menuId));
+
+    int index = -1;
+    for (rack::widget::Widget* menu_child : menu->children) {
+      if (++index != menuItemIndex) continue;
+
+      rack::ui::MenuItem* menuItem =
+        dynamic_cast<rack::ui::MenuItem*>(menu_child);
+
+      if (!menuItem) {
+        WARN("found menu selection is not a menu item");
+        break;
+      }
+
+      menuItem->doAction(true);
+      break;
+    }
+
+    addMenuToSync(ContextMenus.at(moduleId).at(menuId));
+  }
+}
