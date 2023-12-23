@@ -116,6 +116,12 @@ void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextM
 rack::ui::Menu* Collector::findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu) {
   using namespace rack::widget;
 
+  // close any menu overlays left open
+  for (Widget* scene_child : APP->scene->children) {
+    if (rack::ui::MenuOverlay* overlay = dynamic_cast<rack::ui::MenuOverlay*>(scene_child))
+      overlay->requestDelete();
+  }
+
   std::vector<int> selections;
   int parentMenuId = vcv_menu.parentMenuId;
 
