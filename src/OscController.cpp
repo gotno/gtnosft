@@ -798,7 +798,7 @@ void OscController::processParamUpdates() {
     APP->engine->setParamValue(APP->engine->getModule(moduleId), paramId, value);
     rack::engine::ParamQuantity* pq =
       APP->scene->rack->getModule(moduleId)->getParam(paramId)->getParamQuantity();
-    Modules[moduleId].Params[paramId].displayValue = pq->getString();
+    Modules[moduleId].Params[paramId].displayValue = pq->getDisplayValueString();
     enqueueSyncParam(moduleId, paramId);
   }
 }
