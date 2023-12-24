@@ -98,6 +98,10 @@ struct OscController {
   std::set<std::tuple<int64_t, int, int, float>> pendingMenuQuantityUpdates;
   void processMenuQuantityUpdates();
 
+  std::mutex modulediffmutex;
+  std::set<int64_t> pendingModuleDiffs;
+  void processModuleDiffs();
+
   std::mutex syncmutex;
   bool needsSync = false;
   void collectAndSync();
@@ -164,6 +168,7 @@ struct OscController {
 
   void addModuleToCreate(std::string pluginSlug, std::string moduleSlug);
   void addModuleToDestroy(int64_t moduleId);
+  void addModuleToDiff(int64_t moduleId);
 
   void setModuleFavorite(std::string pluginSlug, std::string moduleSlug, bool favorite);
 

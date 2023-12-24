@@ -192,6 +192,30 @@ void Collector::collectCable(std::unordered_map<int64_t, VCVCable>& Cables, cons
   );
 }
 
+VCVModule Collector::collectModule(const int64_t& moduleId) {
+  VCVModule vcv_module(moduleId);
+
+  rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
+
+  rack::math::Rect _panelBox;
+  std::string panelSvgPath;
+  findModulePanel(mw, _panelBox, panelSvgPath);
+
+  vcv_module.panelSvgPath = panelSvgPath;
+
+  for (rack::app::ParamWidget* & paramWidget : mw->getParams()) {
+    rack::engine::ParamQuantity* pq = paramWidget->getParamQuantity();
+
+    vcv_module.Params[pq->paramId] = VCVParam(pq->paramId);
+    VCVParam& param = vcv_module.Params[pq->paramId];
+
+    param.value = pq->getValue();
+    param.visible = paramWidget->isVisible();
+  }
+
+  return vcv_module;
+}
+
 void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId) {
   rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
   rack::engine::Module* mod = mw->getModule();

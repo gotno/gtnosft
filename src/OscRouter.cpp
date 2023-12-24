@@ -51,6 +51,15 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
     controller->addCableToDestroy(cableId);
     return;
+  } else if (path.compare(std::string("/diff/module")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    osc::uint64 moduleId;
+    moduleId = (arg++)->AsInt64();
+
+    controller->addModuleToDiff(moduleId);
+    DEBUG("received /diff/module %lld", moduleId);
+    return;
   } else if (path.compare(std::string("/sync")) == 0) {
     controller->needsSync = true;
     return;

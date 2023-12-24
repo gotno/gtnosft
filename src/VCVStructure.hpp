@@ -7,6 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
+template<typename T>
+bool BasicallyEqual(T f1, T f2) {
+  return (std::fabs(f1 - f2) <= std::numeric_limits<T>::epsilon() * std::fmax(std::fabs(f1), std::fabs(f2)));
+}
+
 enum LightShape {
   Round,
   Rectangle
@@ -83,6 +88,21 @@ struct VCVParam {
   VCVParam(int _id) : id(_id) {
     svgPaths.reserve(5);
   }
+
+  void merge(const VCVParam& other) {
+    value = other.value;
+    visible = other.visible;
+  }
+
+  friend bool operator==(const VCVParam& a, const VCVParam& b) {
+    return
+      BasicallyEqual<float>(a.value, b.value)
+      && a.visible == b.visible;
+  }
+
+  friend bool operator!=(const VCVParam& a, const VCVParam& b) {
+    return !(a == b);
+  }
 };
 
 enum PortType {
@@ -135,6 +155,21 @@ struct VCVModule {
   VCVModule(int64_t _id) : id(_id) {}
   VCVModule(std::string _moduleSlug, std::string _pluginSlug)
     : slug(_moduleSlug), pluginSlug(_pluginSlug) {}
+
+  std::map<int, VCVParam> getParams() const {
+    return Params;
+  }
+  friend bool operator==(const VCVModule& a, const VCVModule& b) {
+    if (a.panelSvgPath != b.panelSvgPath) return false;
+
+    auto aParams = a.getParams();
+    auto bParams = b.getParams();
+    for (auto& pair : aParams) {
+      if (pair.second != bParams[pair.first]) return false; 
+    }
+
+    return true;
+  }
 };
 
 struct VCVCable {

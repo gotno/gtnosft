@@ -631,6 +631,11 @@ void OscController::addModuleToDestroy(int64_t moduleId) {
   modulesToDestroy.push_back(moduleId);
 }
 
+void OscController::addModuleToDiff(int64_t moduleId) {
+  std::lock_guard<std::mutex> lock(modulediffmutex);
+  pendingModuleDiffs.emplace(moduleId);
+}
+
 void OscController::processCableUpdates() {
   std::lock_guard<std::mutex> lock(cablemutex);
   for (VCVCable cable_model : cablesToCreate) {
@@ -793,8 +798,34 @@ void OscController::processParamUpdates() {
     APP->engine->setParamValue(APP->engine->getModule(moduleId), paramId, value);
     rack::engine::ParamQuantity* pq =
       APP->scene->rack->getModule(moduleId)->getParam(paramId)->getParamQuantity();
-    Modules[moduleId].Params[paramId].displayValue = pq->getDisplayValueString();
+    Modules[moduleId].Params[paramId].displayValue = pq->getString();
     enqueueSyncParam(moduleId, paramId);
+  }
+}
+
+void OscController::processModuleDiffs() {
+  if (pendingModuleDiffs.empty()) return;
+
+  std::set<int64_t> moduleDiffs;
+  std::unique_lock<std::mutex> locker(modulediffmutex);
+  moduleDiffs.swap(pendingModuleDiffs);
+  locker.unlock();
+
+  for (const int64_t& moduleId : moduleDiffs) {
+    VCVModule& moduleThen = Modules.at(moduleId);
+    VCVModule moduleNow = Collectr.collectModule(moduleId);
+
+    auto aParams = moduleThen.getParams();
+    auto bParams = moduleNow.getParams();
+
+    for (auto& pair : aParams) {
+      int paramId = pair.first;
+      if (pair.second != bParams[paramId]) {
+        DEBUG("updating param %s from diff", pair.second.name.c_str());
+        moduleThen.Params[paramId].merge(moduleNow.Params[paramId]);
+        enqueueSyncParam(moduleId, paramId);
+      }
+    }
   }
 }
 
@@ -805,13 +836,14 @@ void OscController::enqueueSyncParam(int64_t moduleId, int paramId) {
 void OscController::syncParam(int64_t moduleId, int paramId) {
   osc::OutboundPacketStream buffer(oscBuffer, OSC_BUFFER_SIZE);
 
-  std::string displayValue = Modules[moduleId].Params[paramId].displayValue;
-  displayValue.append(Modules[moduleId].Params[paramId].unit);
+  VCVParam& param = Modules[moduleId].Params[paramId];
 
   buffer << osc::BeginMessage("/param/sync")
     << moduleId
     << paramId
-    << displayValue.c_str()
+    << param.displayValue.c_str()
+    << param.value
+    << param.visible
     << osc::EndMessage;
 
   sendMessage(buffer);

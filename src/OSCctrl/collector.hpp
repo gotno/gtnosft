@@ -5,6 +5,9 @@ struct Collector {
   void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
   void collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId);
 
+  // shallow collect for diffing
+  VCVModule collectModule(const int64_t& moduleId);
+
   void collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
   rack::ui::Menu* findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
 

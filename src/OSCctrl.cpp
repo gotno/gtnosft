@@ -77,6 +77,7 @@ struct OSCctrl : Module {
       controller.enqueueLightUpdates();
       controller.processParamUpdates();
       controller.processMenuQuantityUpdates();
+      controller.processModuleDiffs();
     }
 	}
 };
