@@ -163,12 +163,20 @@ struct VCVMenuItem {
   int index;
   VCVMenuItemType type{VCVMenuItemType::UNKNOWN};
 
+  // menuItem->text or quantity->getString()
   std::string text;
 
   bool checked{false};
   bool disabled{false};
-  float rangeValue{0.f}, minRangeValue{0.f}, maxRangeValue{1.f}, defaultRangeValue{0.f};
-  std::string rangeDisplayValue;
+
+  std::string quantityLabel{""},
+    quantityUnit{""};
+  float quantityValue{0.f},
+    quantityMinValue{0.f},
+    quantityMaxValue{1.f},
+    quantityDefaultValue{0.f};
+
+  rack::Quantity* quantity{nullptr};
 
   VCVMenuItem(int _index) : index(_index) {}
 };

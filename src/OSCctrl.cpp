@@ -76,6 +76,7 @@ struct OSCctrl : Module {
     if (fpsDivider.process() && !controller.needsSync) {
       controller.enqueueLightUpdates();
       controller.processParamUpdates();
+      controller.processMenuQuantityUpdates();
     }
 	}
 };

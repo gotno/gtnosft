@@ -87,15 +87,17 @@ void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextM
     } else if (rack::ui::Slider* slider = dynamic_cast<rack::ui::Slider*>(menu_child)) {
       vcv_menu_item.type = VCVMenuItemType::RANGE;
       if (slider->quantity) {
-        vcv_menu_item.text = slider->quantity->getLabel();
+        vcv_menu_item.quantity = slider->quantity;
 
-        vcv_menu_item.rangeDisplayValue = slider->quantity->getDisplayValueString();
-        vcv_menu_item.rangeDisplayValue.append(slider->quantity->getUnit());
+        vcv_menu_item.text = slider->quantity->getString();
 
-        vcv_menu_item.rangeValue = slider->quantity->getValue();
-        vcv_menu_item.minRangeValue = slider->quantity->getMinValue();
-        vcv_menu_item.maxRangeValue = slider->quantity->getMaxValue();
-        vcv_menu_item.defaultRangeValue = slider->quantity->getDefaultValue();
+        vcv_menu_item.quantityLabel = slider->quantity->getLabel();
+        vcv_menu_item.quantityUnit = slider->quantity->getUnit();
+
+        vcv_menu_item.quantityValue = slider->quantity->getValue();
+        vcv_menu_item.quantityMinValue = slider->quantity->getMinValue();
+        vcv_menu_item.quantityMaxValue = slider->quantity->getMaxValue();
+        vcv_menu_item.quantityDefaultValue = slider->quantity->getDefaultValue();
       }
     } else if (dynamic_cast<rack::ui::MenuSeparator*>(menu_child)) {
       vcv_menu_item.type = VCVMenuItemType::DIVIDER;
@@ -115,12 +117,6 @@ void Collector::collectMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextM
 
 rack::ui::Menu* Collector::findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu) {
   using namespace rack::widget;
-
-  // close any menu overlays left open
-  for (Widget* scene_child : APP->scene->children) {
-    if (rack::ui::MenuOverlay* overlay = dynamic_cast<rack::ui::MenuOverlay*>(scene_child))
-      overlay->requestDelete();
-  }
 
   std::vector<int> selections;
   int parentMenuId = vcv_menu.parentMenuId;

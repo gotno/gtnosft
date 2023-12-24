@@ -94,6 +94,10 @@ struct OscController {
   std::set<std::tuple<int64_t, int, int>> pendingMenuClicks;
   void processMenuClicks();
 
+  std::mutex menuquantitymutex;
+  std::set<std::tuple<int64_t, int, int, float>> pendingMenuQuantityUpdates;
+  void processMenuQuantityUpdates();
+
   std::mutex syncmutex;
   bool needsSync = false;
   void collectAndSync();
@@ -165,4 +169,5 @@ struct OscController {
 
   void addMenuToSync(VCVMenu menu);
   void clickMenuItem(int64_t moduleId, int menuId, int menuItemIndex);
+  void updateMenuItemQuantity(int64_t moduleId, int menuId, int menuItemIndex, float value);
 };

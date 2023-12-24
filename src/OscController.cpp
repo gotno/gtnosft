@@ -677,21 +677,24 @@ void OscController::enqueueSyncMenu(int64_t moduleId, int menuId) {
 }
 
 void OscController::syncMenu(int64_t moduleId, int menuId) {
-  DEBUG("syncing menu");
   if (ContextMenus.count(moduleId) == 0 || ContextMenus[moduleId].count(menuId) == 0) {
     WARN("no context menu to sync (%lld:%d)", moduleId, menuId);
     return;
   }
 
   VCVMenu& menu = ContextMenus.at(moduleId).at(menuId);
-  printMenu(menu);
+
+  /* printMenu(menu); */
 
   osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
   bundle << osc::BeginBundleImmediate;
 
   // sync plugin with modules and module tags, one plugin at a time
   for (VCVMenuItem& menuItem : menu.MenuItems) {
-    if (menuItem.type == VCVMenuItemType::UNKNOWN) continue;
+    if (menuItem.type == VCVMenuItemType::UNKNOWN) {
+      WARN("unknown context menu item type %lld:%d-%d", moduleId, menuId, menuItem.index);
+      continue;
+    }
 
     bundle << osc::BeginMessage("/menu/item/add")
       << menu.moduleId
@@ -701,11 +704,12 @@ void OscController::syncMenu(int64_t moduleId, int menuId) {
       << menuItem.text.c_str()
       << menuItem.checked
       << menuItem.disabled
-      << menuItem.rangeValue
-      << menuItem.minRangeValue
-      << menuItem.maxRangeValue
-      << menuItem.defaultRangeValue
-      << menuItem.rangeDisplayValue.c_str()
+      << menuItem.quantityValue
+      << menuItem.quantityMinValue
+      << menuItem.quantityMaxValue
+      << menuItem.quantityDefaultValue
+      << menuItem.quantityLabel.c_str()
+      << menuItem.quantityUnit.c_str()
       << osc::EndMessage;
   }
 
@@ -738,7 +742,7 @@ void OscController::printMenu(VCVMenu& menu) {
         DEBUG("%s\t->", item.text.c_str());
         break;
       case VCVMenuItemType::RANGE:
-        DEBUG("==%s: %s--", item.text.c_str(), item.rangeDisplayValue.c_str());
+        DEBUG("==%s--", item.text.c_str());
         break;
       default:
         DEBUG("???");
@@ -803,7 +807,6 @@ void OscController::syncParam(int64_t moduleId, int paramId) {
 
   std::string displayValue = Modules[moduleId].Params[paramId].displayValue;
   displayValue.append(Modules[moduleId].Params[paramId].unit);
-  /* DEBUG("syncing param label: %lld:%d %s", moduleId, paramId, displayValue.c_str()); */
 
   buffer << osc::BeginMessage("/param/sync")
     << moduleId
@@ -886,13 +889,17 @@ void OscController::setModuleFavorite(std::string pluginSlug, std::string module
 
 void OscController::addMenuToSync(VCVMenu menu) {
   std::lock_guard<std::mutex> lock(menumutex);
-  DEBUG("adding menu sync to queue");
   menusToSync.push_back(menu);
 }
 
 void OscController::clickMenuItem(int64_t moduleId, int menuId, int menuItemIndex) {
   std::lock_guard<std::mutex> lock(menuitemmutex);
   pendingMenuClicks.emplace(moduleId, menuId, menuItemIndex);
+}
+
+void OscController::updateMenuItemQuantity(int64_t moduleId, int menuId, int menuItemIndex, float value) {
+  std::lock_guard<std::mutex> lock(menuquantitymutex);
+  pendingMenuQuantityUpdates.emplace(moduleId, menuId, menuItemIndex, value);
 }
 
 void OscController::processMenuClicks() {
@@ -927,6 +934,58 @@ void OscController::processMenuClicks() {
       break;
     }
 
+    // close menu
+    rack::ui::MenuOverlay* overlay = menu->getAncestorOfType<rack::ui::MenuOverlay>();
+    if (overlay) overlay->requestDelete();
+
     addMenuToSync(ContextMenus.at(moduleId).at(menuId));
+  }
+}
+
+void OscController::processMenuQuantityUpdates() {
+  if (pendingMenuQuantityUpdates.empty()) return;
+
+  std::set<std::tuple<int64_t, int, int, float>> menuQuantityUpdates;
+  std::unique_lock<std::mutex> locker(menuquantitymutex);
+  menuQuantityUpdates.swap(pendingMenuQuantityUpdates);
+  locker.unlock();
+
+  for (const std::tuple<int64_t, int, int, float>& tuple : menuQuantityUpdates) {
+    const int64_t& moduleId = std::get<0>(tuple);
+    const int& menuId = std::get<1>(tuple);
+    const int& menuItemIndex = std::get<2>(tuple);
+    const float& value = std::get<3>(tuple);
+
+    VCVMenu& vcv_menu = ContextMenus.at(moduleId).at(menuId);
+    rack::ui::Menu* menu = Collectr.findContextMenu(ContextMenus, vcv_menu);
+
+    int index = -1;
+    for (rack::widget::Widget* menu_child : menu->children) {
+      if (++index != menuItemIndex) continue;
+
+      rack::Quantity* quantity{nullptr};
+
+      if (rack::ui::Slider* slider = dynamic_cast<rack::ui::Slider*>(menu_child)) {
+        quantity = slider->quantity;
+      } else if (rack::ui::RadioButton* radioButton = dynamic_cast<rack::ui::RadioButton*>(menu_child)) {
+        quantity = radioButton->quantity;
+      } else if (rack::ui::Button* button = dynamic_cast<rack::ui::Button*>(menu_child)) {
+        quantity = button->quantity;
+      }
+
+      if (!quantity) {
+        WARN("found menu selection has no quantity");
+        break;
+      }
+
+      quantity->setValue(value);
+      break;
+    }
+
+    // close menu
+    rack::ui::MenuOverlay* overlay = menu->getAncestorOfType<rack::ui::MenuOverlay>();
+    if (overlay) overlay->requestDelete();
+
+    addMenuToSync(vcv_menu);
   }
 }
