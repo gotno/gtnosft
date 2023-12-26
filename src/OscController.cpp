@@ -11,8 +11,7 @@
 #include <cstring>
 #include <random>
 #include <sstream>
-
-/* #include <BogAudioModules/src/widgets.hpp> */
+#include <algorithm>
 
 OscController::OscController() {
   endpoint = IpEndpointName("127.0.0.1", 7001);
@@ -153,8 +152,8 @@ void OscController::processQueue() {
 }
  
 void OscController::collectModules(bool printResults) {
-  DEBUG("collecting %lld modules", APP->engine->getModuleIds().size() - 1);
-  for (int64_t& moduleId: APP->engine->getModuleIds()) {
+  DEBUG("collecting %lld modules", getModuleIds().size());
+  for (int64_t& moduleId: getModuleIds()) {
     Collectr.collectModule(Modules, moduleId);
   }
   DEBUG("collected %lld modules", Modules.size());
@@ -661,9 +660,8 @@ void OscController::processCableUpdates() {
     APP->engine->removeCable(APP->engine->getCable(cableId));
     rack::app::CableWidget * cw = APP->scene->rack->getCable(cableId);
     APP->scene->rack->removeCable(cw);
-    // TODO: does this need to delete objects?
-    /* delete cw; */
-    // crashes: Assertion failed: it != internal->cables.end(), file src/engine/Engine.cpp, line 1009
+
+    Cables.erase(cableId);
   }
   cablesToDestroy.clear();
 }
@@ -764,14 +762,11 @@ void OscController::processModuleUpdates() {
   modulesToCreate.clear();
 
   for (int64_t moduleId : modulesToDestroy) {
-    std::unique_lock<std::mutex> locker(lmutex);
-    LightReferences.erase(moduleId);
-    locker.unlock();
-
-    Modules.erase(moduleId);
-
     rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
     mw->removeAction();
+
+    Modules.erase(moduleId);
+    cleanupModule(moduleId);
   }
   modulesToDestroy.clear();
 }
@@ -792,6 +787,8 @@ void OscController::processParamUpdates() {
 
   for (const std::pair<int64_t, int>& pair : paramUpdates) {
     const int64_t& moduleId = pair.first;
+    if (Modules.count(moduleId) == 0) continue;
+
     const int& paramId = pair.second;
     const float& value = Modules[moduleId].Params[paramId].value;
 
@@ -812,6 +809,8 @@ void OscController::processModuleDiffs() {
   locker.unlock();
 
   for (const int64_t& moduleId : moduleDiffs) {
+    if (Modules.count(moduleId) == 0) continue;
+
     VCVModule& moduleThen = Modules.at(moduleId);
     VCVModule moduleNow = Collectr.collectModule(moduleId);
 
@@ -834,6 +833,8 @@ void OscController::enqueueSyncParam(int64_t moduleId, int paramId) {
 }
 
 void OscController::syncParam(int64_t moduleId, int paramId) {
+  if (Modules.count(moduleId) == 0) return;
+
   osc::OutboundPacketStream buffer(oscBuffer, OSC_BUFFER_SIZE);
 
   VCVParam& param = Modules[moduleId].Params[paramId];
@@ -950,6 +951,8 @@ void OscController::processMenuClicks() {
     rack::ui::Menu* menu =
       Collectr.findContextMenu(ContextMenus, ContextMenus.at(moduleId).at(menuId));
 
+    bool wasDeleteAction{false};
+
     int index = -1;
     for (rack::widget::Widget* menu_child : menu->children) {
       if (++index != menuItemIndex) continue;
@@ -962,6 +965,9 @@ void OscController::processMenuClicks() {
         break;
       }
 
+      if (menuItem->text.compare(std::string("Delete")) == 0) 
+        wasDeleteAction = true;
+
       menuItem->doAction(true);
       break;
     }
@@ -970,7 +976,88 @@ void OscController::processMenuClicks() {
     rack::ui::MenuOverlay* overlay = menu->getAncestorOfType<rack::ui::MenuOverlay>();
     if (overlay) overlay->requestDelete();
 
-    addMenuToSync(ContextMenus.at(moduleId).at(menuId));
+    if (wasDeleteAction) {
+      cleanupModule(moduleId);
+    } else {
+      addMenuToSync(ContextMenus.at(moduleId).at(menuId));
+      addModuleToDiff(moduleId);
+    }
+
+    diffModuleAndCablePresence();
+  }
+}
+
+void OscController::cleanupModule(const int64_t& moduleId) {
+  std::unique_lock<std::mutex> locker(lmutex);
+  LightReferences.erase(moduleId);
+  locker.unlock();
+}
+
+void OscController::diffModuleAndCablePresence() {
+  std::vector<int64_t> actualModuleIds = getModuleIds();
+
+  if (actualModuleIds.size() != Modules.size()) {
+    std::vector<int64_t> collectedModuleIds;
+    for (auto& pair : Modules) collectedModuleIds.push_back(pair.first);
+
+    std::sort(std::begin(actualModuleIds), std::end(actualModuleIds));
+    std::sort(std::begin(collectedModuleIds), std::end(collectedModuleIds));
+    std::vector<int64_t> diff;
+
+    if (collectedModuleIds.size() < actualModuleIds.size()) {
+      // more actual modules than what we have collected,
+      // collect and sync new modules
+      std::set_difference(
+        actualModuleIds.begin(), actualModuleIds.end(),
+        collectedModuleIds.begin(), collectedModuleIds.end(),
+        std::inserter(diff, diff.begin())
+      );
+      for (const int64_t& moduleId : diff) {
+        Collectr.collectModule(Modules, moduleId);
+        enqueueSyncModule(moduleId);
+      }
+    } else {
+      // more collected modules than what rack actually reports,
+      // signal UE to destroy
+      std::set_difference(
+        collectedModuleIds.begin(), collectedModuleIds.end(),
+        actualModuleIds.begin(), actualModuleIds.end(),
+        std::inserter(diff, diff.begin())
+      );
+
+      osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
+      bundle << osc::BeginBundleImmediate;
+      for (const int64_t& moduleId : diff) {
+        Modules.erase(moduleId);
+        bundle << osc::BeginMessage("/modules/destroy")
+          << moduleId
+          << osc::EndMessage;
+      }
+      bundle << osc::EndBundle;
+      sendMessage(bundle);
+    }
+  }
+
+  std::vector<int64_t> actualCableIds = APP->engine->getCableIds();
+  if (Cables.size() < actualCableIds.size()) {
+    // more actual cables than what we have collected,
+    // collect and sync new cables
+    std::vector<int64_t> collectedCableIds;
+    for (auto& pair : Cables) collectedCableIds.push_back(pair.first);
+
+    std::sort(std::begin(actualCableIds), std::end(actualCableIds));
+    std::sort(std::begin(collectedCableIds), std::end(collectedCableIds));
+    std::vector<int64_t> diff;
+
+    std::set_difference(
+      actualCableIds.begin(), actualCableIds.end(),
+      collectedCableIds.begin(), collectedCableIds.end(),
+      std::inserter(diff, diff.begin())
+    );
+    for (const int64_t& cableId : diff) {
+      Collectr.collectCable(Cables, cableId);
+      enqueueSyncCable(cableId);
+    }
   }
 }
 

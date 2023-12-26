@@ -100,6 +100,7 @@ struct OscController {
   std::vector<VCVModule> modulesToCreate;
   std::vector<int64_t> modulesToDestroy;
   void processModuleUpdates();
+  void cleanupModule(const int64_t& moduleId);
 
   std::mutex menuitemmutex;
   std::set<std::tuple<int64_t, int, int>> pendingMenuClicks;
@@ -112,6 +113,7 @@ struct OscController {
   std::mutex modulediffmutex;
   std::set<int64_t> pendingModuleDiffs;
   void processModuleDiffs();
+  void diffModuleAndCablePresence();
 
   std::mutex syncmutex;
   bool needsSync = false;
