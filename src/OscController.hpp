@@ -65,6 +65,17 @@ struct OscController {
   char* oscBuffer = new char[OSC_BUFFER_SIZE];
   void sendMessage(osc::OutboundPacketStream packetStream);
 
+  int64_t ctrlModuleId{-1};
+  void setModuleId(int64_t moduleId) { ctrlModuleId = moduleId; }
+  std::vector<int64_t> getModuleIds() {
+    std::vector<int64_t> mids = APP->engine->getModuleIds();
+    for (std::vector<int64_t>::iterator it = mids.begin(); it != mids.end();) {
+      if (*it == ctrlModuleId) it = mids.erase(it);
+      else ++it;
+    }
+    return mids;
+  }
+
   std::thread queueWorker;
   std::atomic<bool> queueWorkerRunning;
   std::queue<Command> commandQueue;

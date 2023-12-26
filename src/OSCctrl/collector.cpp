@@ -220,8 +220,6 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
   rack::engine::Module* mod = mw->getModule();
 
-  if (mod->getModel()->name == "OSCctrl") return;
-
   rack::math::Rect panelBox;
   std::string panelSvgPath;
   if (!findModulePanel(mw, panelBox, panelSvgPath)) {

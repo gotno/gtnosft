@@ -38,6 +38,7 @@ struct OSCctrl : Module {
     DEBUG("starting Rx listener");
     startListener();
 
+    controller.setModuleId(id);
     router.SetController(&controller);
 
     router.AddRoute("/rx/module", &OscController::rxModule);
