@@ -333,10 +333,19 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
   if (found) return true;
 
   if (pluginSlug == "SlimeChild-Substation") {
+    // TODO: handle slimechild's two-layer ish? (base png panel + svg text overlay)
+    //       (replace "_Text.svg" with "_400z.png" in path)
     std::smatch match;
     std::string moduleName;
+
+    std::map<std::string, std::string> actualFilenames;
+    actualFilenames.emplace("Envelopes", "Envelope");
+    actualFilenames.emplace("Filter-Expander", "FilterPlus");
+
     if (std::regex_search(moduleSlug, match, std::regex("SlimeChild-Substation-(.+)"))) {
       moduleName = match.str(1);
+      if (actualFilenames.count(moduleName) > 0)
+        moduleName = actualFilenames.at(moduleName);
     }
     if (moduleName.empty()) return false;
 
@@ -345,6 +354,9 @@ bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& p
         if (svgWidget->svg->path.find(moduleName) != std::string::npos) {
           panelBox = svgWidget->box;
           panelSvgPath = svgWidget->svg->path;
+          // std::regex_search(panelSvgPath, match, std::regex("(.*)_Text\.svg"))) {
+          // panelPngPath = match.str(1);
+          // panelPngPath.append("_400z.png");
           found = true;
         }
       }
