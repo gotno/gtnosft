@@ -16,7 +16,7 @@
 
 namespace rack {
   namespace plugin {
-    class Plugin;
+    struct Plugin;
   }
 }
 
@@ -159,6 +159,8 @@ struct OscController {
 
   void enqueueSyncLibrary();
   void syncLibrary();
+  // dump library info to a json file and return the path
+  std::string dumpLibraryJsonToFile();
 
   // context menus
   std::unordered_map<int64_t, ModuleMenuMap> ContextMenus;

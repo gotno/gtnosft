@@ -6,6 +6,7 @@
 #include <tag.hpp>
 #include <history.hpp>
 #include <widget/event.hpp>
+#include <jansson.h>
 
 #include <chrono>
 #include <cstring>
@@ -854,60 +855,69 @@ void OscController::enqueueSyncLibrary() {
   enqueueCommand(Command(CommandType::SyncLibrary, Payload()));
 }
 
-void OscController::syncLibrary() {
-  // sync plugin with modules and module tags, one plugin at a time
+std::string OscController::dumpLibraryJsonToFile() {
+  json_t* rootJ = json_object();
+
+  json_t* pluginsJ = json_object();
   for (rack::plugin::Plugin* plugin : rack::plugin::plugins) {
     if (plugin->slug == "gtnosft") continue;
+    json_t* pluginJ = json_object();
 
-    osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
-    bundle << osc::BeginBundleImmediate;
+    json_object_set_new(pluginJ, "name", json_string(plugin->brand.c_str()));
+    json_object_set_new(pluginJ, "slug", json_string(plugin->slug.c_str()));
 
-    bundle << osc::BeginMessage("/library/plugin/add")
-      << plugin->brand.c_str()
-      << plugin->slug.c_str()
-      << osc::EndMessage;
+    json_t* modulesJ = json_object();
     for (rack::plugin::Model* model : plugin->models) {
-      // we can get the og mutable name from the slug, so why not
+      json_t* moduleJ = json_object();
+
+      // we can get the og mutable name from the slug,
+      // and why shouldn't we have nice things
       std::string modelName = model->name;
       if (plugin->slug == "AudibleInstruments") {
         modelName.append(" (").append(model->slug).append(")");
       }
 
-      // model->setFavorite();
+      json_object_set_new(moduleJ, "name", json_string(modelName.c_str()));
+      json_object_set_new(moduleJ, "slug", json_string(model->slug.c_str()));
+      json_object_set_new(moduleJ, "description", json_string(model->description.c_str()));
+      json_object_set_new(moduleJ, "bFavorite", model->isFavorite() ? json_true() : json_false());
 
-      bundle << osc::BeginMessage("/library/module/add")
-        << plugin->slug.c_str()
-        << modelName.c_str()
-        << model->slug.c_str()
-        << model->description.c_str()
-        << model->isFavorite()
-        << osc::EndMessage;
+      json_t* tagIdsJ = json_array();
+
       for (int& tagId : model->tagIds) {
-        bundle << osc::BeginMessage("/library/module_tag/add")
-          << plugin->slug.c_str()
-          << model->slug.c_str()
-          << osc::int32(tagId)
-          << osc::EndMessage;
+        json_array_append_new(tagIdsJ, json_integer(tagId));
       }
+
+      json_object_set_new(moduleJ, "tagIds", tagIdsJ);
+      json_object_set_new(modulesJ, model->slug.c_str(), moduleJ);
     }
 
-    bundle << osc::EndBundle;
-    sendMessage(bundle);
+    json_object_set_new(pluginJ, "modules", modulesJ);
+    json_object_set_new(pluginsJ, plugin->slug.c_str(), pluginJ);
   }
 
-  // sync canonical tag aliases
-  osc::OutboundPacketStream tagbundle(oscBuffer, OSC_BUFFER_SIZE);
-  tagbundle << osc::BeginBundleImmediate;
+  json_object_set_new(rootJ, "plugins", pluginsJ);
 
+  // canonical tag aliases
+  json_t* tagNamesJ = json_object();
   for (size_t i = 0; i < rack::tag::tagAliases.size(); i++) {
-    tagbundle << osc::BeginMessage("/library/tag/add")
-      << osc::int32(i)
-      << rack::tag::tagAliases[i][0].c_str()
-      << osc::EndMessage;
+    json_object_set_new(tagNamesJ, std::to_string(i).c_str(), json_string(rack::tag::tagAliases[i][0].c_str()));
   }
+  json_object_set_new(rootJ, "tagNames", tagNamesJ);
 
-  tagbundle << osc::EndBundle;
-  sendMessage(tagbundle);
+  std::string path = rack::asset::user();
+  path.append(std::string("oscctrl_library.json"));
+  json_dump_file(rootJ, path.c_str(), JSON_INDENT(2));
+
+  return path;
+}
+
+void OscController::syncLibrary() {
+  osc::OutboundPacketStream buffer(oscBuffer, OSC_BUFFER_SIZE);
+  buffer << osc::BeginMessage("/library/json_path")
+    << dumpLibraryJsonToFile().c_str()
+    << osc::EndMessage;
+  sendMessage(buffer);
 }
 
 void OscController::setModuleFavorite(std::string pluginSlug, std::string moduleSlug, bool favorite) {
