@@ -658,8 +658,8 @@ void OscController::processCableUpdates() {
   cablesToCreate.clear();
 
   for (int64_t cableId : cablesToDestroy) {
+    rack::app::CableWidget* cw = APP->scene->rack->getCable(cableId);
     APP->engine->removeCable(APP->engine->getCable(cableId));
-    rack::app::CableWidget * cw = APP->scene->rack->getCable(cableId);
     APP->scene->rack->removeCable(cw);
 
     Cables.erase(cableId);
