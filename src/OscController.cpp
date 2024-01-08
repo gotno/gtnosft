@@ -905,8 +905,7 @@ std::string OscController::dumpLibraryJsonToFile() {
   }
   json_object_set_new(rootJ, "tagNames", tagNamesJ);
 
-  std::string path = rack::asset::user();
-  path.append(std::string("oscctrl_library.json"));
+  std::string path = rack::asset::user("gtnosft-oscctrl_library.json");
   json_dump_file(rootJ, path.c_str(), JSON_INDENT(2));
 
   return path;
