@@ -5,6 +5,7 @@
 
 #include "VCVStructure.hpp"
 #include "OSCctrl/collector.hpp"
+#include "OSCctrl/bootstrapper.hpp"
 
 #include <unordered_map>
 #include <vector>
@@ -120,6 +121,7 @@ struct OscController {
   void collectAndSync();
 
   Collector Collectr;
+  Bootstrapper Bootstrappr;
 
   std::unordered_map<int64_t, VCVModule> Modules;
   void collectModules(bool printResults = false);
