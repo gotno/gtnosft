@@ -12,7 +12,16 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
   }
 
   std::string path(message.AddressPattern());
-  if (path.compare(std::string("/create/module")) == 0) {
+  if (path.compare(std::string("/set_unreal_server_port")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    osc::uint32 unrealServerPort;
+    unrealServerPort = (arg++)->AsInt32();
+    controller->setUnrealServerPort(unrealServerPort);
+
+    DEBUG("received /set_unreal_server_port %d", unrealServerPort);
+    return;
+  } else if (path.compare(std::string("/create/module")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
 
     std::string pluginSlug, moduleSlug;

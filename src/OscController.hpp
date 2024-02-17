@@ -60,13 +60,18 @@ struct OscController {
   OscController();
   ~OscController();
 
-  IpEndpointName endpoint;
+  IpEndpointName unrealServerEndpoint;
 
   char* oscBuffer = new char[OSC_BUFFER_SIZE];
   void sendMessage(osc::OutboundPacketStream packetStream);
 
   int64_t ctrlModuleId{-1};
-  void setModuleId(int64_t moduleId) { ctrlModuleId = moduleId; }
+  void setModuleId(const int64_t& moduleId) { ctrlModuleId = moduleId; }
+  int ctrlListenPort{-1};
+  void setListenPort(const int& listenPort) { ctrlListenPort = listenPort; }
+  void setUnrealServerPort(const int& port);
+
+  // filter OSCctrl from ModuleIds
   std::vector<int64_t> getModuleIds() {
     std::vector<int64_t> mids = APP->engine->getModuleIds();
     for (std::vector<int64_t>::iterator it = mids.begin(); it != mids.end();) {

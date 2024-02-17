@@ -15,9 +15,7 @@
 #include <algorithm>
 
 OscController::OscController() {
-  endpoint = IpEndpointName("127.0.0.1", 7001);
   queueWorker = std::thread(OscController::processQueue, this);
-  DEBUG("USER D: %s", rack::asset::user().c_str());
 }
 
 OscController::~OscController() {
@@ -38,6 +36,18 @@ OscController::~OscController() {
 
 float_time_point OscController::getCurrentTime() {
   return Time::now();
+}
+
+void OscController::setUnrealServerPort(const int& port) {
+  unrealServerEndpoint = IpEndpointName("127.0.0.1", port);
+
+  osc::OutboundPacketStream buffer(oscBuffer, OSC_BUFFER_SIZE);
+
+  buffer << osc::BeginMessage("/set_rack_server_port")
+    << ctrlListenPort
+    << osc::EndMessage;
+
+  sendMessage(buffer);
 }
 
 void OscController::collectAndSync() {
@@ -590,7 +600,7 @@ void OscController::sendModuleSyncComplete(int64_t moduleId) {
 void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
   // this _looks like_ it only sends the data present and not the whole buffer? good.
   /* DEBUG("data: %s, size: %lld", packetStream.Data(), packetStream.Size()); */
-  UdpTransmitSocket(endpoint).Send(packetStream.Data(), packetStream.Size());
+  UdpTransmitSocket(unrealServerEndpoint).Send(packetStream.Data(), packetStream.Size());
 }
 
 // UE callbacks

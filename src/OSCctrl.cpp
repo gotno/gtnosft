@@ -35,7 +35,6 @@ struct OSCctrl : Module {
 
   void onAdd(const AddEvent& e) override {
     DEBUG("enabling OSCctrl");
-    DEBUG("starting Rx listener");
     startListener();
 
     controller.setModuleId(id);
@@ -52,11 +51,31 @@ struct OSCctrl : Module {
 	}
 
   void startListener() {
-    DEBUG("OSCctrl startListener");
     if (RxSocket != NULL) return;
 
-		RxSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, 7000), &router);
-		oscListenerThread = std::thread(&UdpListeningReceiveSocket::Run, RxSocket);
+    DEBUG("starting Rx listener");
+
+    int retries{20}, listenPort{7000};
+
+    do {
+      try {
+        DEBUG("OSCctrl trying startListener on port %d", listenPort);
+
+        --retries;
+
+        RxSocket = new UdpListeningReceiveSocket(IpEndpointName("127.0.0.1", listenPort), &router);
+        oscListenerThread = std::thread(&UdpListeningReceiveSocket::Run, RxSocket);
+
+        DEBUG("OSCctrl startListener success on port %d", listenPort);
+        break;
+      } catch (std::runtime_error& err) {
+        if (RxSocket != NULL) cleanupListener();
+        if (retries < 0) throw err;
+        ++listenPort;
+      }
+    } while (retries >= 0);
+
+    controller.setListenPort(listenPort);
 	}
 
   void cleanupListener() {
