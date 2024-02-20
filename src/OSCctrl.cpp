@@ -120,6 +120,11 @@ struct OSCctrlWidget : ModuleWidget {
 
     OscController& ctrl = dynamic_cast<OSCctrl*>(getModule())->controller;
 
+    if (ctrl.readyToExit) {
+      ctrl.autosaveAndExit();
+      return;
+    }
+
     if (ctrl.needsSync) ctrl.collectAndSync();
     ctrl.processCableUpdates();
     ctrl.processModuleUpdates();

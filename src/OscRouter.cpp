@@ -128,6 +128,10 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
     controller->setModuleFavorite(pluginSlug, moduleSlug, favorite);
     return;
+  } else if (path.compare(std::string("/autosave_and_exit")) == 0) {
+    /* DEBUG("received /autosave_and_exit"); */
+    controller->requestExit();
+    return;
   } else if (routes.find(path) == routes.end()) {
     DEBUG("no route for %s", path.c_str());
     return;

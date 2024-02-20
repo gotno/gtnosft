@@ -195,4 +195,8 @@ struct OscController {
   void addMenuToSync(VCVMenu menu);
   void clickMenuItem(int64_t moduleId, int menuId, int menuItemIndex);
   void updateMenuItemQuantity(int64_t moduleId, int menuId, int menuItemIndex, float value);
+
+  bool readyToExit{false};
+  void requestExit() { readyToExit = true; }
+  void autosaveAndExit() { APP->window->close(); }
 };
