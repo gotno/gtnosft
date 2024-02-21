@@ -419,6 +419,7 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
     << module->bodyColor.r
     << module->bodyColor.g
     << module->bodyColor.b
+    << module->returnId
     << osc::EndMessage;
 }
  
@@ -486,10 +487,10 @@ rack::plugin::Model* OscController::findModel(std::string& pluginSlug, std::stri
   return nullptr;
 }
 
-void OscController::createModule(std::string pluginSlug, std::string moduleSlug) {
+void OscController::createModule(VCVModule& vcv_module) {
   using namespace rack;
 
-  plugin::Model* model = findModel(pluginSlug, moduleSlug);
+  plugin::Model* model = findModel(vcv_module.pluginSlug, vcv_module.slug);
   if (!model) return;
 
   // the following stolen from Browser.cpp
@@ -516,7 +517,7 @@ void OscController::createModule(std::string pluginSlug, std::string moduleSlug)
   APP->history->push(h);
 
   if (moduleWidget) {
-    Collectr.collectModule(Modules, module->id);
+    Collectr.collectModule(Modules, module->id, vcv_module.returnId);
     enqueueSyncModule(module->id);
   }
 }
@@ -630,10 +631,10 @@ void OscController::addCableToDestroy(int64_t cableId) {
   cablesToDestroy.push_back(cableId);
 }
 
-void OscController::addModuleToCreate(std::string pluginSlug, std::string moduleSlug) {
+void OscController::addModuleToCreate(const std::string& pluginSlug, const std::string& moduleSlug, const int& returnId) {
   std::lock_guard<std::mutex> lock(modulemutex);
   DEBUG("adding module create to queue");
-  modulesToCreate.push_back(VCVModule(moduleSlug, pluginSlug));
+  modulesToCreate.push_back(VCVModule(moduleSlug, pluginSlug, returnId));
 }
 
 void OscController::addModuleToDestroy(int64_t moduleId) {
@@ -767,9 +768,7 @@ void OscController::printMenu(VCVMenu& menu) {
 
 void OscController::processModuleUpdates() {
   std::lock_guard<std::mutex> lock(cablemutex);
-  for (VCVModule& module_model : modulesToCreate) {
-    createModule(module_model.pluginSlug, module_model.slug);
-  }
+  for (VCVModule& module_model : modulesToCreate) createModule(module_model);
   modulesToCreate.clear();
 
   for (int64_t moduleId : modulesToDestroy) {
@@ -1032,7 +1031,7 @@ void OscController::diffModuleAndCablePresence() {
         std::inserter(diff, diff.begin())
       );
       for (const int64_t& moduleId : diff) {
-        Collectr.collectModule(Modules, moduleId);
+        Collectr.collectModule(Modules, moduleId, 0);
         enqueueSyncModule(moduleId);
       }
     } else {

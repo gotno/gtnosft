@@ -216,7 +216,7 @@ VCVModule Collector::collectModule(const int64_t& moduleId) {
   return vcv_module;
 }
 
-void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId) {
+void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId, int returnId) {
   rack::app::ModuleWidget* mw = APP->scene->rack->getModule(moduleId);
   rack::engine::Module* mod = mw->getModule();
 
@@ -237,6 +237,7 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   Modules[moduleId] = VCVModule(moduleId);
   VCVModule& vcv_module = Modules[moduleId];
 
+  vcv_module.returnId = returnId;
   vcv_module.brand = mod->getModel()->plugin->brand;
   vcv_module.name = mod->getModel()->name;
   vcv_module.description = mod->getModel()->description;

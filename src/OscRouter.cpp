@@ -27,8 +27,9 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     std::string pluginSlug, moduleSlug;
     pluginSlug = (arg++)->AsString();
     moduleSlug = (arg++)->AsString();
+    int returnId = (arg++)->AsInt32();
 
-    controller->addModuleToCreate(pluginSlug, moduleSlug);
+    controller->addModuleToCreate(pluginSlug, moduleSlug, returnId);
     DEBUG("received /create/module %s:%s", pluginSlug.c_str(), moduleSlug.c_str());
     return;
   } else if (path.compare(std::string("/destroy/module")) == 0) {

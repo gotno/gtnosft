@@ -148,7 +148,7 @@ struct OscController {
   void enqueueSyncModule(int64_t moduleId);
   void syncModule(VCVModule* module);
   rack::plugin::Model* findModel(std::string& pluginSlug, std::string& moduleSlug) const;
-  void createModule(std::string pluginSlug, std::string moduleSlug);
+  void createModule(VCVModule& vcv_module);
 
   void enqueueSyncCable(int64_t cableId);
   void syncCable(VCVCable* cable);
@@ -186,7 +186,7 @@ struct OscController {
   void addCableToCreate(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId);
   void addCableToDestroy(int64_t cableId);
 
-  void addModuleToCreate(std::string pluginSlug, std::string moduleSlug);
+  void addModuleToCreate(const std::string& pluginSlug, const std::string& moduleSlug, const int& returnId);
   void addModuleToDestroy(int64_t moduleId);
   void addModuleToDiff(int64_t moduleId);
 

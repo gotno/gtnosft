@@ -141,6 +141,8 @@ struct VCVModule {
   std::string slug;
   std::string pluginSlug;
 
+  int returnId;
+
   std::map<int, VCVParam> Params;
   std::map<int, VCVPort> Inputs;
   std::map<int, VCVPort> Outputs;
@@ -153,8 +155,8 @@ struct VCVModule {
 
   VCVModule() {}
   VCVModule(int64_t _id) : id(_id) {}
-  VCVModule(std::string _moduleSlug, std::string _pluginSlug)
-    : slug(_moduleSlug), pluginSlug(_pluginSlug) {}
+  VCVModule(std::string _moduleSlug, std::string _pluginSlug, int _returnId)
+    : slug(_moduleSlug), pluginSlug(_pluginSlug), returnId(_returnId) {}
 
   std::map<int, VCVParam> getParams() const {
     return Params;

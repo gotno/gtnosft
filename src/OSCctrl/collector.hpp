@@ -2,7 +2,7 @@
 #include "../VCVStructure.hpp"
 
 struct Collector {
-  void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId);
+  void collectModule(std::unordered_map<int64_t, VCVModule>& Modules, const int64_t& moduleId, int returnId = -1);
   void collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId);
 
   // shallow collect for diffing
