@@ -549,11 +549,13 @@ void Collector::collectSwitch(VCVParam& vcv_switch, rack::app::ParamWidget* para
   bogaudio::StatefulButton* BSButton = dynamic_cast<bogaudio::StatefulButton*>(paramWidget);
   if (BSButton) svgSwitch->frames = BSButton->_frames;
 
-  // buttons have either momentary or latch, switches have neither.
+
   // we only use momentary right now (latch has something to do with
   // internal svg handling? unclear)
-  vcv_switch.momentary = svgSwitch->momentary || svgSwitch->latch;
-  if (vcv_switch.momentary) {
+  vcv_switch.momentary = svgSwitch->momentary;
+
+  // buttons have either momentary or latch, switches have neither.
+  if (svgSwitch->momentary || svgSwitch->latch) {
     vcv_switch.type = ParamType::Button;
   } else {
     vcv_switch.type = ParamType::Switch;
