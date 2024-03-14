@@ -471,6 +471,10 @@ void OscController::syncModule(VCVModule* module) {
     bundleDisplay(bundle, module->id, &display);
   }
 
+  bundle << osc::BeginMessage("/module_sync_complete")
+    << module->id
+    << osc::EndMessage;
+
   bundle << osc::EndBundle;
 
   sendMessage(bundle);
