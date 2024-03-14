@@ -104,7 +104,8 @@ void OscController::processQueue() {
     Command command = commandQueue.front();
     commandQueue.pop();
 
-    auto now = getCurrentTime();
+    // used for requeueing, see: 41351af3d46a74b1b88b737ad788a68c3ac210d4
+    // auto now = getCurrentTime();
 
     switch (command.first) {
       case CommandType::UpdateLights:
