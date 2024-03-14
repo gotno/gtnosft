@@ -26,12 +26,10 @@ using Time = std::chrono::steady_clock;
 using float_sec = std::chrono::duration<float>;
 using float_time_point = std::chrono::time_point<Time, float_sec>;
 
-
 enum CommandType {
   SyncCable,
   SyncModule,
   SyncLibrary,
-  CheckModuleSync,
   UpdateLights,
   SyncParam,
   SyncMenu,
@@ -152,9 +150,6 @@ struct OscController {
 
   void enqueueSyncCable(int64_t cableId);
   void syncCable(VCVCable* cable);
-
-  void sendInitialSyncComplete();
-  void sendModuleSyncComplete(int64_t moduleId);
 
   void registerLightReference(int64_t moduleId, VCVLight* light);
 

@@ -113,30 +113,6 @@ void OscController::processQueue() {
       case CommandType::SyncModule:
         syncModule(&Modules[command.second.pid]);
         break;
-      case CommandType::CheckModuleSync:
-        // not time to check yet, requeue to check again later
-        if ((now - command.second.lastCheck).count() <= command.second.wait) {
-          commandQueue.push(command);
-          continue;
-        }
-
-        // out of retries, abandon
-        if (++command.second.retried >= command.second.retryLimit) {
-          DEBUG("abandoning module sync %lld", command.second.pid);
-          continue;
-        }
-
-        // check failed, requeue command
-        if (!Modules[command.second.pid].synced) {
-          command.second.lastCheck = now;
-          commandQueue.push(command);
-          continue;
-        }
-
-        // tx /module_sync_complete
-        DEBUG("tx /module_sync_complete %lld", command.second.pid);
-        sendModuleSyncComplete(command.second.pid);
-        break;
       case CommandType::SyncCable:
         DEBUG("tx /cable/add %lld: %lld:%lld", command.second.pid, Cables[command.second.pid].inputModuleId, Cables[command.second.pid].outputModuleId);
         syncCable(&Cables[command.second.pid]);
@@ -425,10 +401,10 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
  
 void OscController::enqueueSyncModule(int64_t moduleId) {
   enqueueCommand(Command(CommandType::SyncModule, Payload(moduleId)));
-  enqueueCommand(Command(
-    CommandType::CheckModuleSync,
-    Payload(moduleId, getCurrentTime(), 0.2f)
-  ));
+  /* enqueueCommand(Command( */
+  /*   CommandType::CheckModuleSync, */
+  /*   Payload(moduleId, getCurrentTime(), 0.2f) */
+  /* )); */
 }
 
 void OscController::syncModule(VCVModule* module) {
@@ -592,15 +568,15 @@ void OscController::registerLightReference(int64_t moduleId, VCVLight* light) {
   LightReferences[moduleId][light->id] = light;
 }
 
-void OscController::sendModuleSyncComplete(int64_t moduleId) {
-  osc::OutboundPacketStream message(oscBuffer, OSC_BUFFER_SIZE);
+/* void OscController::sendModuleSyncComplete(int64_t moduleId) { */
+/*   osc::OutboundPacketStream message(oscBuffer, OSC_BUFFER_SIZE); */
 
-  message << osc::BeginMessage("/module_sync_complete")
-    << moduleId
-    << osc::EndMessage;
+/*   message << osc::BeginMessage("/module_sync_complete") */
+/*     << moduleId */
+/*     << osc::EndMessage; */
 
-  sendMessage(message);
-}
+/*   sendMessage(message); */
+/* } */
 
 void OscController::sendMessage(osc::OutboundPacketStream packetStream) {
   // this _looks like_ it only sends the data present and not the whole buffer? good.
