@@ -245,6 +245,11 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   vcv_module.panelSvgPath = panelSvgPath;
   vcv_module.bodyColor = getSvgColor(panelSvgPath);
 
+  if (mod->leftExpander.moduleId > 0)
+    vcv_module.leftExpanderId = mod->leftExpander.moduleId;
+  if (mod->rightExpander.moduleId > 0)
+    vcv_module.rightExpanderId = mod->rightExpander.moduleId;
+
   rack::plugin::Model* model = mod->getModel();
   vcv_module.pluginSlug = model->plugin->slug;
   vcv_module.slug = model->slug;

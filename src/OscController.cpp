@@ -164,6 +164,7 @@ void OscController::printModules() {
     DEBUG("        panel svg path: %s", module_pair.second.panelSvgPath.c_str());
     DEBUG("        body color: %fr %fg %fb", module_pair.second.bodyColor.r, module_pair.second.bodyColor.g, module_pair.second.bodyColor.b);
     DEBUG("  pos: %fx/%fy, size: %fx/%fy", module_pair.second.box.pos.x, module_pair.second.box.pos.y, module_pair.second.box.size.x, module_pair.second.box.size.y);
+    DEBUG("  leftExpanderId: %lld, rightExpanderId: %lld", module_pair.second.leftExpanderId, module_pair.second.rightExpanderId);
 
     if (module_pair.second.Params.size() > 0) {
       DEBUG("  Params:");
@@ -397,6 +398,8 @@ void OscController::bundleModule(osc::OutboundPacketStream& bundle, VCVModule* m
     << module->bodyColor.g
     << module->bodyColor.b
     << module->returnId
+    << module->leftExpanderId
+    << module->rightExpanderId
     << osc::EndMessage;
 }
  

@@ -136,6 +136,8 @@ struct VCVModule {
   rack::math::Rect box;
   std::string panelSvgPath;
 
+  int64_t leftExpanderId{-1}, rightExpanderId{-1};
+
   NVGcolor bodyColor;
 
   std::string slug;
