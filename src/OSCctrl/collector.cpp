@@ -753,7 +753,10 @@ void Collector::collectModuleLight(VCVModule& vcv_module, rack::app::LightWidget
 	vcv_light.box = box2cm(lightWidget->getBox());
 	vcv_light.box.pos = ueCorrectPos(vcv_module.box.size, vcv_light.box);
 
-  vcv_light.shape = LightShape::Round;
+  vcv_light.shape =
+    vcv_light.box.size.x != vcv_light.box.size.y
+      ? LightShape::Rectangle
+      : LightShape::Round;
 
   vcv_light.widget = lightWidget;
 
@@ -772,7 +775,7 @@ void Collector::collectParamLight(VCVModule& vcv_module, VCVParam& vcv_param, ra
 	vcv_light.box.pos = ueCorrectPos(vcv_param.box.size, vcv_light.box);
 
   vcv_light.shape =
-    vcv_param.type == ParamType::Slider
+    vcv_param.type == ParamType::Slider || vcv_light.box.size.x != vcv_light.box.size.y
       ? LightShape::Rectangle
       : LightShape::Round;
 
