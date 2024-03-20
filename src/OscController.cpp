@@ -71,6 +71,7 @@ void OscController::collectAndSync() {
   std::unique_lock<std::mutex> modulelocker(modulemutex);
   modulesToCreate.clear();
   modulesToDestroy.clear();
+  modulesToArrange.clear();
   modulelocker.unlock();
 
   Modules.clear();
@@ -621,6 +622,12 @@ void OscController::addModuleToCreate(const std::string& pluginSlug, const std::
   modulesToCreate.push_back(VCVModule(moduleSlug, pluginSlug, returnId));
 }
 
+void OscController::addModulesToArrange(int64_t leftModuleId, int64_t rightModuleId) {
+  std::lock_guard<std::mutex> lock(modulemutex);
+  DEBUG("adding module arrange to queue");
+  modulesToArrange.push_back(std::pair<int64_t, int64_t>(leftModuleId, rightModuleId));
+}
+
 void OscController::addModuleToDestroy(int64_t moduleId) {
   std::lock_guard<std::mutex> lock(modulemutex);
   modulesToDestroy.push_back(moduleId);
@@ -763,6 +770,10 @@ void OscController::processModuleUpdates() {
     cleanupModule(moduleId);
   }
   modulesToDestroy.clear();
+
+  for (std::pair<int64_t, int64_t>& pair : modulesToArrange)
+    arrangeModules(pair.first, pair.second);
+  modulesToArrange.clear();
 }
 
 void OscController::updateParam(int64_t outerId, int innerId, float value) {
@@ -1109,4 +1120,16 @@ void OscController::processMenuQuantityUpdates() {
 
     addMenuToSync(vcv_menu);
   }
+}
+
+void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId) {
+  rack::app::ModuleWidget* lmw = APP->scene->rack->getModule(leftModuleId);
+  rack::app::ModuleWidget* rmw = APP->scene->rack->getModule(rightModuleId);
+  APP->scene->rack->setModulePosForce(
+    rmw,
+    rack::math::Vec(
+      lmw->box.pos.x + lmw->box.size.x,
+      lmw->box.pos.y
+    )
+  );
 }

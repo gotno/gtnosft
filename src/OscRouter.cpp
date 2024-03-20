@@ -129,6 +129,14 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
     controller->setModuleFavorite(pluginSlug, moduleSlug, favorite);
     return;
+  } else if (path.compare(std::string("/arrange_modules")) == 0) {
+    DEBUG("received /arrange_modules");
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    osc::uint64 leftModuleId = (arg++)->AsInt64();
+    osc::uint64 rightModuleId = (arg++)->AsInt64();
+
+    controller->addModulesToArrange(leftModuleId, rightModuleId);
   } else if (path.compare(std::string("/autosave_and_exit")) == 0) {
     /* DEBUG("received /autosave_and_exit"); */
     controller->requestExit();
