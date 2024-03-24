@@ -622,10 +622,10 @@ void OscController::addModuleToCreate(const std::string& pluginSlug, const std::
   modulesToCreate.push_back(VCVModule(moduleSlug, pluginSlug, returnId));
 }
 
-void OscController::addModulesToArrange(int64_t leftModuleId, int64_t rightModuleId) {
+void OscController::addModulesToArrange(int64_t leftModuleId, int64_t rightModuleId, bool attach) {
   std::lock_guard<std::mutex> lock(modulemutex);
   DEBUG("adding module arrange to queue");
-  modulesToArrange.push_back(std::pair<int64_t, int64_t>(leftModuleId, rightModuleId));
+  modulesToArrange.push_back(std::tuple<int64_t, int64_t, bool>(leftModuleId, rightModuleId, attach));
 }
 
 void OscController::addModuleToDestroy(int64_t moduleId) {
@@ -771,8 +771,8 @@ void OscController::processModuleUpdates() {
   }
   modulesToDestroy.clear();
 
-  for (std::pair<int64_t, int64_t>& pair : modulesToArrange)
-    arrangeModules(pair.first, pair.second);
+  for (std::tuple<int64_t, int64_t, bool>& tuple : modulesToArrange)
+    arrangeModules(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
   modulesToArrange.clear();
 }
 
@@ -1122,13 +1122,17 @@ void OscController::processMenuQuantityUpdates() {
   }
 }
 
-void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId) {
+void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId, bool attach) {
   rack::app::ModuleWidget* lmw = APP->scene->rack->getModule(leftModuleId);
   rack::app::ModuleWidget* rmw = APP->scene->rack->getModule(rightModuleId);
+
+  float xpos = lmw->box.pos.x + lmw->box.size.x;
+  xpos += attach ? 0 : rack::app::RACK_GRID_WIDTH;
+
   APP->scene->rack->setModulePosForce(
     rmw,
     rack::math::Vec(
-      lmw->box.pos.x + lmw->box.size.x,
+      xpos,
       lmw->box.pos.y
     )
   );

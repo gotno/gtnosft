@@ -195,7 +195,7 @@ struct OscController {
   void requestExit() { readyToExit = true; }
   void autosaveAndExit() { APP->window->close(); }
 
-  std::vector<std::pair<int64_t, int64_t>> modulesToArrange;
-  void addModulesToArrange(int64_t leftModuleId, int64_t rightModuleId);
-  void arrangeModules(int64_t leftModuleId, int64_t rightModuleId);
+  std::vector<std::tuple<int64_t, int64_t, bool>> modulesToArrange;
+  void addModulesToArrange(int64_t leftModuleId, int64_t rightModuleId, bool attach);
+  void arrangeModules(int64_t leftModuleId, int64_t rightModuleId, bool attach);
 };

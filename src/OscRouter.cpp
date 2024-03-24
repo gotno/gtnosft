@@ -135,8 +135,9 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
     osc::uint64 leftModuleId = (arg++)->AsInt64();
     osc::uint64 rightModuleId = (arg++)->AsInt64();
+    bool attach = (arg++)->AsBool();
 
-    controller->addModulesToArrange(leftModuleId, rightModuleId);
+    controller->addModulesToArrange(leftModuleId, rightModuleId, attach);
   } else if (path.compare(std::string("/autosave_and_exit")) == 0) {
     /* DEBUG("received /autosave_and_exit"); */
     controller->requestExit();
