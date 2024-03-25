@@ -1126,6 +1126,11 @@ void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId, 
   rack::app::ModuleWidget* lmw = APP->scene->rack->getModule(leftModuleId);
   rack::app::ModuleWidget* rmw = APP->scene->rack->getModule(rightModuleId);
 
+  if (!lmw || !rmw) {
+    WARN("unable to find modules to arrange, aborting.");
+    return;
+  }
+
   float xpos = lmw->box.pos.x + lmw->box.size.x;
   xpos += attach ? 0 : rack::app::RACK_GRID_WIDTH;
 
