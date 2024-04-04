@@ -2,7 +2,6 @@
 #include <jansson.h>
 
 Bootstrapper::Bootstrapper() {
-  getCtrlJson();
 }
 
 void Bootstrapper::addCtrl(const std::string& patchArchivePath) {
@@ -47,11 +46,11 @@ void Bootstrapper::addCtrl(const std::string& patchArchivePath) {
   }
 
   // TODO: address unlikely id collision, recursify?
-  /* int64_t ctrlId = json_integer_value(json_object_get(ctrlJson, "id")); */
+  /* int64_t ctrlId = json_integer_value(json_object_get(getCtrlJson(), "id")); */
   /* for (int64_t& moduleId : moduleIds) { */
   /*   if (moduleId == ctrlId) ctrlId++; */
   /* } */
-  json_array_append(modulesJ, ctrlJson);
+  json_array_append(modulesJ, getCtrlJson());
   json_dump_file(rootJ, jsonPath.c_str(), JSON_INDENT(2));
 
   archiveDirectory(patchArchivePath, patchTempDir, 1);
@@ -125,7 +124,9 @@ std::string Bootstrapper::extractPatch(const std::string& patchArchivePath) {
   return tempDir;
 }
 
-void Bootstrapper::getCtrlJson() {
+json_t* Bootstrapper::getCtrlJson() {
+  if (ctrlJson) return ctrlJson;
+
   using namespace rack::system;
 
   std::string bootstrapPatchPath =
@@ -137,14 +138,14 @@ void Bootstrapper::getCtrlJson() {
   FILE* file = std::fopen(jsonPath.c_str(), "r");
   if (!file) {
     FATAL("could not open OSCctrl donor patch file %s", jsonPath.c_str());
-    return;
+    return nullptr;
   }
 
   json_error_t error;
   json_t* rootJ = json_loadf(file, 0, &error);
   if (!rootJ) {
     FATAL("failed to parse OSCctrl donor patch json at %s %d:%d %s", error.source, error.line, error.column, error.text);
-    return;
+    return nullptr;
   }
   DEFER({ json_decref(rootJ); });
 
@@ -166,4 +167,6 @@ void Bootstrapper::getCtrlJson() {
 
   std::fclose(file);
   removeRecursively(tempDir);
+
+  return ctrlJson;
 }

@@ -9,7 +9,7 @@ struct Bootstrapper {
   void removeCtrl(const std::string& patchPath);
 
 private:
-  json_t* ctrlJson;
-  void getCtrlJson();
+  json_t* ctrlJson{nullptr};
+  json_t* getCtrlJson();
   std::string extractPatch(const std::string& patchPath);
 };
