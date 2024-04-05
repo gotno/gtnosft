@@ -109,7 +109,6 @@ void Bootstrapper::removeCtrl(const std::string& patchArchivePath) {
 std::string Bootstrapper::extractPatch(const std::string& patchArchivePath) {
   using namespace rack::system;
 
-  /* std::string tempDir = rack::asset::user(getStem(patchArchivePath)); */
   std::string tempDir = getTempDirectory() + getStem(patchArchivePath);
   removeRecursively(tempDir);
   if (!createDirectories(tempDir)) {
