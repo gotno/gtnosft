@@ -138,6 +138,13 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     bool attach = (arg++)->AsBool();
 
     controller->addModulesToArrange(leftModuleId, rightModuleId, attach);
+  } else if (path.compare(std::string("/load_patch")) == 0) {
+    osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
+
+    std::string patchPath = (arg++)->AsString();
+    DEBUG("received /load_patch %s", patchPath.c_str());
+
+    controller->setPatchToLoad(patchPath);
   } else if (path.compare(std::string("/autosave_and_exit")) == 0) {
     /* DEBUG("received /autosave_and_exit"); */
     controller->requestExit();

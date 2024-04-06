@@ -3,6 +3,7 @@
 #include "../dep/oscpack/ip/UdpSocket.h"
 
 #include <plugin.hpp>
+#include <patch.hpp>
 #include <tag.hpp>
 #include <history.hpp>
 #include <widget/event.hpp>
@@ -1141,4 +1142,17 @@ void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId, 
       lmw->box.pos.y
     )
   );
+}
+
+void OscController::loadPatch() {
+  patchNeedsLoading = false;
+
+  bool currentPatchHasSave = APP->patch->path != "";
+  bool currentPatchIsBootstrap =
+    APP->patch->path.find(std::string("oscctrl-bootstrap.vcv")) != std::string::npos;
+
+  if (currentPatchHasSave && !currentPatchIsBootstrap)
+    Bootstrappr.removeCtrl(APP->patch->path);
+  Bootstrappr.addCtrl(patchToLoad);
+  APP->patch->loadAction(patchToLoad);
 }

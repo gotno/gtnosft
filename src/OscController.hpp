@@ -195,7 +195,16 @@ struct OscController {
 
   bool readyToExit{false};
   void requestExit() { readyToExit = true; }
+
   void autosaveAndExit() { APP->window->close(); }
+
+  std::string patchToLoad{""};
+  bool patchNeedsLoading{false};
+  void setPatchToLoad(std::string patchPath) {
+    patchToLoad = patchPath;
+    patchNeedsLoading = true;
+  }
+  void loadPatch();
 
   std::vector<std::tuple<int64_t, int64_t, bool>> modulesToArrange;
   void addModulesToArrange(int64_t leftModuleId, int64_t rightModuleId, bool attach);
