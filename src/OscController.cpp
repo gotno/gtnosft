@@ -51,7 +51,11 @@ void OscController::setUnrealServerPort(const int& port) {
   sendMessage(buffer);
 }
 
-void OscController::collectAndSync() {
+void OscController::reset() {
+  patchToLoadNext = "";
+  needsSync = false;
+  readyToExit = false;
+
   std::unique_lock<std::mutex> qlocker(qmutex);
   while (!commandQueue.empty()) commandQueue.pop();
   qlocker.unlock();
@@ -76,17 +80,19 @@ void OscController::collectAndSync() {
   modulelocker.unlock();
 
   Modules.clear();
-	collectModules(true);
-
   Cables.clear();
-  collectCables(true);
+}
 
+void OscController::collectAndSync() {
+  reset();
+
+  collectModules(true);
   for (auto& pair : Modules) enqueueSyncModule(pair.first);
+
+  collectCables(true);
   for (auto& pair : Cables) enqueueSyncCable(pair.first);
 
   enqueueSyncLibrary();
-
-  needsSync = false;
 }
 
 void OscController::enqueueCommand(Command command) {
@@ -1144,15 +1150,18 @@ void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId, 
   );
 }
 
-void OscController::loadPatch() {
-  patchNeedsLoading = false;
+void OscController::autosaveAndExit() {
+  cleanupCurrentPatchAndPrepareNext();
+  APP->window->close();
+}
 
+void OscController::cleanupCurrentPatchAndPrepareNext() {
   bool currentPatchHasSave = APP->patch->path != "";
   bool currentPatchIsBootstrap =
     APP->patch->path.find(std::string("oscctrl-bootstrap.vcv")) != std::string::npos;
 
   if (currentPatchHasSave && !currentPatchIsBootstrap)
     Bootstrappr.removeCtrl(APP->patch->path);
-  Bootstrappr.addCtrl(patchToLoad);
-  APP->patch->loadAction(patchToLoad);
+  if (patchToLoadNext != "")
+    Bootstrappr.addCtrl(patchToLoadNext);
 }

@@ -21,7 +21,6 @@ struct OSCctrl : Module {
 		LIGHTS_LEN
 	};
 
-
   OscRouter router;
   OscController controller;
   UdpListeningReceiveSocket* RxSocket = NULL;
@@ -82,11 +81,15 @@ struct OSCctrl : Module {
     DEBUG("OSCctrl cleanupListener");
     if (RxSocket == NULL) return;
 
-		RxSocket->AsynchronousBreak();
-		oscListenerThread.join();
-		delete RxSocket;
-		RxSocket = NULL;
-	}
+    RxSocket->AsynchronousBreak();
+
+    if (oscListenerThread.joinable()) {
+      oscListenerThread.join();
+    }
+
+    delete RxSocket;
+    RxSocket = NULL;
+  }
 
 	void process(const ProcessArgs& args) override {
     if (fpsDivider.getDivision() == 1) {
@@ -116,14 +119,9 @@ struct OSCctrlWidget : ModuleWidget {
 
   void step() override {
     ModuleWidget::step();
+
     if (!getModule()) return;
-
     OscController& ctrl = dynamic_cast<OSCctrl*>(getModule())->controller;
-
-    if (ctrl.patchNeedsLoading) {
-      ctrl.loadPatch();
-      return;
-    }
 
     if (ctrl.readyToExit) {
       ctrl.autosaveAndExit();

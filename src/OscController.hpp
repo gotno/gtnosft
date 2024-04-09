@@ -121,6 +121,7 @@ struct OscController {
 
   std::mutex syncmutex;
   bool needsSync = false;
+  void reset();
   void collectAndSync();
 
   Collector Collectr;
@@ -196,15 +197,13 @@ struct OscController {
   bool readyToExit{false};
   void requestExit() { readyToExit = true; }
 
-  void autosaveAndExit() { APP->window->close(); }
+  void autosaveAndExit();
 
-  std::string patchToLoad{""};
-  bool patchNeedsLoading{false};
-  void setPatchToLoad(std::string patchPath) {
-    patchToLoad = patchPath;
-    patchNeedsLoading = true;
+  std::string patchToLoadNext{""};
+  void setPatchToLoadNext(std::string patchPath) {
+    patchToLoadNext = patchPath;
   }
-  void loadPatch();
+  void cleanupCurrentPatchAndPrepareNext();
 
   std::vector<std::tuple<int64_t, int64_t, bool>> modulesToArrange;
   void addModulesToArrange(int64_t leftModuleId, int64_t rightModuleId, bool attach);

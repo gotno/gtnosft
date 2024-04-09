@@ -17,9 +17,10 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
     osc::uint32 unrealServerPort;
     unrealServerPort = (arg++)->AsInt32();
-    controller->setUnrealServerPort(unrealServerPort);
 
     DEBUG("received /set_unreal_server_port %d", unrealServerPort);
+
+    controller->setUnrealServerPort(unrealServerPort);
     return;
   } else if (path.compare(std::string("/create/module")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
@@ -29,8 +30,8 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     moduleSlug = (arg++)->AsString();
     int returnId = (arg++)->AsInt32();
 
-    controller->addModuleToCreate(pluginSlug, moduleSlug, returnId);
     DEBUG("received /create/module %s:%s", pluginSlug.c_str(), moduleSlug.c_str());
+    controller->addModuleToCreate(pluginSlug, moduleSlug, returnId);
     return;
   } else if (path.compare(std::string("/destroy/module")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
@@ -138,15 +139,15 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     bool attach = (arg++)->AsBool();
 
     controller->addModulesToArrange(leftModuleId, rightModuleId, attach);
-  } else if (path.compare(std::string("/load_patch")) == 0) {
+    return;
+  } else if (path.compare(std::string("/autosave_and_exit")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
 
-    std::string patchPath = (arg++)->AsString();
-    DEBUG("received /load_patch %s", patchPath.c_str());
+    std::string patchPath;
+    patchPath = (arg++)->AsString();
 
-    controller->setPatchToLoad(patchPath);
-  } else if (path.compare(std::string("/autosave_and_exit")) == 0) {
-    /* DEBUG("received /autosave_and_exit"); */
+    DEBUG("received /autosave_and_exit with nextpatch: \"%s\"", patchPath.c_str());
+    controller->setPatchToLoadNext(patchPath);
     controller->requestExit();
     return;
   } else if (routes.find(path) == routes.end()) {
