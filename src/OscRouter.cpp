@@ -140,6 +140,10 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
 
     controller->addModulesToArrange(leftModuleId, rightModuleId, attach);
     return;
+  } else if (path.compare(std::string("/save_patch")) == 0) {
+    DEBUG("received /save_patch");
+    controller->requestSave();
+    return;
   } else if (path.compare(std::string("/autosave_and_exit")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();
 

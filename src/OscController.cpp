@@ -1150,6 +1150,16 @@ void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId, 
   );
 }
 
+void OscController::savePatch() {
+  if (APP->patch->path == "") {
+    WARN("no patch path for save");
+    return;
+  }
+
+  APP->patch->save(APP->patch->path);
+  needsSave = false;
+}
+
 void OscController::autosaveAndExit() {
   cleanupCurrentPatchAndPrepareNext();
   APP->window->close();

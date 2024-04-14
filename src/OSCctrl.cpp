@@ -123,6 +123,10 @@ struct OSCctrlWidget : ModuleWidget {
     if (!getModule()) return;
     OscController& ctrl = dynamic_cast<OSCctrl*>(getModule())->controller;
 
+    if (ctrl.needsSave) {
+      ctrl.savePatch();
+    }
+
     if (ctrl.readyToExit) {
       ctrl.autosaveAndExit();
       return;
