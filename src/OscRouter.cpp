@@ -52,7 +52,14 @@ void OscRouter::ProcessMessage(const osc::ReceivedMessage& message, const IpEndp
     inputPortId = (arg++)->AsInt32();
     outputPortId = (arg++)->AsInt32();
 
-    controller->addCableToCreate(inputModuleId, outputModuleId, inputPortId, outputPortId);
+    float r, g, b;
+    r = (arg++)->AsFloat();
+    g = (arg++)->AsFloat();
+    b = (arg++)->AsFloat();
+
+    NVGcolor color{nvgRGBAf(r, g, b, 1.f)};
+
+    controller->addCableToCreate(inputModuleId, outputModuleId, inputPortId, outputPortId, color);
     return;
   } else if (path.compare(std::string("/destroy/cable")) == 0) {
     osc::ReceivedMessage::const_iterator arg = message.ArgumentsBegin();

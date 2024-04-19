@@ -181,7 +181,7 @@ struct OscController {
 
   void updateParam(int64_t outerId, int innerId, float value);
 
-  void addCableToCreate(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId);
+  void addCableToCreate(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId, NVGcolor color);
   void addCableToDestroy(int64_t cableId);
 
   void addModuleToCreate(const std::string& pluginSlug, const std::string& moduleSlug, const int& returnId);

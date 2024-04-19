@@ -529,6 +529,9 @@ void OscController::syncCable(VCVCable* cable) {
     << cable->outputModuleId
     << cable->inputPortId
     << cable->outputPortId
+    << cable->color.r
+    << cable->color.g
+    << cable->color.b
     << osc::EndMessage;
 
   sendMessage(buffer);
@@ -612,10 +615,10 @@ void OscController::rxCable(int64_t outerId, int innerId, float value) {
   Cables[outerId].synced = true;
 }
 
-void OscController::addCableToCreate(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId) {
+void OscController::addCableToCreate(int64_t inputModuleId, int64_t outputModuleId, int inputPortId, int outputPortId, NVGcolor color) {
   std::lock_guard<std::mutex> lock(cablemutex);
   DEBUG("adding cable create to queue");
-  cablesToCreate.push_back(VCVCable(inputModuleId, outputModuleId, inputPortId, outputPortId));
+  cablesToCreate.push_back(VCVCable(inputModuleId, outputModuleId, inputPortId, outputPortId, color));
 }
 
 void OscController::addCableToDestroy(int64_t cableId) {
@@ -658,7 +661,7 @@ void OscController::processCableUpdates() {
 
     rack::app::CableWidget* cableWidget = new rack::app::CableWidget;
 		cableWidget->setCable(cable);
-		cableWidget->color = rack::settings::cableColors[0];
+		cableWidget->color = cable_model.color;
 		APP->scene->rack->addCable(cableWidget);
 
     Collectr.collectCable(Cables, cable->id);

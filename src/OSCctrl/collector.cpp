@@ -182,13 +182,15 @@ rack::ui::Menu* Collector::findContextMenu(std::unordered_map<int64_t, ModuleMen
 
 void Collector::collectCable(std::unordered_map<int64_t, VCVCable>& Cables, const int64_t& cableId) {
   rack::engine::Cable* cable = APP->engine->getCable(cableId);
+  rack::app::CableWidget* cableWidget = APP->scene->rack->getCable(cableId);
 
   Cables[cableId] = VCVCable(
     cable->id,
     cable->inputModule->getId(),
     cable->outputModule->getId(),
     cable->inputId,
-    cable->outputId
+    cable->outputId,
+    cableWidget->color
   );
 }
 
