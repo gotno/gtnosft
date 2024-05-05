@@ -86,10 +86,10 @@ void OscController::reset() {
 void OscController::collectAndSync() {
   reset();
 
-  collectModules(true);
+  collectModules(false);
   for (auto& pair : Modules) enqueueSyncModule(pair.first);
 
-  collectCables(true);
+  collectCables(false);
   for (auto& pair : Cables) enqueueSyncCable(pair.first);
 
   enqueueSyncLibrary();
@@ -160,22 +160,22 @@ void OscController::collectModules(bool printResults) {
 void OscController::printModules() {
   for (std::pair<int64_t, VCVModule> module_pair : Modules) {
     // module id, name
-    DEBUG("\n");
+    INFO("\n");
     if (module_pair.second.Displays.size() > 0) {
-      DEBUG("%lld %s:%s (has %lld LED displays)", module_pair.first, module_pair.second.brand.c_str(), module_pair.second.name.c_str(), module_pair.second.Displays.size());
+      INFO("%lld %s:%s (has %lld LED displays)", module_pair.first, module_pair.second.brand.c_str(), module_pair.second.name.c_str(), module_pair.second.Displays.size());
     } else {
-      DEBUG("%lld %s:%s", module_pair.first, module_pair.second.brand.c_str(), module_pair.second.name.c_str());
+      INFO("%lld %s:%s", module_pair.first, module_pair.second.brand.c_str(), module_pair.second.name.c_str());
     }
     if (module_pair.second.Lights.size() > 0) {
-      DEBUG("        (has %lld lights)", module_pair.second.Lights.size());
+      INFO("        (has %lld lights)", module_pair.second.Lights.size());
     }
-    DEBUG("        panel svg path: %s", module_pair.second.panelSvgPath.c_str());
-    DEBUG("        body color: %fr %fg %fb", module_pair.second.bodyColor.r, module_pair.second.bodyColor.g, module_pair.second.bodyColor.b);
-    DEBUG("  pos: %fx/%fy, size: %fx/%fy", module_pair.second.box.pos.x, module_pair.second.box.pos.y, module_pair.second.box.size.x, module_pair.second.box.size.y);
-    DEBUG("  leftExpanderId: %lld, rightExpanderId: %lld", module_pair.second.leftExpanderId, module_pair.second.rightExpanderId);
+    INFO("        panel svg path: %s", module_pair.second.panelSvgPath.c_str());
+    INFO("        body color: %fr %fg %fb", module_pair.second.bodyColor.r, module_pair.second.bodyColor.g, module_pair.second.bodyColor.b);
+    INFO("  pos: %fx/%fy, size: %fx/%fy", module_pair.second.box.pos.x, module_pair.second.box.pos.y, module_pair.second.box.size.x, module_pair.second.box.size.y);
+    INFO("  leftExpanderId: %lld, rightExpanderId: %lld", module_pair.second.leftExpanderId, module_pair.second.rightExpanderId);
 
     if (module_pair.second.Params.size() > 0) {
-      DEBUG("  Params:");
+      INFO("  Params:");
 
       for (std::pair<int, VCVParam> param_pair : module_pair.second.Params) {
         std::string type;
@@ -199,66 +199,66 @@ void OscController::printModules() {
         }
 
         // param id, type, name, unit
-        DEBUG("    %d (%s): %s%s", param_pair.second.id, type.c_str(), param_pair.second.name.c_str(), param_pair.second.unit.c_str());
-        DEBUG("    value: %f, min/default/max %f/%f/%f", param_pair.second.value, param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
-        DEBUG("    box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
+        INFO("    %d (%s): %s%s", param_pair.second.id, type.c_str(), param_pair.second.name.c_str(), param_pair.second.unit.c_str());
+        INFO("    value: %f, min/default/max %f/%f/%f", param_pair.second.value, param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+        INFO("    box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
         if (param_pair.second.Lights.size() > 0) {
-          DEBUG("      (has %lld lights)", param_pair.second.Lights.size());
+          INFO("      (has %lld lights)", param_pair.second.Lights.size());
         }
 
         if (type == "Knob") {
-          DEBUG("      min/default/max %f/%f/%f (snap: %s)", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue, param_pair.second.snap ? "true" : "false");
-          DEBUG("      minAngle/maxAngle %f/%f", param_pair.second.minAngle, param_pair.second.maxAngle);
+          INFO("      min/default/max %f/%f/%f (snap: %s)", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue, param_pair.second.snap ? "true" : "false");
+          INFO("      minAngle/maxAngle %f/%f", param_pair.second.minAngle, param_pair.second.maxAngle);
           for (std::string& path : param_pair.second.svgPaths) {
-            DEBUG("        svg: %s", path.c_str());
+            INFO("        svg: %s", path.c_str());
           }
         }
         if (type == "Slider") {
-          DEBUG("      speed %f (horizontal: %s, snap: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false", param_pair.second.snap ? "true" : "false");
-          DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
-          DEBUG("      box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
-          DEBUG("      handleBox size %f/%f, pos %f/%f", param_pair.second.handleBox.size.x, param_pair.second.handleBox.size.y, param_pair.second.handleBox.pos.x, param_pair.second.handleBox.pos.y);
-          DEBUG("      minHandlePos %f/%f, maxHandlePos %f/%f", param_pair.second.minHandlePos.x, param_pair.second.minHandlePos.y, param_pair.second.maxHandlePos.x, param_pair.second.maxHandlePos.y);
+          INFO("      speed %f (horizontal: %s, snap: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false", param_pair.second.snap ? "true" : "false");
+          INFO("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+          INFO("      box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
+          INFO("      handleBox size %f/%f, pos %f/%f", param_pair.second.handleBox.size.x, param_pair.second.handleBox.size.y, param_pair.second.handleBox.pos.x, param_pair.second.handleBox.pos.y);
+          INFO("      minHandlePos %f/%f, maxHandlePos %f/%f", param_pair.second.minHandlePos.x, param_pair.second.minHandlePos.y, param_pair.second.maxHandlePos.x, param_pair.second.maxHandlePos.y);
           for (std::string& label : param_pair.second.sliderLabels) {
-            DEBUG("      label: %s", label.c_str());
+            INFO("      label: %s", label.c_str());
           }
           for (std::string& path : param_pair.second.svgPaths) {
-            DEBUG("        svg: %s", path.c_str());
+            INFO("        svg: %s", path.c_str());
           }
         }
         if (type == "Button") {
-          DEBUG("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
-          DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
-          DEBUG("      has %lld frames", param_pair.second.svgPaths.size());
+          INFO("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
+          INFO("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+          INFO("      has %lld frames", param_pair.second.svgPaths.size());
           for (std::string& path : param_pair.second.svgPaths) {
-            DEBUG("        frame svg: %s", path.c_str());
+            INFO("        frame svg: %s", path.c_str());
           }
         }
         if (type == "Switch") {
-          DEBUG("      (horizontal: %s)", param_pair.second.horizontal ? "true" : "false");
-          DEBUG("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
-          DEBUG("      has %lld frames", param_pair.second.svgPaths.size());
+          INFO("      (horizontal: %s)", param_pair.second.horizontal ? "true" : "false");
+          INFO("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+          INFO("      has %lld frames", param_pair.second.svgPaths.size());
           for (std::string& path : param_pair.second.svgPaths) {
-            DEBUG("        frame svg: %s", path.c_str());
+            INFO("        frame svg: %s", path.c_str());
           }
         }
       }
     }
     if (module_pair.second.Inputs.size() > 0) {
-      DEBUG("  Inputs:");
+      INFO("  Inputs:");
 
       for (std::pair<int, VCVPort> input_pair : module_pair.second.Inputs) {
-        DEBUG("      %d %s", input_pair.second.id, input_pair.second.name.c_str());
-        DEBUG("        %s", input_pair.second.description.c_str());
-        DEBUG("        %s", input_pair.second.svgPath.c_str());
+        INFO("      %d %s", input_pair.second.id, input_pair.second.name.c_str());
+        INFO("        %s", input_pair.second.description.c_str());
+        INFO("        %s", input_pair.second.svgPath.c_str());
       }
     }
     if (module_pair.second.Outputs.size() > 0) {
-      DEBUG("  Outputs:");
+      INFO("  Outputs:");
 
       for (std::pair<int, VCVPort> output_pair : module_pair.second.Outputs) {
-        DEBUG("      %d %s %s", output_pair.second.id, output_pair.second.name.c_str(), output_pair.second.description.c_str());
-        DEBUG("        %s", output_pair.second.svgPath.c_str());
+        INFO("      %d %s %s", output_pair.second.id, output_pair.second.name.c_str(), output_pair.second.description.c_str());
+        INFO("        %s", output_pair.second.svgPath.c_str());
       }
     }
   }
@@ -280,7 +280,7 @@ void OscController::printCables() {
     VCVModule* outputModule = &Modules[cable_pair.second.outputModuleId];
     VCVCable* cable = &cable_pair.second;
 
-    DEBUG("cable %lld connects %s:output %d to %s:input %d",
+    INFO("cable %lld connects %s:output %d to %s:input %d",
       cable->id,
       outputModule->name.c_str(),
       cable->outputPortId,
