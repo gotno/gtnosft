@@ -487,6 +487,17 @@ void Collector::collectKnob(VCVParam& vcv_knob, rack::app::Knob* knob) {
   vcv_knob.maxAngle =
     BasicallyEqual<float>(knob->maxAngle, M_PI) ? 0.75 * M_PI : knob->maxAngle;
 
+  // sometimes a knob is not a knob (looking at you, Surge),
+  // but that's the best way to represent this param in unreal.
+  // if x and y aren't equal, use the smaller of the two
+  if (!BasicallyEqual<float>(vcv_knob.box.size.y, vcv_knob.box.size.x)) {
+    if (vcv_knob.box.size.y < vcv_knob.box.size.x) {
+      vcv_knob.box.size.x = vcv_knob.box.size.y;
+    } else {
+      vcv_knob.box.size.y = vcv_knob.box.size.x;
+    }
+  }
+
   if (rack::app::SvgKnob* svgKnob = dynamic_cast<rack::app::SvgKnob*>(knob)) {
     try {
       // attempt to find foreground and background svgs by filename convention
