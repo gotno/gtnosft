@@ -198,7 +198,11 @@ struct OscController {
   void requestExit() { readyToExit = true; }
   void autosaveAndExit();
 
-  void requestSave() { needsSave = true; }
+  std::string saveAsPatchPath{""};
+  void requestSave(std::string patchPath = "") {
+    saveAsPatchPath = patchPath;
+    needsSave = true;
+  }
   bool needsSave{false};
   void savePatch();
 

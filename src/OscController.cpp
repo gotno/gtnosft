@@ -1154,13 +1154,31 @@ void OscController::arrangeModules(int64_t leftModuleId, int64_t rightModuleId, 
 }
 
 void OscController::savePatch() {
-  if (APP->patch->path == "") {
-    WARN("no patch path for save");
-    return;
+  if (saveAsPatchPath == "") { // save
+    if (APP->patch->path == "") {
+      WARN("no patch path for save");
+      return;
+    }
+    APP->patch->save(APP->patch->path);
+  } else if (saveAsPatchPath == "new") { // overwrite template
+    APP->patch->save(APP->patch->templatePath);
+    Bootstrappr.removeCtrl(APP->patch->templatePath);
+  } else { // save as
+    APP->patch->save(saveAsPatchPath);
+    APP->patch->path = saveAsPatchPath;
+    APP->patch->pushRecentPath(saveAsPatchPath);
+    APP->history->setSaved();
   }
 
-  APP->patch->save(APP->patch->path);
+  saveAsPatchPath = "";
   needsSave = false;
+
+  osc::OutboundPacketStream buffer(oscBuffer, OSC_BUFFER_SIZE);
+
+  buffer << osc::BeginMessage("/confirm_saved")
+    << osc::EndMessage;
+
+  sendMessage(buffer);
 }
 
 void OscController::autosaveAndExit() {
