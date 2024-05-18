@@ -33,6 +33,7 @@ enum CommandType {
   SyncLibrary,
   UpdateLights,
   SyncParam,
+  SyncPort,
   SyncMenu,
   Noop
 };
@@ -46,9 +47,12 @@ struct Payload {
   int retried = 0;
   int retryLimit = 10;
 
+  PortType portType;
+
   Payload() {}
   Payload(int64_t _pid) : pid(_pid) {}
   Payload(int64_t _pid, int _cid) : pid(_pid), cid(_cid) {}
+  Payload(int64_t _pid, int _cid, PortType _portType) : pid(_pid), cid(_cid), portType(_portType) {}
   Payload(int64_t _pid, float_time_point _lastCheck, float _wait) : pid(_pid), lastCheck(_lastCheck), wait(_wait) {}
 };
 typedef std::pair<CommandType, Payload> Command;
@@ -94,6 +98,8 @@ struct OscController {
   void processParamUpdates();
   void enqueueSyncParam(int64_t moduleId, int paramId);
   void syncParam(int64_t moduleId, int paramId);
+  void enqueueSyncPort(int64_t moduleId, int paramId, PortType type);
+  void syncPort(int64_t moduleId, int portId, PortType type);
 
   std::mutex cablemutex;
   std::vector<VCVCable> cablesToCreate;

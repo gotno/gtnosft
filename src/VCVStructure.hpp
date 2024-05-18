@@ -97,7 +97,7 @@ struct VCVParam {
   friend bool operator==(const VCVParam& a, const VCVParam& b) {
     return
       BasicallyEqual<float>(a.value, b.value)
-      && a.visible == b.visible;
+        && a.visible == b.visible;
   }
 
   friend bool operator!=(const VCVParam& a, const VCVParam& b) {
@@ -116,10 +116,24 @@ struct VCVPort {
   rack::math::Rect box;
   std::string svgPath;
 
+  bool visible{true};
+
   NVGcolor bodyColor;
 
   VCVPort() {}
   VCVPort(int _id) : id(_id) {}
+
+  void merge(const VCVPort& other) {
+    visible = other.visible;
+  }
+
+  friend bool operator==(const VCVPort& a, const VCVPort& b) {
+    return a.visible == b.visible;
+  }
+
+  friend bool operator!=(const VCVPort& a, const VCVPort& b) {
+    return !(a == b);
+  }
 };
 
 struct VCVDisplay {
@@ -163,13 +177,31 @@ struct VCVModule {
   std::map<int, VCVParam> getParams() const {
     return Params;
   }
+  std::map<int, VCVPort> getInputs() const {
+    return Inputs;
+  }
+  std::map<int, VCVPort> getOutputs() const {
+    return Outputs;
+  }
   friend bool operator==(const VCVModule& a, const VCVModule& b) {
     if (a.panelSvgPath != b.panelSvgPath) return false;
 
     auto aParams = a.getParams();
     auto bParams = b.getParams();
     for (auto& pair : aParams) {
-      if (pair.second != bParams[pair.first]) return false; 
+      if (pair.second != bParams[pair.first]) return false;
+    }
+
+    auto aInputs = a.getInputs();
+    auto bInputs = b.getInputs();
+    for (auto& pair : aInputs) {
+      if (pair.second != bInputs[pair.first]) return false;
+    }
+
+    auto aOutputs = a.getOutputs();
+    auto bOutputs = b.getOutputs();
+    for (auto& pair : aOutputs) {
+      if (pair.second != bOutputs[pair.first]) return false;
     }
 
     return true;

@@ -215,6 +215,22 @@ VCVModule Collector::collectModule(const int64_t& moduleId) {
     param.visible = paramWidget->isVisible();
   }
 
+  for (rack::app::PortWidget* portWidget : mw->getPorts()) {
+    VCVPort* port;
+
+    if (portWidget->type == rack::engine::Port::INPUT) {
+      vcv_module.Inputs.emplace(portWidget->portId, portWidget->portId);
+      port = &vcv_module.Inputs[portWidget->portId];
+      port->type = PortType::Input;
+    } else {
+      vcv_module.Outputs.emplace(portWidget->portId, portWidget->portId);
+      port = &vcv_module.Outputs[portWidget->portId];
+      port->type = PortType::Output;
+    }
+
+    port->visible = portWidget->isVisible();
+  }
+
   return vcv_module;
 }
 
@@ -831,6 +847,7 @@ void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWi
   port->name = portWidget->getPortInfo()->name;
   port->box = box;
   port->description = portWidget->getPortInfo()->description;
+  port->visible = portWidget->isVisible();
 
   if (rack::app::SvgPort* svgPort = dynamic_cast<rack::app::SvgPort*>(portWidget)) {
     try {

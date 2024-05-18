@@ -134,6 +134,10 @@ void OscController::processQueue() {
         /* DEBUG("tx /param/sync"); */
         syncParam(command.second.pid, command.second.cid);
         break;
+      case CommandType::SyncPort:
+        /* DEBUG("tx /port/sync"); */
+        syncPort(command.second.pid, command.second.cid, command.second.portType);
+        break;
       case CommandType::SyncMenu:
         /* DEBUG("tx /menu/sync"); */
         syncMenu(command.second.pid, command.second.cid);
@@ -375,6 +379,7 @@ void OscController::bundlePort(osc::OutboundPacketStream& bundle, VCVPort* port)
     << port->bodyColor.r
     << port->bodyColor.g
     << port->bodyColor.b
+    << port->visible
     << osc::EndMessage;
 }
 
@@ -831,13 +836,34 @@ void OscController::processModuleDiffs() {
 
     auto aParams = moduleThen.getParams();
     auto bParams = moduleNow.getParams();
-
     for (auto& pair : aParams) {
       int paramId = pair.first;
       if (pair.second != bParams[paramId]) {
         DEBUG("updating param %s from diff", pair.second.name.c_str());
         moduleThen.Params[paramId].merge(moduleNow.Params[paramId]);
         enqueueSyncParam(moduleId, paramId);
+      }
+    }
+
+    auto aInputs = moduleThen.getInputs();
+    auto bInputs = moduleNow.getInputs();
+    for (auto& pair : aInputs) {
+      int inputId = pair.first;
+      if (pair.second != bInputs[inputId]) {
+        DEBUG("updating input %s from diff", pair.second.name.c_str());
+        moduleThen.Inputs[inputId].merge(moduleNow.Inputs[inputId]);
+        enqueueSyncPort(moduleId, inputId, moduleNow.Inputs[inputId].type);
+      }
+    }
+
+    auto aOutputs = moduleThen.getOutputs();
+    auto bOutputs = moduleNow.getOutputs();
+    for (auto& pair : aOutputs) {
+      int outputId = pair.first;
+      if (pair.second != bOutputs[outputId]) {
+        DEBUG("updating output %s from diff", pair.second.name.c_str());
+        moduleThen.Outputs[outputId].merge(moduleNow.Outputs[outputId]);
+        enqueueSyncPort(moduleId, outputId, moduleNow.Outputs[outputId].type);
       }
     }
   }
@@ -860,6 +886,30 @@ void OscController::syncParam(int64_t moduleId, int paramId) {
     << param.displayValue.c_str()
     << param.value
     << param.visible
+    << osc::EndMessage;
+
+  sendMessage(buffer);
+}
+
+void OscController::enqueueSyncPort(int64_t moduleId, int portId, PortType type) {
+  enqueueCommand(Command(CommandType::SyncPort, Payload(moduleId, portId, type)));
+}
+
+void OscController::syncPort(int64_t moduleId, int portId, PortType type) {
+  if (Modules.count(moduleId) == 0) return;
+
+  osc::OutboundPacketStream buffer(oscBuffer, OSC_BUFFER_SIZE);
+
+  VCVPort& port =
+    type == PortType::Input
+      ? Modules[moduleId].Inputs[portId]
+      : Modules[moduleId].Outputs[portId];
+
+  buffer << osc::BeginMessage("/port/sync")
+    << moduleId
+    << portId
+    << type
+    << port.visible
     << osc::EndMessage;
 
   sendMessage(buffer);
