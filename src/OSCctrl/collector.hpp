@@ -12,6 +12,8 @@ struct Collector {
   rack::ui::Menu* findContextMenu(std::unordered_map<int64_t, ModuleMenuMap>& ContextMenus, VCVMenu& vcv_menu);
 
 private:
+  bool printAfterCollect{true};
+
   /* utils */
   // convert rack's upper left origin to unreal's center origin
   rack::math::Vec ueCorrectPos(const rack::math::Vec& parentSize, const rack::math::Rect& childBox) const;
@@ -83,4 +85,5 @@ private:
   void collectPort(VCVModule& vcv_module, rack::app::PortWidget* port);
   void setDefaultPortSvg(VCVPort& vcv_port);
 
+  void printModule(VCVModule& module);
 };

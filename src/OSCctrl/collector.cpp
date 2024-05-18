@@ -333,6 +333,9 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
   for (rack::app::PortWidget* portWidget : mw->getPorts()) {
     collectPort(vcv_module, portWidget);
   }
+
+  // log
+  if (printAfterCollect) printModule(vcv_module);
 }
 
 bool Collector::findModulePanel(rack::app::ModuleWidget* mw, rack::math::Rect& panelBox, std::string& panelSvgPath) {
@@ -865,4 +868,100 @@ void Collector::collectPort(VCVModule& vcv_module, rack::app::PortWidget* portWi
 
 void Collector::setDefaultPortSvg(VCVPort& vcv_port) {
   vcv_port.svgPath = rack::asset::system("res/ComponentLibrary/PJ301M.svg");
+}
+
+void Collector::printModule(VCVModule& vcv_module) {
+  INFO("\n");
+	INFO("%lld %s:%s", vcv_module.id, vcv_module.brand.c_str(), vcv_module.name.c_str());
+  if (vcv_module.Lights.size() > 0) {
+    INFO("        (has %lld lights)", vcv_module.Lights.size());
+  }
+  INFO("        panel svg path: %s", vcv_module.panelSvgPath.c_str());
+  INFO("        body color: %fr %fg %fb", vcv_module.bodyColor.r, vcv_module.bodyColor.g, vcv_module.bodyColor.b);
+  INFO("  pos: %fx/%fy, size: %fx/%fy", vcv_module.box.pos.x, vcv_module.box.pos.y, vcv_module.box.size.x, vcv_module.box.size.y);
+  INFO("  leftExpanderId: %lld, rightExpanderId: %lld", vcv_module.leftExpanderId, vcv_module.rightExpanderId);
+
+  if (vcv_module.Params.size() > 0) {
+    INFO("  Params:");
+    for (std::pair<int, VCVParam> param_pair : vcv_module.Params) {
+      std::string type;
+      switch (param_pair.second.type) {
+        case (ParamType::Knob):
+          type = "Knob";
+          break;
+        case (ParamType::Slider):
+          type = "Slider";
+          break;
+        case (ParamType::Button):
+          type = "Button";
+          break;
+        case (ParamType::Switch):
+          type = "Switch";
+          break;
+        case (ParamType::Unknown):
+        default:
+          type = "Unknown";
+          break;
+      }
+
+      // param id, type, name, unit
+      INFO("    %d (%s): %s%s", param_pair.second.id, type.c_str(), param_pair.second.name.c_str(), param_pair.second.unit.c_str());
+      INFO("    value: %f, min/default/max %f/%f/%f", param_pair.second.value, param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+      INFO("    box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
+      if (param_pair.second.Lights.size() > 0) {
+        INFO("      (has %lld lights)", param_pair.second.Lights.size());
+      }
+
+      if (type == "Knob") {
+        INFO("      min/default/max %f/%f/%f (snap: %s)", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue, param_pair.second.snap ? "true" : "false");
+        INFO("      minAngle/maxAngle %f/%f", param_pair.second.minAngle, param_pair.second.maxAngle);
+        for (std::string& path : param_pair.second.svgPaths) {
+          INFO("        svg: %s", path.c_str());
+        }
+      }
+      if (type == "Slider") {
+        INFO("      speed %f (horizontal: %s, snap: %s)", param_pair.second.speed, param_pair.second.horizontal ? "true" : "false", param_pair.second.snap ? "true" : "false");
+        INFO("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+        INFO("      box size %f/%f, pos %f/%f", param_pair.second.box.size.x, param_pair.second.box.size.y, param_pair.second.box.pos.x, param_pair.second.box.pos.y);
+        INFO("      handleBox size %f/%f, pos %f/%f", param_pair.second.handleBox.size.x, param_pair.second.handleBox.size.y, param_pair.second.handleBox.pos.x, param_pair.second.handleBox.pos.y);
+        INFO("      minHandlePos %f/%f, maxHandlePos %f/%f", param_pair.second.minHandlePos.x, param_pair.second.minHandlePos.y, param_pair.second.maxHandlePos.x, param_pair.second.maxHandlePos.y);
+        for (std::string& label : param_pair.second.sliderLabels) {
+          INFO("      label: %s", label.c_str());
+        }
+        for (std::string& path : param_pair.second.svgPaths) {
+          INFO("        svg: %s", path.c_str());
+        }
+      }
+      if (type == "Button") {
+        INFO("      (momentary: %s)", param_pair.second.momentary ? "true" : "false");
+        INFO("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+        INFO("      has %lld frames", param_pair.second.svgPaths.size());
+        for (std::string& path : param_pair.second.svgPaths) {
+          INFO("        frame svg: %s", path.c_str());
+        }
+      }
+      if (type == "Switch") {
+        INFO("      (horizontal: %s)", param_pair.second.horizontal ? "true" : "false");
+        INFO("      min/default/max %f/%f/%f", param_pair.second.minValue, param_pair.second.defaultValue, param_pair.second.maxValue);
+        INFO("      has %lld frames", param_pair.second.svgPaths.size());
+        for (std::string& path : param_pair.second.svgPaths) {
+          INFO("        frame svg: %s", path.c_str());
+        }
+      }
+    }
+  }
+  if (vcv_module.Inputs.size() > 0) {
+  INFO("  Inputs:");
+		for (std::pair<int, VCVPort> input_pair : vcv_module.Inputs) {
+			INFO("      %d %s %s", input_pair.second.id, input_pair.second.name.c_str(), input_pair.second.description.c_str());
+			INFO("        %s", input_pair.second.svgPath.c_str());
+		}
+	}
+	if (vcv_module.Outputs.size() > 0) {
+		INFO("  Outputs:");
+		for (std::pair<int, VCVPort> output_pair : vcv_module.Outputs) {
+			INFO("      %d %s %s", output_pair.second.id, output_pair.second.name.c_str(), output_pair.second.description.c_str());
+			INFO("        %s", output_pair.second.svgPath.c_str());
+		}
+	}
 }

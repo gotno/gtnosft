@@ -134,8 +134,7 @@ struct OscController {
   Bootstrapper Bootstrappr;
 
   std::unordered_map<int64_t, VCVModule> Modules;
-  void collectModules(bool printResults = false);
-  void printModules();
+  void collectModules();
 
   std::unordered_map<int64_t, VCVCable> Cables;
   void collectCables(bool printResults = false);
