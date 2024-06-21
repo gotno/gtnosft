@@ -946,9 +946,9 @@ void OscController::processMenuClicks() {
       addMenuToSync(ContextMenus.at(moduleId).at(menuId));
       addModuleToDiff(moduleId);
     }
-
-    diffModuleAndCablePresence();
   }
+
+  diffModuleAndCablePresence();
 }
 
 void OscController::cleanupModule(const int64_t& moduleId) {
@@ -1003,9 +1003,8 @@ void OscController::diffModuleAndCablePresence() {
   }
 
   std::vector<int64_t> actualCableIds = APP->engine->getCableIds();
-  if (Cables.size() < actualCableIds.size()) {
-    // more actual cables than what we have collected,
-    // collect and sync new cables
+
+  if (actualCableIds.size() != Cables.size()) {
     std::vector<int64_t> collectedCableIds;
     for (auto& pair : Cables) collectedCableIds.push_back(pair.first);
 
@@ -1013,14 +1012,37 @@ void OscController::diffModuleAndCablePresence() {
     std::sort(std::begin(collectedCableIds), std::end(collectedCableIds));
     std::vector<int64_t> diff;
 
-    std::set_difference(
-      actualCableIds.begin(), actualCableIds.end(),
-      collectedCableIds.begin(), collectedCableIds.end(),
-      std::inserter(diff, diff.begin())
-    );
-    for (const int64_t& cableId : diff) {
-      Collectr.collectCable(Cables, cableId);
-      enqueueSyncCable(cableId);
+    if (collectedCableIds.size() < actualCableIds.size()) {
+      // more actual cables than what we have collected,
+      // collect and sync new cables
+      std::set_difference(
+        actualCableIds.begin(), actualCableIds.end(),
+        collectedCableIds.begin(), collectedCableIds.end(),
+        std::inserter(diff, diff.begin())
+      );
+      for (const int64_t& cableId : diff) {
+        Collectr.collectCable(Cables, cableId);
+        enqueueSyncCable(cableId);
+      }
+    } else {
+      // more collected cables than what rack actually reports,
+      // signal UE to destroy
+      std::set_difference(
+        collectedCableIds.begin(), collectedCableIds.end(),
+        actualCableIds.begin(), actualCableIds.end(),
+        std::inserter(diff, diff.begin())
+      );
+
+      osc::OutboundPacketStream bundle(oscBuffer, OSC_BUFFER_SIZE);
+      bundle << osc::BeginBundleImmediate;
+      for (const int64_t& cableId : diff) {
+        Cables.erase(cableId);
+        bundle << osc::BeginMessage("/cables/destroy")
+          << cableId
+          << osc::EndMessage;
+      }
+      bundle << osc::EndBundle;
+      sendMessage(bundle);
     }
   }
 }
