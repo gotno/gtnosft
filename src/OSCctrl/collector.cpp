@@ -334,6 +334,35 @@ void Collector::collectModule(std::unordered_map<int64_t, VCVModule>& Modules, c
     collectPort(vcv_module, portWidget);
   }
 
+  // Light overlaps
+  int lightId, paramId;
+  rack::math::Vec lightPos, paramPos;
+  for (std::pair <int, VCVParam> param_pair : vcv_module.Params) {
+    paramId = param_pair.first;
+    VCVParam& param = param_pair.second;
+
+    paramPos =
+      param.type == ParamType::Slider
+        ? param.box.pos.plus(param.handleBox.pos)
+        : param.box.pos;
+
+    for (std::pair<int, VCVLight> light_pair : vcv_module.Lights) {
+      lightId = light_pair.first;
+      lightPos = light_pair.second.box.pos;
+
+      // assume position difference of < 1mm is overlap
+      if (std::abs(lightPos.x - paramPos.x) < 0.1f && std::abs(lightPos.y - paramPos.y) < 0.1f) {
+        vcv_module.Lights[lightId].overlapsParamId = paramId;
+      }
+    }
+
+    // assume a param's own lights overlap
+    for (std::pair<int, VCVLight> light_pair : param.Lights) {
+      lightId = light_pair.first;
+      vcv_module.ParamLights[lightId]->overlapsParamId = paramId;
+    }
+  }
+
   // log
   if (printAfterCollect) printModule(vcv_module);
 }

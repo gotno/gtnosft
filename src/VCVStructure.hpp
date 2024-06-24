@@ -26,6 +26,8 @@ struct VCVLight {
   NVGcolor color{nvgRGBA(0, 0, 0, 0)};
   NVGcolor bgColor{nvgRGBA(0, 0, 0, 0)};
 
+  int overlapsParamId{-1};
+
   rack::app::LightWidget* widget;
 
   VCVLight() {}

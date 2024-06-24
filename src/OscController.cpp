@@ -245,6 +245,7 @@ void OscController::bundleLight(osc::OutboundPacketStream& bundle, int64_t modul
     << light->bgColor.a
     << light->shape
     << light->visible
+    << light->overlapsParamId
     << osc::EndMessage;
 }
 
