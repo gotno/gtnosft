@@ -167,5 +167,13 @@ json_t* Bootstrapper::getCtrlJson() {
   std::fclose(file);
   removeRecursively(tempDir);
 
+  // move oscctrl waaay over so it doesn't mess with expanders/weldments
+  json_t* pos = json_array();
+  json_t* x = json_integer(5000);
+  json_t* y = json_integer(0);
+  json_array_append_new(pos, x);
+  json_array_append_new(pos, y);
+  json_object_set(ctrlJson, "pos", pos);
+
   return ctrlJson;
 }
