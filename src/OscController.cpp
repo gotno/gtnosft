@@ -775,7 +775,7 @@ void OscController::syncParam(int64_t moduleId, int paramId) {
   buffer << osc::BeginMessage("/param/sync")
     << moduleId
     << paramId
-    << param.displayValue.c_str()
+    << (param.displayValue.append(param.unit)).c_str()
     << param.value
     << param.visible
     << osc::EndMessage;
